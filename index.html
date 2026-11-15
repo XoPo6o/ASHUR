@@ -51,6 +51,45 @@ footer{padding:28px 0;border-top:1px solid var(--line);color:#7896a9;font-size:1
 footer .wrap{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}footer strong{font:18px Cinzel;color:var(--cyan)}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr;gap:30px}.links{display:none}.hero svg{width:95%;right:-30%;opacity:.48}.guardian .two{gap:0}.guardian-art{min-height:380px}}
 @media(max-width:560px){.wrap{width:calc(100% - 32px)}.nav{height:68px}.navbtn{padding:9px 11px;font-size:9px}.hero{min-height:720px}.hero svg{width:130%;right:-55%;top:25%;opacity:.36}.hero h1{font-size:60px}.note{gap:12px;flex-wrap:wrap}.cards,.marketgrid{grid-template-columns:1fr}section{padding:75px 0}.card{min-height:200px}.seal{min-height:290px}.guardian-art{min-height:300px}.futurebox{padding:32px 17px}}
+
+/* ASHUR PAPER RELIEF — layered cardboard visual direction */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap');
+:root{--bg:#d7c29b;--panel:#e8d7b7;--blue:#8b572d;--cyan:#b0783e;--ice:#35271d;--muted:#67513b;--line:rgba(91,61,36,.28);--white:#38291e}
+body{background-color:#c9b18a;color:#38291e;background-image:repeating-linear-gradient(3deg,rgba(87,57,31,.025) 0 1px,transparent 1px 5px),repeating-linear-gradient(93deg,rgba(255,249,225,.18) 0 1px,transparent 1px 7px),radial-gradient(ellipse at 15% 20%,#f1e4c9 0,transparent 45%),radial-gradient(ellipse at 85% 70%,#b99b6e 0,transparent 48%);font-family:'Manrope',sans-serif}
+h1,h2,h3,.brand,.quote{font-family:'Cormorant Garamond',Georgia,serif}
+header{background:rgba(225,210,180,.88);border-bottom:1px solid #76533355;backdrop-filter:blur(10px)}
+.brand,.links,.navbtn{color:#49301e;text-shadow:none}
+.navbtn,.btn{background:#e8d8b9;border:1px solid #9a7146;color:#553820;box-shadow:3px 4px 0 #8b6846, inset 0 1px #fff8e9}
+.navbtn:hover,.btn:hover{box-shadow:1px 2px 0 #8b6846;transform:translate(2px,2px)}
+.hero{background-color:#cbb48d;background-image:radial-gradient(ellipse at 80% 38%,#f4e6c8,transparent 48%),linear-gradient(90deg,#e5d3b0f5 0%,#e5d3b0dc 42%,#d1b88f66 100%),repeating-linear-gradient(0deg,#70502a08 0 1px,transparent 1px 5px)}
+.hero:before{opacity:.35;background:repeating-linear-gradient(2deg,transparent 0 7px,#6e4a2610 8px)}
+.hero:after{background:linear-gradient(0deg,#c9b18a,transparent 23%,transparent 85%,#e6d6b8aa)}
+.hero svg,.tower-art svg,.guardian-art svg{filter:sepia(.78) saturate(.68) hue-rotate(345deg) drop-shadow(7px 10px 0 rgba(83,55,30,.22));opacity:.96}
+.hero h1{color:#49301e;text-shadow:2px 3px 0 #fff1d4,4px 6px 0 #9b754d55}
+.hero h1 small,.eyebrow,.note b,.num,.role{color:#87542d}
+.hero p,.note{color:#5c4732}
+.primary{background:#a66f3c;color:#fff4dc;border:1px solid #754a2b;box-shadow:3px 4px 0 #704728}
+section,.intro,.pillars,.tower,.markets,.guardian,.future{background-color:transparent}
+.intro,.pillars,.tower,.markets,.future{background-image:linear-gradient(180deg,rgba(237,224,197,.72),rgba(205,183,146,.44))}
+.head h2,.card h3,.step h3,.market h3,.guardian-copy h2,.quote{color:#49301e;text-shadow:none}
+.muted,.card p,.step p,.market p{color:#68513a}
+.quote em{color:#986034}
+.seal,.tower-art,.guardian-art,.futurebox,.market{background-color:#e5d3b0;background-image:repeating-linear-gradient(5deg,#79572b0a 0 1px,transparent 1px 6px),linear-gradient(145deg,#f0e2c5,#cdb58b);border:1px solid #98734b;box-shadow:5px 7px 0 rgba(92,62,34,.22),inset 0 1px #fff8e7;position:relative}
+.seal:before,.tower-art:before,.guardian-art:before{border:1px dashed #98734b88;inset:12px}
+.seal span{border-color:#986034;color:#704728;box-shadow:4px 5px 0 #9a754b,inset 0 0 0 7px #e9d8b8;text-shadow:none}
+.card{background:linear-gradient(145deg,#f0e2c5,#d8c29b);border:1px solid #a17a4e;box-shadow:4px 5px 0 #96734d, inset 0 1px #fff9e9;border-radius:2px}
+.card:after{background:#98714a}
+.card:hover{border-color:#704728;box-shadow:2px 3px 0 #96734d}
+.market{background-image:linear-gradient(145deg,#eddfc2,#cbb48b)}
+.market:nth-child(2){background-image:linear-gradient(145deg,#e8d5b0,#c3a77a)}
+.steps{border-color:#9a754b}.step:before{background:#9b6838;box-shadow:0 0 0 4px #d8c29b,0 0 0 5px #9a754b}
+.futurebox{box-shadow:5px 7px 0 rgba(92,62,34,.22),inset 0 1px #fff8e7}
+.futurebox h2{color:#49301e;text-shadow:2px 2px 0 #fff2d9}
+footer{background:#bda47b;color:#5b452e;border-color:#9b784e}
+footer strong{color:#704728}
+@media(max-width:900px){.hero svg{opacity:.5}}
+@media(max-width:560px){.hero svg{opacity:.36}}
+
 </style>
 </head>
 <body>
