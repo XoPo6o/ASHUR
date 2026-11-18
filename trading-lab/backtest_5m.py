@@ -53,7 +53,7 @@ def fetch_history(symbol, timeframe):
     now = pd.Timestamp.now(tz="UTC")
     frame = frame[frame["timestamp"] + pd.Timedelta(milliseconds=interval_ms) <= now].reset_index(drop=True)
     if frame.empty:
-        raise RuntimeError(f"No closed 5m candles returned for {symbol}")
+        raise RuntimeError(f"No closed candles returned for {symbol}")
 
     frame["ema50"] = frame["close"].ewm(span=50, adjust=False).mean()
     frame["ema200"] = frame["close"].ewm(span=200, adjust=False).mean()
@@ -203,20 +203,20 @@ def main():
     for timeframe in TIMEFRAMES:
         for exit_mode in exit_modes:
             group = [r for r in results if r["timeframe"] == timeframe and r["exit_mode"] == exit_mode]
-        combined_pnl = sum(r["net_realized_pnl_usdt"] for r in group)
-        combined_fees = sum(r["total_fees_usdt"] for r in group)
-        combined_trades = sum(r["closed_trades"] for r in group)
-        print(json.dumps({
-            "timeframe": timeframe,
-            "exit_mode": exit_mode,
-            "combined_independent_10k_accounts": True,
-            "starting_capital_usdt": START_BALANCE * len(group),
-            "closed_trades": combined_trades,
-            "net_realized_pnl_usdt": round(combined_pnl, 2),
-            "total_fees_usdt": round(combined_fees, 2),
-            "ending_equity_usdt_excluding_open_positions": round(START_BALANCE * len(group) + combined_pnl, 2),
-            "note": "Each symbol is simulated with its own 10,000 USDT account; this is a strategy diagnostic, not a guarantee of future returns."
-        }, ensure_ascii=False))
+            combined_pnl = sum(r["net_realized_pnl_usdt"] for r in group)
+            combined_fees = sum(r["total_fees_usdt"] for r in group)
+            combined_trades = sum(r["closed_trades"] for r in group)
+            print(json.dumps({
+                "timeframe": timeframe,
+                "exit_mode": exit_mode,
+                "combined_independent_10k_accounts": True,
+                "starting_capital_usdt": START_BALANCE * len(group),
+                "closed_trades": combined_trades,
+                "net_realized_pnl_usdt": round(combined_pnl, 2),
+                "total_fees_usdt": round(combined_fees, 2),
+                "ending_equity_usdt_excluding_open_positions": round(START_BALANCE * len(group) + combined_pnl, 2),
+                "note": "Each symbol is simulated with its own 10,000 USDT account; this is a strategy diagnostic, not a guarantee of future returns."
+            }, ensure_ascii=False))
 
 
 if __name__ == "__main__":
