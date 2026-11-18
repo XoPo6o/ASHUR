@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import pandas as pd
 
 SYMBOLS = ["BTC/USDT", "ETH/USDT"]
-TIMEFRAME = "5m"
+TIMEFRAMES = ["5m", "15m", "1h"]
 INTERVAL_MS = 5 * 60 * 1000
 LOOKBACK_DAYS = 30
 START_BALANCE = 10_000.0
@@ -17,7 +17,8 @@ TARGET_PCT = 0.04
 FEE_RATE = 0.001
 
 
-def fetch_history(symbol):
+def fetch_history(symbol, timeframe):
+    interval_ms = {"5m": 5 * 60 * 1000, "15m": 15 * 60 * 1000, "1h": 60 * 60 * 1000}[timeframe]
     end_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
     start_ms = int((datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)).timestamp() * 1000)
     cursor = start_ms
@@ -26,7 +27,7 @@ def fetch_history(symbol):
     while cursor < end_ms:
         query = urllib.parse.urlencode({
             "symbol": symbol.replace("/", ""),
-            "interval": TIMEFRAME,
+            "interval": timeframe,
             "startTime": cursor,
             "endTime": end_ms,
             "limit": 1000,
@@ -38,7 +39,7 @@ def fetch_history(symbol):
         if not isinstance(batch, list) or not batch:
             break
         candles.extend([[r[0], r[1], r[2], r[3], r[4], r[5]] for r in batch])
-        next_cursor = int(batch[-1][0]) + INTERVAL_MS
+        next_cursor = int(batch[-1][0]) + interval_ms
         if next_cursor <= cursor:
             break
         cursor = next_cursor
@@ -50,7 +51,7 @@ def fetch_history(symbol):
     frame["timestamp"] = pd.to_datetime(frame["timestamp"], unit="ms", utc=True)
     frame = frame.dropna().drop_duplicates("timestamp").sort_values("timestamp").reset_index(drop=True)
     now = pd.Timestamp.now(tz="UTC")
-    frame = frame[frame["timestamp"] + pd.Timedelta(milliseconds=INTERVAL_MS) <= now].reset_index(drop=True)
+    frame = frame[frame["timestamp"] + pd.Timedelta(milliseconds=interval_ms) <= now].reset_index(drop=True)
     if frame.empty:
         raise RuntimeError(f"No closed 5m candles returned for {symbol}")
 
@@ -64,7 +65,7 @@ def fetch_history(symbol):
     return frame
 
 
-def backtest(symbol, frame, exit_mode):
+def backtest(symbol, frame, exit_mode, timeframe):
     cash = START_BALANCE
     position = None
     trades = []
@@ -166,6 +167,7 @@ def backtest(symbol, frame, exit_mode):
     total_fees = sum(t["fees"] for t in trades)
     return {
         "symbol": symbol,
+        "timeframe": timeframe,
         "exit_mode": exit_mode,
         "candles": len(frame),
         "period_start_utc": frame.iloc[0]["timestamp"].isoformat(),
@@ -188,21 +190,24 @@ def backtest(symbol, frame, exit_mode):
 
 
 def main():
-    print(f"ASHUR 5m historical paper backtest | last {LOOKBACK_DAYS} days | fee {FEE_RATE * 100:.2f}% per side")
+    print(f"ASHUR timeframe/exit comparison | last {LOOKBACK_DAYS} days | fee {FEE_RATE * 100:.2f}% per side")
     results = []
     exit_modes = ["donchian_10", "donchian_20", "donchian_40", "ema_cross", "no_signal_exit"]
     for symbol in SYMBOLS:
-        frame = fetch_history(symbol)
+        for timeframe in TIMEFRAMES:
+            frame = fetch_history(symbol, timeframe)
+            for exit_mode in exit_modes:
+                result = backtest(symbol, frame, exit_mode, timeframe)
+                results.append(result)
+                print(json.dumps(result, ensure_ascii=False))
+    for timeframe in TIMEFRAMES:
         for exit_mode in exit_modes:
-            result = backtest(symbol, frame, exit_mode)
-            results.append(result)
-            print(json.dumps(result, ensure_ascii=False))
-    for exit_mode in exit_modes:
-        group = [r for r in results if r["exit_mode"] == exit_mode]
+            group = [r for r in results if r["timeframe"] == timeframe and r["exit_mode"] == exit_mode]
         combined_pnl = sum(r["net_realized_pnl_usdt"] for r in group)
         combined_fees = sum(r["total_fees_usdt"] for r in group)
         combined_trades = sum(r["closed_trades"] for r in group)
         print(json.dumps({
+            "timeframe": timeframe,
             "exit_mode": exit_mode,
             "combined_independent_10k_accounts": True,
             "starting_capital_usdt": START_BALANCE * len(group),
