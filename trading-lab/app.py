@@ -298,7 +298,7 @@ st.markdown("---")
 with st.sidebar:
     st.markdown("### CONTROL ROOM")
     symbol = st.selectbox("Trading pair", ["BTC/USDT","ETH/USDT"])
-    timeframe = st.selectbox("Timeframe", ["4h","1h"], index=0)
+    timeframe = st.selectbox("Timeframe", ["5m","15m","1h","4h"], index=0)
     candle_limit = st.slider("Candles", 250, 1000, 500, 50)
     st.caption("Public market data only. No API keys.")
     st.markdown("---")
@@ -315,7 +315,7 @@ try:
         data = indicators(raw)
     market_ok = True
     last_price = float(data.close.iloc[-1])
-    signal = data.signal.iloc[-1]
+    signal = data.signal.iloc[-2] if len(data) > 1 else "UNAVAILABLE"
 except Exception as exc:
     market_ok = False
     market_source = None
@@ -339,11 +339,11 @@ m4.metric("REALIZED P&L", f"$ {realized_total:,.2f}")
 
 st.markdown("### NABU · Market intelligence")
 if market_ok:
-    st.caption(f"Live market data source: {market_source} · refreshed every 5 minutes")
+    st.caption(f"Live market data source: {market_source} · chart timeframe: {timeframe} · strategy reads closed candles only")
     a,b,c = st.columns(3)
     a.metric(f"{symbol} · LAST PRICE", f"$ {last_price:,.2f}")
-    b.metric("TREND", "BULLISH" if data.ema50.iloc[-1] > data.ema200.iloc[-1] else "BEARISH")
-    c.metric("STRATEGY SIGNAL", signal)
+    b.metric("TREND", "BULLISH" if data.ema50.iloc[-2] > data.ema200.iloc[-2] else "BEARISH")
+    c.metric("LAST CLOSED CANDLE SIGNAL", signal)
     st.plotly_chart(market_chart(data, symbol), use_container_width=True)
     with st.expander("Latest market data"):
         st.dataframe(data.tail(12).sort_values("timestamp", ascending=False), use_container_width=True, hide_index=True)
