@@ -1,0 +1,49 @@
+name: ASHUR Strategy Research v3
+run-name: ASHUR research v3 · 3y · ensemble and cost-aware
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-strategy-research-v3.yml"
+  schedule:
+    - cron: "37 2 * * 0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-strategy-research-v3
+  cancel-in-progress: false
+
+jobs:
+  research:
+    name: Test ensemble breakouts and cost-aware trend models
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout ASHUR research branch
+        uses: actions/checkout@v4
+        with:
+          ref: mvp-paper-trading
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install research dependency
+        run: python -m pip install --disable-pip-version-check pandas
+      - name: Run 3-year strategy research
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python trading-lab/strategy_lab_v3.py
+      - name: Upload detailed research results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashur-strategy-research-v3
+          path: |
+            trading-lab/strategy_research_v3.json
+            trading-lab/strategy_research_v3.csv
+          if-no-files-found: warn
+          retention-days: 30
