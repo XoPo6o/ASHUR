@@ -1,4 +1,7 @@
 import sqlite3
+import json
+import urllib.parse
+import urllib.request
 from datetime import datetime, timezone, date
 from pathlib import Path
 
@@ -67,13 +70,60 @@ def get_closed(conn):
     rows = conn.execute("SELECT * FROM trades WHERE status='CLOSED' ORDER BY id DESC").fetchall()
     return pd.DataFrame([dict(r) for r in rows])
 
+def _normalize_candles(candles):
+    frame = pd.DataFrame(candles, columns=["timestamp","open","high","low","close","volume"])
+    for col in ["open", "high", "low", "close", "volume"]:
+        frame[col] = pd.to_numeric(frame[col], errors="coerce")
+    frame["timestamp"] = pd.to_datetime(frame["timestamp"], unit="ms", utc=True)
+    return frame.dropna().sort_values("timestamp").reset_index(drop=True)
+
+
+def _fetch_binance_public(symbol, timeframe, limit):
+    # Binance public market-data mirror; no API key is required.
+    market_symbol = symbol.replace("/", "")
+    query = urllib.parse.urlencode({"symbol": market_symbol, "interval": timeframe, "limit": limit})
+    url = "https://data-api.binance.vision/api/v3/klines?" + query
+    request = urllib.request.Request(url, headers={"User-Agent": "ASHUR-Paper-Trading/0.1"})
+    with urllib.request.urlopen(request, timeout=12) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    if not isinstance(payload, list) or not payload:
+        raise RuntimeError("Binance returned no candles")
+    candles = [[row[0], row[1], row[2], row[3], row[4], row[5]] for row in payload]
+    return _normalize_candles(candles)
+
+
 @st.cache_data(ttl=300, show_spinner=False)
 def load_market(symbol, timeframe, limit):
-    exchange = ccxt.bybit({"enableRateLimit": True, "options": {"defaultType": "spot"}})
-    candles = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
-    frame = pd.DataFrame(candles, columns=["timestamp","open","high","low","close","volume"])
-    frame["timestamp"] = pd.to_datetime(frame["timestamp"], unit="ms", utc=True)
-    return frame
+    errors = []
+
+    # Primary source.
+    try:
+        exchange = ccxt.bybit({"enableRateLimit": True, "options": {"defaultType": "spot"}})
+        candles = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+        if candles:
+            return _normalize_candles(candles), "Bybit"
+        errors.append("Bybit: empty response")
+    except Exception as exc:
+        errors.append(f"Bybit: {type(exc).__name__}: {exc}")
+
+    # Fallback 1: Binance public market-data mirror.
+    try:
+        frame = _fetch_binance_public(symbol, timeframe, limit)
+        return frame, "Binance Public Data (fallback)"
+    except Exception as exc:
+        errors.append(f"Binance: {type(exc).__name__}: {exc}")
+
+    # Fallback 2: Kraken public OHLC endpoint.
+    try:
+        exchange = ccxt.kraken({"enableRateLimit": True})
+        candles = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=min(limit, 720))
+        if candles:
+            return _normalize_candles(candles), "Kraken (fallback)"
+        errors.append("Kraken: empty response")
+    except Exception as exc:
+        errors.append(f"Kraken: {type(exc).__name__}: {exc}")
+
+    raise RuntimeError("All market-data sources failed. " + " | ".join(errors))
 
 def indicators(df):
     x = df.copy()
@@ -165,13 +215,14 @@ with st.sidebar:
 
 try:
     with st.spinner("NABU is reading the market..."):
-        raw = load_market(symbol, timeframe, candle_limit)
+        raw, market_source = load_market(symbol, timeframe, candle_limit)
         data = indicators(raw)
     market_ok = True
     last_price = float(data.close.iloc[-1])
     signal = data.signal.iloc[-1]
 except Exception as exc:
     market_ok = False
+    market_source = None
     data = pd.DataFrame()
     last_price = None
     signal = "UNAVAILABLE"
@@ -192,6 +243,7 @@ m4.metric("REALIZED P&L", f"$ {realized_total:,.2f}")
 
 st.markdown("### NABU · Market intelligence")
 if market_ok:
+    st.caption(f"Live market data source: {market_source} · refreshed every 5 minutes")
     a,b,c = st.columns(3)
     a.metric(f"{symbol} · LAST PRICE", f"$ {last_price:,.2f}")
     b.metric("TREND", "BULLISH" if data.ema50.iloc[-1] > data.ema200.iloc[-1] else "BEARISH")
