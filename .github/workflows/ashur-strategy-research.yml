@@ -1,0 +1,52 @@
+name: ASHUR Multi-Strategy Research
+run-name: ASHUR strategy lab · 180d · train/OOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-strategy-research.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-strategy-research
+  cancel-in-progress: false
+
+jobs:
+  research:
+    name: Compare six strategies across BTC and ETH
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout ASHUR research branch
+        uses: actions/checkout@v4
+        with:
+          ref: mvp-paper-trading
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install research dependency
+        run: python -m pip install --disable-pip-version-check pandas
+
+      - name: Run 180-day strategy comparison
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python trading-lab/strategy_lab.py
+
+      - name: Upload detailed research results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashur-strategy-research-results
+          path: |
+            trading-lab/strategy_research_results.json
+            trading-lab/strategy_research_leaderboard.csv
+          if-no-files-found: warn
+          retention-days: 30
