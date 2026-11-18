@@ -1,4 +1,5 @@
 name: ASHUR 5m Strategy Backtest
+run-name: Compare 5m exit rules · 30-day grid
 
 on:
   push:
