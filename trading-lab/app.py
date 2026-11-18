@@ -56,6 +56,15 @@ def db():
         opened_at TEXT NOT NULL, closed_at TEXT, status TEXT NOT NULL)""")
     conn.execute("INSERT OR IGNORE INTO account(id,cash,created_at) VALUES(1,?,?)",
                  (START_BALANCE, datetime.now(timezone.utc).isoformat()))
+    conn.execute("""CREATE TABLE IF NOT EXISTS bot_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS bot_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TEXT NOT NULL,
+        symbol TEXT NOT NULL, event TEXT NOT NULL, details TEXT NOT NULL)""")
+    trade_columns = {row["name"] for row in conn.execute("PRAGMA table_info(trades)").fetchall()}
+    if "stop_price" not in trade_columns:
+        conn.execute("ALTER TABLE trades ADD COLUMN stop_price REAL")
+    if "take_profit" not in trade_columns:
+        conn.execute("ALTER TABLE trades ADD COLUMN take_profit REAL")
     conn.commit()
     return conn
 
@@ -188,6 +197,71 @@ def close_paper_position(conn, position, price):
     conn.commit()
     return pnl
 
+def log_bot_event(conn, symbol, event, details):
+    conn.execute("INSERT INTO bot_events(created_at,symbol,event,details) VALUES(?,?,?,?)",
+                 (datetime.now(timezone.utc).isoformat(), symbol, event, details))
+    conn.commit()
+
+
+def auto_trade_cycle(conn, symbols, timeframe):
+    results = []
+    for pair in symbols:
+        try:
+            raw, source = load_market(pair, timeframe, 500)
+            data = indicators(raw)
+            if len(data) < 205:
+                results.append(f"{pair}: waiting for enough candles")
+                continue
+            candle = data.iloc[-2]  # last fully closed candle
+            candle_key = f"{pair}|{timeframe}|{candle.timestamp.isoformat()}"
+            price = float(data.close.iloc[-1])
+            low, high = float(data.low.iloc[-1]), float(data.high.iloc[-1])
+            signal = str(candle.signal)
+            positions = [p for p in get_positions(conn) if p["symbol"] == pair]
+
+            # If stop and target are both touched in one candle, assume stop first.
+            for position in positions:
+                stop, target = position.get("stop_price"), position.get("take_profit")
+                reason, exit_price = None, None
+                if stop is not None and low <= float(stop):
+                    reason, exit_price = "STOP LOSS", float(stop)
+                elif target is not None and high >= float(target):
+                    reason, exit_price = "TAKE PROFIT", float(target)
+                elif signal == "SELL":
+                    reason, exit_price = "STRATEGY EXIT", price
+                if reason:
+                    close_paper_position(conn, position, exit_price)
+                    log_bot_event(conn, pair, "CLOSE", f"{reason} at {exit_price:.4f}")
+                    results.append(f"{pair}: closed by {reason}")
+                    positions = []
+
+            previous = conn.execute("SELECT value FROM bot_state WHERE key=?", (f"last:{candle_key}",)).fetchone()
+            if previous:
+                continue
+
+            if signal == "BUY" and not positions:
+                ok, message = open_paper_position(conn, pair, price, RISK_PER_TRADE)
+                if ok:
+                    latest = conn.execute("SELECT id,qty,price FROM trades WHERE status='OPEN' AND symbol=? ORDER BY id DESC LIMIT 1", (pair,)).fetchone()
+                    stop_price = float(latest["price"]) * 0.98
+                    take_profit = float(latest["price"]) * 1.04
+                    conn.execute("UPDATE trades SET stop_price=?,take_profit=? WHERE id=?",
+                                 (stop_price, take_profit, latest["id"]))
+                    log_bot_event(conn, pair, "AUTO BUY",
+                                  f"{message}; entry={latest['price']:.4f}; SL={stop_price:.4f}; TP={take_profit:.4f}; source={source}")
+                    results.append(f"{pair}: automatic BUY opened")
+                else:
+                    log_bot_event(conn, pair, "SKIP", message)
+                    results.append(f"{pair}: skipped — {message}")
+            conn.execute("INSERT OR REPLACE INTO bot_state(key,value) VALUES(?,?)",
+                         (f"last:{candle_key}", datetime.now(timezone.utc).isoformat()))
+            conn.commit()
+        except Exception as exc:
+            results.append(f"{pair}: {type(exc).__name__}: {exc}")
+            log_bot_event(conn, pair, "ERROR", f"{type(exc).__name__}: {exc}")
+    return results
+
+
 def equity_snapshot(conn, prices):
     cash = get_account(conn)
     positions = get_positions(conn)
@@ -195,8 +269,28 @@ def equity_snapshot(conn, prices):
     return cash + market_value, positions, market_value
 
 conn = db()
+
+@st.fragment(run_every="60s")
+def autonomous_paper_bot():
+    st.markdown("### MARDUK · Autonomous paper execution")
+    st.caption("AUTO MODE: ON · PAPER ONLY · checks every 60 seconds · signals from closed 1h candles")
+    results = auto_trade_cycle(conn, ["BTC/USDT", "ETH/USDT"], "1h")
+    if results:
+        for item in results[-4:]:
+            st.write("· " + item)
+    else:
+        st.write("· Monitoring BTC/USDT and ETH/USDT — no new signal.")
+    active = get_positions(conn)
+    if active:
+        for p in active:
+            st.write(f"OPEN {p['symbol']} · qty {p['qty']:.6f} · SL {p.get('stop_price') or 0:.2f} · TP {p.get('take_profit') or 0:.2f}")
+    else:
+        st.write("No open virtual positions.")
+
+autonomous_paper_bot()
+
 st.markdown('<div class="eyebrow">ALGORITHMIC TRADING LABORATORY · BUILD 0.1</div>', unsafe_allow_html=True)
-st.markdown('<div class="brand">ASHUR</div><div class="subbrand">𒀭 PAPER TRADING SYSTEM / BYBIT SPOT</div>', unsafe_allow_html=True)
+st.markdown('<div class="brand">ASHUR</div><div class="subbrand">𒀭 AUTONOMOUS PAPER TRADING SYSTEM</div>', unsafe_allow_html=True)
 st.markdown("---")
 
 with st.sidebar:
@@ -255,33 +349,6 @@ else:
     st.info("Market chart will appear when public exchange data is available.")
 
 st.markdown("---")
-st.markdown("### MARDUK · Paper execution")
-left,right = st.columns([1,1])
-with left:
-    st.markdown("**Open a virtual position**")
-    st.caption("Position sizing is capped by ISHTAR. A 2% stop-distance assumption is used for sizing.")
-    if market_ok:
-        st.write(f"Current {symbol} price: **$ {last_price:,.2f}**")
-        if st.button("＋  OPEN PAPER BUY", use_container_width=True, disabled=not market_ok):
-            ok,msg = open_paper_position(conn, symbol, last_price, RISK_PER_TRADE)
-            (st.success if ok else st.warning)(msg)
-            st.rerun()
-    else:
-        st.button("＋  OPEN PAPER BUY", disabled=True, use_container_width=True)
-with right:
-    st.markdown("**Close a virtual position**")
-    if positions:
-        selected_id = st.selectbox("Select position", [p["id"] for p in positions],
-                                   format_func=lambda pid: next(f"#{p['id']} · {p['symbol']} · {p['qty']:.6f}" for p in positions if p["id"]==pid))
-        selected = next(p for p in positions if p["id"]==selected_id)
-        exit_price = prices.get(selected["symbol"])
-        if exit_price is not None and st.button("－  CLOSE PAPER POSITION", use_container_width=True):
-            pnl = close_paper_position(conn, selected, exit_price)
-            st.success(f"Position closed. Realized P&L: {pnl:+.2f} USDT")
-            st.rerun()
-    else:
-        st.info("No open positions.")
-
 st.markdown("---")
 st.markdown("### Portfolio · Open positions")
 if positions:
@@ -304,4 +371,4 @@ else:
 
 st.markdown("---")
 st.markdown('<div class="subbrand">ASHUR · RESEARCH FIRST. PAPER SECOND. REAL CAPITAL ONLY AFTER VALIDATION.</div>', unsafe_allow_html=True)
-st.caption("Build 0.1 · Public Bybit market data · SQLite local ledger · All executions are simulated. No real orders can be sent.")
+st.caption("Build 0.2 · Autonomous paper mode · Public market data · SQLite ledger · No real orders or API keys.")
