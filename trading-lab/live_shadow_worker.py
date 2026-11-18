@@ -40,30 +40,64 @@ def api_json(url):
         return json.loads(response.read().decode("utf-8"))
 
 def fetch_bybit_klines(symbol, interval, limit=350):
-    query = urllib.parse.urlencode({"category": "spot", "symbol": symbol.replace("/", ""),
-                                    "interval": interval, "limit": limit})
-    payload = api_json("https://api.bybit.com/v5/market/kline?" + query)
-    if payload.get("retCode") != 0:
-        raise RuntimeError("Bybit kline: " + str(payload.get("retMsg")))
-    rows = payload["result"]["list"]
-    frame = pd.DataFrame([[int(r[0]), float(r[1]), float(r[2]), float(r[3]),
-                            float(r[4]), float(r[5])] for r in rows],
-                         columns=["timestamp", "open", "high", "low", "close", "volume"])
-    frame = frame.sort_values("timestamp").reset_index(drop=True)
-    # Drop the currently forming candle; strategy signals only use confirmed candles.
+    market_symbol = symbol.replace("/", "")
     ms = {"60": 3600000, "240": 14400000, "D": 86400000}[interval]
     cutoff = int(datetime.now(timezone.utc).timestamp() * 1000)
-    frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
-    if len(frame) < 220:
-        raise RuntimeError("Not enough closed candles: " + str(len(frame)))
-    return frame
+    errors = []
+    try:
+        query = urllib.parse.urlencode({"category": "spot", "symbol": market_symbol,
+                                        "interval": interval, "limit": limit})
+        payload = api_json("https://api.bybit.com/v5/market/kline?" + query)
+        if payload.get("retCode") != 0:
+            raise RuntimeError("Bybit kline: " + str(payload.get("retMsg")))
+        rows = payload["result"]["list"]
+        frame = pd.DataFrame([[int(r[0]), float(r[1]), float(r[2]), float(r[3]),
+                                float(r[4]), float(r[5])] for r in rows],
+                             columns=["timestamp", "open", "high", "low", "close", "volume"])
+        frame = frame.sort_values("timestamp").reset_index(drop=True)
+        frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
+        if len(frame) >= 220:
+            return frame
+        errors.append("Bybit returned too few closed candles")
+    except Exception as exc:
+        errors.append("Bybit: " + str(exc))
+    # Binance public market-data mirror is the automatic fallback for runner regions
+    # where Bybit's public REST endpoint is blocked.
+    try:
+        binance_interval = {"60": "1h", "240": "4h", "D": "1d"}[interval]
+        query = urllib.parse.urlencode({"symbol": market_symbol, "interval": binance_interval,
+                                        "limit": limit})
+        rows = api_json("https://data-api.binance.vision/api/v3/klines?" + query)
+        frame = pd.DataFrame([[int(r[0]), float(r[1]), float(r[2]), float(r[3]),
+                                float(r[4]), float(r[5])] for r in rows],
+                             columns=["timestamp", "open", "high", "low", "close", "volume"])
+        frame = frame.sort_values("timestamp").reset_index(drop=True)
+        frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
+        if len(frame) >= 220:
+            return frame
+        errors.append("Binance returned too few closed candles")
+    except Exception as exc:
+        errors.append("Binance: " + str(exc))
+    raise RuntimeError("No usable candle source: " + " | ".join(errors))
 
 def fetch_ticker(symbol):
-    query = urllib.parse.urlencode({"category": "spot", "symbol": symbol.replace("/", "")})
-    payload = api_json("https://api.bybit.com/v5/market/tickers?" + query)
-    if payload.get("retCode") != 0 or not payload.get("result", {}).get("list"):
-        raise RuntimeError("Bybit ticker unavailable")
-    return float(payload["result"]["list"][0]["lastPrice"])
+    market_symbol = symbol.replace("/", "")
+    errors = []
+    try:
+        query = urllib.parse.urlencode({"category": "spot", "symbol": market_symbol})
+        payload = api_json("https://api.bybit.com/v5/market/tickers?" + query)
+        if payload.get("retCode") == 0 and payload.get("result", {}).get("list"):
+            return float(payload["result"]["list"][0]["lastPrice"])
+        errors.append("Bybit ticker unavailable")
+    except Exception as exc:
+        errors.append("Bybit: " + str(exc))
+    try:
+        query = urllib.parse.urlencode({"symbol": market_symbol})
+        payload = api_json("https://data-api.binance.vision/api/v3/ticker/price?" + query)
+        return float(payload["price"])
+    except Exception as exc:
+        errors.append("Binance: " + str(exc))
+    raise RuntimeError("No usable ticker source: " + " | ".join(errors))
 
 def indicators(frame):
     x = frame.copy()
