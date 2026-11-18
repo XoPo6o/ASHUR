@@ -16,7 +16,7 @@ DAILY_LOSS_LIMIT = 0.02
 MAX_POSITIONS = 2
 FEE_RATE = 0.001
 SYMBOLS = ["BTC/USDT", "ETH/USDT"]
-TIMEFRAME = "5m"
+TIMEFRAME = "15m"
 
 
 def utc_now():
@@ -72,7 +72,7 @@ def with_indicators(frame):
     x["ema50"] = x["close"].ewm(span=50, adjust=False).mean()
     x["ema200"] = x["close"].ewm(span=200, adjust=False).mean()
     x["donchian_high"] = x["high"].rolling(20).max().shift(1)
-    x["donchian_low"] = x["low"].rolling(10).min().shift(1)
+    x["donchian_low"] = x["low"].rolling(20).min().shift(1)
     x["signal"] = "HOLD"
     x.loc[(x["close"] > x["donchian_high"]) & (x["ema50"] > x["ema200"]), "signal"] = "BUY"
     x.loc[x["close"] < x["donchian_low"], "signal"] = "SELL"
@@ -196,7 +196,7 @@ def run_cycle(conn):
             key = f"last:{symbol}|{TIMEFRAME}"
             last = conn.execute("SELECT value FROM bot_state WHERE key=?", (key,)).fetchone()
             if last and last["value"] == candle_id:
-                print(f"{symbol}: {signal} already evaluated for the latest closed 5m candle; waiting for the next 5-minute close")
+                print(f"{symbol}: {signal} already evaluated for the latest closed 15m candle; waiting for the next 15-minute close")
                 continue
 
             trend = "UP" if float(signal_row["ema50"]) > float(signal_row["ema200"]) else "DOWN"
@@ -204,7 +204,7 @@ def run_cycle(conn):
             candle_close = float(signal_row["close"])
             details = (
                 f"timeframe={TIMEFRAME}; candle={candle_id}; signal={signal}; "
-                f"close={candle_close:.4f}; donchian20_high={breakout_level:.4f}; "
+                f"close={candle_close:.4f}; donchian20_high={breakout_level:.4f}; donchian20_exit={float(signal_row["donchian_low"]):.4f}; "
                 f"ema50={float(signal_row['ema50']):.4f}; ema200={float(signal_row['ema200']):.4f}; "
                 f"trend={trend}; source={source}"
             )
