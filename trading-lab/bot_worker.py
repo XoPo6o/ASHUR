@@ -196,19 +196,31 @@ def run_cycle(conn):
             key = f"last:{symbol}|{TIMEFRAME}"
             last = conn.execute("SELECT value FROM bot_state WHERE key=?", (key,)).fetchone()
             if last and last["value"] == candle_id:
+                print(f"{symbol}: {signal} already evaluated for the latest closed 1h candle; waiting for the next hourly close")
                 continue
+
+            trend = "UP" if float(signal_row["ema50"]) > float(signal_row["ema200"]) else "DOWN"
+            breakout_level = float(signal_row["donchian_high"])
+            candle_close = float(signal_row["close"])
+            print(
+                f"{symbol}: signal={signal}; candle_close={candle_close:.4f}; "
+                f"20-candle_breakout_level={breakout_level:.4f}; EMA50/EMA200_trend={trend}; "
+                f"market_source={source}"
+            )
 
             if signal == "BUY" and not positions(conn, symbol):
                 ok, message = open_position(conn, symbol, price)
                 if ok:
-                    print(f"{symbol}: {message} via {source}")
+                    print(f"{symbol}: {message}")
                     changed = True
                 else:
                     log_event(conn, symbol, "SKIP", message)
                     print(f"{symbol}: skipped: {message}")
                     changed = True
+            elif signal == "BUY":
+                print(f"{symbol}: BUY signal ignored — an open position already exists")
             else:
-                print(f"{symbol}: {signal} on closed candle via {source}")
+                print(f"{symbol}: no entry — strategy signal is {signal}, not BUY")
 
             conn.execute("INSERT OR REPLACE INTO bot_state(key,value) VALUES(?,?)", (key, candle_id))
             changed = True
