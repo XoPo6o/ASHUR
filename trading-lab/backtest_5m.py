@@ -57,14 +57,14 @@ def fetch_history(symbol):
     frame["ema50"] = frame["close"].ewm(span=50, adjust=False).mean()
     frame["ema200"] = frame["close"].ewm(span=200, adjust=False).mean()
     frame["donchian_high"] = frame["high"].rolling(20).max().shift(1)
-    frame["donchian_low"] = frame["low"].rolling(10).min().shift(1)
+    for window in [10, 20, 40]:
+        frame[f"donchian_low_{window}"] = frame["low"].rolling(window).min().shift(1)
     frame["signal"] = "HOLD"
     frame.loc[(frame["close"] > frame["donchian_high"]) & (frame["ema50"] > frame["ema200"]), "signal"] = "BUY"
-    frame.loc[frame["close"] < frame["donchian_low"], "signal"] = "SELL"
     return frame
 
 
-def backtest(symbol, frame):
+def backtest(symbol, frame, exit_mode):
     cash = START_BALANCE
     position = None
     trades = []
@@ -82,7 +82,10 @@ def backtest(symbol, frame):
                 reason, exit_price = "STOP LOSS", position["stop"]
             elif float(bar["high"]) >= position["target"]:
                 reason, exit_price = "TAKE PROFIT", position["target"]
-            elif str(previous["signal"]) == "SELL":
+            elif (
+                (exit_mode.startswith("donchian") and float(previous["close"]) < float(previous[f"donchian_low_{exit_mode.split('_')[1]}"]))
+                or (exit_mode == "ema_cross" and float(previous["ema50"]) < float(previous["ema200"]))
+            ):
                 reason, exit_price = "STRATEGY EXIT", float(bar["open"])
 
             if reason:
@@ -163,6 +166,7 @@ def backtest(symbol, frame):
     total_fees = sum(t["fees"] for t in trades)
     return {
         "symbol": symbol,
+        "exit_mode": exit_mode,
         "candles": len(frame),
         "period_start_utc": frame.iloc[0]["timestamp"].isoformat(),
         "period_end_utc": frame.iloc[-1]["timestamp"].isoformat(),
@@ -186,23 +190,28 @@ def backtest(symbol, frame):
 def main():
     print(f"ASHUR 5m historical paper backtest | last {LOOKBACK_DAYS} days | fee {FEE_RATE * 100:.2f}% per side")
     results = []
+    exit_modes = ["donchian_10", "donchian_20", "donchian_40", "ema_cross", "no_signal_exit"]
     for symbol in SYMBOLS:
         frame = fetch_history(symbol)
-        result = backtest(symbol, frame)
-        results.append(result)
-        print(json.dumps(result, ensure_ascii=False))
-    combined_pnl = sum(r["net_realized_pnl_usdt"] for r in results)
-    combined_fees = sum(r["total_fees_usdt"] for r in results)
-    combined_trades = sum(r["closed_trades"] for r in results)
-    print(json.dumps({
-        "combined_independent_10k_accounts": True,
-        "starting_capital_usdt": START_BALANCE * len(results),
-        "closed_trades": combined_trades,
-        "net_realized_pnl_usdt": round(combined_pnl, 2),
-        "total_fees_usdt": round(combined_fees, 2),
-        "ending_equity_usdt_excluding_open_positions": round(START_BALANCE * len(results) + combined_pnl, 2),
-        "note": "Each symbol is simulated with its own 10,000 USDT account; this is a strategy diagnostic, not a guarantee of future returns."
-    }, ensure_ascii=False))
+        for exit_mode in exit_modes:
+            result = backtest(symbol, frame, exit_mode)
+            results.append(result)
+            print(json.dumps(result, ensure_ascii=False))
+    for exit_mode in exit_modes:
+        group = [r for r in results if r["exit_mode"] == exit_mode]
+        combined_pnl = sum(r["net_realized_pnl_usdt"] for r in group)
+        combined_fees = sum(r["total_fees_usdt"] for r in group)
+        combined_trades = sum(r["closed_trades"] for r in group)
+        print(json.dumps({
+            "exit_mode": exit_mode,
+            "combined_independent_10k_accounts": True,
+            "starting_capital_usdt": START_BALANCE * len(group),
+            "closed_trades": combined_trades,
+            "net_realized_pnl_usdt": round(combined_pnl, 2),
+            "total_fees_usdt": round(combined_fees, 2),
+            "ending_equity_usdt_excluding_open_positions": round(START_BALANCE * len(group) + combined_pnl, 2),
+            "note": "Each symbol is simulated with its own 10,000 USDT account; this is a strategy diagnostic, not a guarantee of future returns."
+        }, ensure_ascii=False))
 
 
 if __name__ == "__main__":
