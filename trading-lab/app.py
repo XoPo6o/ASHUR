@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import os
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone, date
@@ -44,6 +45,25 @@ hr { border-color:#292b30; }
 div[data-testid="stDataFrame"] { border:1px solid #292b30; border-radius:8px; }
 </style>
 """, unsafe_allow_html=True)
+
+def sync_worker_database():
+    # The headless GitHub Actions worker commits the shared paper ledger to this public repo.
+    url = "https://raw.githubusercontent.com/XoPo6o/ASHUR/mvp-paper-trading/trading-lab/ashur_paper.db"
+    temp_path = DB_PATH.with_suffix(".download")
+    try:
+        request = urllib.request.Request(url, headers={"User-Agent": "ASHUR-Dashboard/0.3"})
+        with urllib.request.urlopen(request, timeout=12) as response:
+            payload = response.read()
+        if payload.startswith(b"SQLite format 3"):
+            temp_path.write_bytes(payload)
+            os.replace(temp_path, DB_PATH)
+    except Exception:
+        # First deployment may happen before the worker has created its database.
+        try:
+            temp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
+
 
 def db():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -268,26 +288,8 @@ def equity_snapshot(conn, prices):
     market_value = sum(p["qty"] * prices.get(p["symbol"], p["price"]) for p in positions)
     return cash + market_value, positions, market_value
 
+sync_worker_database()
 conn = db()
-
-@st.fragment(run_every="60s")
-def autonomous_paper_bot():
-    st.markdown("### MARDUK · Autonomous paper execution")
-    st.caption("AUTO MODE: ON · PAPER ONLY · checks every 60 seconds · signals from closed 1h candles")
-    results = auto_trade_cycle(conn, ["BTC/USDT", "ETH/USDT"], "1h")
-    if results:
-        for item in results[-4:]:
-            st.write("· " + item)
-    else:
-        st.write("· Monitoring BTC/USDT and ETH/USDT — no new signal.")
-    active = get_positions(conn)
-    if active:
-        for p in active:
-            st.write(f"OPEN {p['symbol']} · qty {p['qty']:.6f} · SL {p.get('stop_price') or 0:.2f} · TP {p.get('take_profit') or 0:.2f}")
-    else:
-        st.write("No open virtual positions.")
-
-autonomous_paper_bot()
 
 st.markdown('<div class="eyebrow">ALGORITHMIC TRADING LABORATORY · BUILD 0.1</div>', unsafe_allow_html=True)
 st.markdown('<div class="brand">ASHUR</div><div class="subbrand">𒀭 AUTONOMOUS PAPER TRADING SYSTEM</div>', unsafe_allow_html=True)
@@ -371,4 +373,4 @@ else:
 
 st.markdown("---")
 st.markdown('<div class="subbrand">ASHUR · RESEARCH FIRST. PAPER SECOND. REAL CAPITAL ONLY AFTER VALIDATION.</div>', unsafe_allow_html=True)
-st.caption("Build 0.2 · Autonomous paper mode · Public market data · SQLite ledger · No real orders or API keys.")
+st.caption("Build 0.3 · Headless GitHub Actions worker · Paper only · Shared SQLite ledger · No real orders or API keys.")
