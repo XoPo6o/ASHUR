@@ -1,0 +1,40 @@
+name: ASHUR 5m Strategy Backtest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-5m-backtest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-5m-backtest
+  cancel-in-progress: true
+
+jobs:
+  backtest:
+    name: Backtest last 30 days
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout ASHUR strategy branch
+        uses: actions/checkout@v4
+        with:
+          ref: mvp-paper-trading
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backtest dependency
+        run: python -m pip install --disable-pip-version-check pandas
+
+      - name: Run 30-day 5m backtest
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python trading-lab/backtest_5m.py
