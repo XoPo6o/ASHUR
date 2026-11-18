@@ -223,6 +223,44 @@ def open_position(conn, s, price, atr):
       (s["id"],s["symbol"],qty,fill,fee,stop,target,now()))
     event(conn,s["id"],"OPEN",f"paper BUY; qty={qty:.8f}; entry={fill:.6f}; SL={stop:.6f}; TP={target:.6f}")
 
+def export_status(conn):
+    accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
+    output = {"updated_at": now(), "mode": "PAPER_ONLY", "market_data": "Public spot market data; Bybit primary, Binance fallback",
+              "accounts": []}
+    for a in accounts:
+        pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
+        mark = conn.execute("SELECT price,updated_at FROM shadow_marks WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
+        trades = conn.execute("SELECT pnl,fees,reason,opened_at,closed_at FROM shadow_trades WHERE strategy_id=? ORDER BY id", (a["strategy_id"],)).fetchall()
+        realized = sum(float(t["pnl"]) for t in trades)
+        wins = sum(float(t["pnl"]) > 0 for t in trades)
+        gross_profit = sum(float(t["pnl"]) for t in trades if float(t["pnl"]) > 0)
+        gross_loss = abs(sum(float(t["pnl"]) for t in trades if float(t["pnl"]) < 0))
+        price = float(mark["price"]) if mark else None
+        unrealized = 0.0
+        position = None
+        if pos:
+            mark_price = price if price is not None else float(pos["entry"])
+            unrealized = float(pos["qty"]) * (mark_price-float(pos["entry"])) - float(pos["entry_fee"]) - float(pos["qty"])*mark_price*FEE
+            position = {"symbol":pos["symbol"],"qty":float(pos["qty"]),"entry":float(pos["entry"]),
+                        "mark":mark_price,"stop":float(pos["stop"]),"target":float(pos["target"]),
+                        "unrealized_pnl":round(unrealized,4),"opened_at":pos["opened_at"]}
+        cash = float(a["cash"])
+        equity = cash + (float(pos["qty"])*price if pos and price is not None else (float(pos["qty"])*float(pos["entry"]) if pos else 0.0))
+        output["accounts"].append({
+            "strategy_id":a["strategy_id"],"label":a["label"],"symbol":a["symbol"],
+            "timeframe":{"60":"1h","240":"4h","D":"1d"}.get(a["interval"],a["interval"]),
+            "grade":a["grade"],"starting_cash":float(a["starting_cash"]),"cash":round(cash,4),
+            "equity":round(equity,4),"net_pnl":round(equity-float(a["starting_cash"]),4),
+            "realized_pnl":round(realized,4),"unrealized_pnl":round(unrealized,4),
+            "return_pct":round((equity/float(a["starting_cash"])-1)*100,4),
+            "trades":len(trades),"wins":wins,"win_rate_pct":round(wins/len(trades)*100,2) if trades else 0,
+            "profit_factor":round(gross_profit/gross_loss,3) if gross_loss else (None if not gross_profit else "inf"),
+            "fees":round(sum(float(t["fees"]) for t in trades),4),"last_price":price,
+            "last_price_at":mark["updated_at"] if mark else None,"position":position
+        })
+    out = ROOT / "ashur_shadow_status.json"
+    out.write_text(json.dumps(output, indent=2), encoding="utf-8")
+
 def run():
     conn = sqlite3.connect(DB, timeout=30)
     conn.row_factory = sqlite3.Row
@@ -263,6 +301,7 @@ def run():
             event(conn,s["id"],"ERROR",f"{type(exc).__name__}: {exc}")
             conn.commit()
             print(f'{s["id"]}: ERROR {type(exc).__name__}: {exc}')
+    export_status(conn)
     conn.close()
 
 if __name__ == "__main__":
