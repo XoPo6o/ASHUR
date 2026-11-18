@@ -159,7 +159,7 @@ def indicators(df):
     x["ema50"] = x["close"].ewm(span=50, adjust=False).mean()
     x["ema200"] = x["close"].ewm(span=200, adjust=False).mean()
     x["donchian_high"] = x["high"].rolling(20).max().shift(1)
-    x["donchian_low"] = x["low"].rolling(10).min().shift(1)
+    x["donchian_low"] = x["low"].rolling(20).min().shift(1)
     x["volatility"] = x["close"].pct_change().rolling(20).std()
     x["signal"] = "HOLD"
     x.loc[(x["close"] > x["donchian_high"]) & (x["ema50"] > x["ema200"]), "signal"] = "BUY"
@@ -298,7 +298,7 @@ st.markdown("---")
 with st.sidebar:
     st.markdown("### CONTROL ROOM")
     symbol = st.selectbox("Trading pair", ["BTC/USDT","ETH/USDT"])
-    timeframe = st.selectbox("Timeframe", ["5m","15m","1h","4h"], index=0)
+    timeframe = st.selectbox("Timeframe", ["5m","15m","1h","4h"], index=1)
     candle_limit = st.slider("Candles", 250, 1000, 500, 50)
     st.caption("Public market data only. No API keys.")
     st.markdown("---")
