@@ -1,5 +1,5 @@
 name: ASHUR Expanded Strategy Research
-run-name: ASHUR research v2 · 2y · walk-forward
+run-name: ASHUR research v2 · 2y · walk-forward · expanded models
 
 on:
   workflow_dispatch:
