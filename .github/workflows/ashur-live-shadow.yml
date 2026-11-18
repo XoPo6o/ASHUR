@@ -3,9 +3,10 @@ run-name: ASHUR · 5 parallel live-data paper strategies
 
 on:
   push:
-    branches: [main]
+    branches: [main, ashur-live-shadow]
     paths:
       - ".github/workflows/ashur-live-shadow.yml"
+      - "trading-lab/live_shadow_worker.py"
   workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
