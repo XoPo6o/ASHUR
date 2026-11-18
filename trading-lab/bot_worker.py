@@ -16,7 +16,7 @@ DAILY_LOSS_LIMIT = 0.02
 MAX_POSITIONS = 2
 FEE_RATE = 0.001
 SYMBOLS = ["BTC/USDT", "ETH/USDT"]
-TIMEFRAME = "1h"
+TIMEFRAME = "5m"
 
 
 def utc_now():
@@ -173,9 +173,9 @@ def run_cycle(conn):
             signal_row = data.iloc[-2]  # only use the last fully closed hourly candle
             signal = str(signal_row["signal"])
             candle_id = signal_row["timestamp"].isoformat()
-            current = data.iloc[-1]
-            price = float(current["close"])
-            low, high = float(current["low"]), float(current["high"])
+            # Execute only from the last fully closed candle; never use a still-forming bar.
+            price = float(signal_row["close"])
+            low, high = float(signal_row["low"]), float(signal_row["high"])
 
             active = positions(conn, symbol)
             for p in active:
@@ -196,17 +196,20 @@ def run_cycle(conn):
             key = f"last:{symbol}|{TIMEFRAME}"
             last = conn.execute("SELECT value FROM bot_state WHERE key=?", (key,)).fetchone()
             if last and last["value"] == candle_id:
-                print(f"{symbol}: {signal} already evaluated for the latest closed 1h candle; waiting for the next hourly close")
+                print(f"{symbol}: {signal} already evaluated for the latest closed 5m candle; waiting for the next 5-minute close")
                 continue
 
             trend = "UP" if float(signal_row["ema50"]) > float(signal_row["ema200"]) else "DOWN"
             breakout_level = float(signal_row["donchian_high"])
             candle_close = float(signal_row["close"])
-            print(
-                f"{symbol}: signal={signal}; candle_close={candle_close:.4f}; "
-                f"20-candle_breakout_level={breakout_level:.4f}; EMA50/EMA200_trend={trend}; "
-                f"market_source={source}"
+            details = (
+                f"timeframe={TIMEFRAME}; candle={candle_id}; signal={signal}; "
+                f"close={candle_close:.4f}; donchian20_high={breakout_level:.4f}; "
+                f"ema50={float(signal_row['ema50']):.4f}; ema200={float(signal_row['ema200']):.4f}; "
+                f"trend={trend}; source={source}"
             )
+            log_event(conn, symbol, "SIGNAL", details)
+            print(f"{symbol}: {details}")
 
             if signal == "BUY" and not positions(conn, symbol):
                 ok, message = open_position(conn, symbol, price)
