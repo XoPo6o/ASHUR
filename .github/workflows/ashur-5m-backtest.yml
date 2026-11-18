@@ -1,5 +1,5 @@
 name: ASHUR 5m Strategy Backtest
-run-name: Compare 5m exit rules · 30-day grid
+run-name: Compare 5m, 15m and 1h · 30-day grid
 
 on:
   push:
