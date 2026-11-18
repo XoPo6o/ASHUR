@@ -18,6 +18,7 @@ SLIPPAGE = 0.0005
 MAX_NOTIONAL = 0.95
 
 # Five isolated paper accounts. The last two are exploratory: historical samples were small.
+# Public market-data polling is read-only; this worker never sends exchange orders.
 STRATEGIES = [
     {"id": "BNB_4H_KELTNER_ADX", "symbol": "BNB/USDT", "interval": "240",
      "label": "Keltner breakout + ADX", "grade": "RESEARCH_PASS"},
