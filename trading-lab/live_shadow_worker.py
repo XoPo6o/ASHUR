@@ -204,6 +204,7 @@ def run():
             entry_signal, exit_signal = signals(row,s["id"])
             conn.execute("INSERT OR REPLACE INTO shadow_marks VALUES(?,?,?)",(s["id"],price,now()))
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
+            closed_this_cycle = False
             if pos:
                 if price <= pos["stop"]:
                     close_position(conn,s,price,"STOP")
@@ -211,10 +212,12 @@ def run():
                     close_position(conn,s,price,"TARGET")
                 elif exit_signal:
                     close_position(conn,s,price,"SIGNAL")
+                if price <= pos["stop"] or price >= pos["target"] or exit_signal:
+                    closed_this_cycle = True
             previous = conn.execute("SELECT last_candle FROM shadow_state WHERE strategy_id=?",(s["id"],)).fetchone()
             if not previous or previous["last_candle"] != candle_id:
                 pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
-                if not pos and entry_signal:
+                if not pos and entry_signal and not closed_this_cycle:
                     open_position(conn,s,price,float(row.atr))
                 conn.execute("INSERT OR REPLACE INTO shadow_state VALUES(?,?)",(s["id"],candle_id))
                 event(conn,s["id"],"CHECK",f"candle={candle_id}; close={float(row.close):.6f}; live={price:.6f}; entry={entry_signal}; exit={exit_signal}")
