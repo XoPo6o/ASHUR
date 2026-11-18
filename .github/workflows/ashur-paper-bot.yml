@@ -1,5 +1,5 @@
 name: ASHUR Paper Trading Worker
-run-name: ASHUR paper cycle · 5m strategy
+run-name: ASHUR paper cycle · 15m strategy
 
 on:
   push:
