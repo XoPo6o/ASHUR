@@ -2,6 +2,7 @@
 """Run the ASHUR paper worker every five minutes and publish its paper ledger."""
 import os
 import subprocess
+import shutil
 import sys
 import time
 from datetime import datetime, timezone
@@ -77,8 +78,91 @@ def publish_ledger():
         log("LEDGER_PUBLISHED to " + BRANCH)
 
 
+def configure_github_push():
+    """Prepare a persistent repo-scoped SSH deploy key for ledger publishing."""
+    if not shutil.which("git"):
+        log("LEDGER_AUTH_SETUP_ERROR git executable not found")
+        return False
+    if not shutil.which("ssh-keygen"):
+        log("LEDGER_AUTH_SETUP_ERROR ssh-keygen executable not found")
+        return False
+
+    ssh_dir = Path.home() / ".ssh"
+    key = ssh_dir / "id_ed25519_ashur"
+    public_key = Path(str(key) + ".pub")
+    known_hosts = ssh_dir / "known_hosts"
+
+    try:
+        ssh_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(ssh_dir, 0o700)
+
+        if not key.exists():
+            generated = subprocess.run(
+                ["ssh-keygen", "-t", "ed25519", "-N", "", "-C",
+                 "ashur-enzonic-paper-worker", "-f", str(key)],
+                text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
+            if generated.returncode:
+                log("LEDGER_AUTH_SETUP_ERROR ssh-keygen: " + (generated.stdout or "").strip())
+                return False
+        os.chmod(key, 0o600)
+
+        if not public_key.exists():
+            derived = subprocess.run(
+                ["ssh-keygen", "-y", "-f", str(key)],
+                text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
+            if derived.returncode:
+                log("LEDGER_AUTH_SETUP_ERROR cannot derive public key: " + (derived.stdout or "").strip())
+                return False
+            public_key.write_text(derived.stdout.strip() + " ashur-enzonic-paper-worker\\n", encoding="utf-8")
+        os.chmod(public_key, 0o644)
+
+        if shutil.which("ssh-keyscan"):
+            scan = subprocess.run(
+                ["ssh-keyscan", "-H", "github.com"],
+                text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=15
+            )
+            if scan.returncode == 0 and scan.stdout.strip():
+                existing = known_hosts.read_text(encoding="utf-8") if known_hosts.exists() else ""
+                with known_hosts.open("a", encoding="utf-8") as handle:
+                    for line in scan.stdout.splitlines():
+                        if line and line not in existing:
+                            handle.write(line + "\\n")
+                            existing += line + "\\n"
+                os.chmod(known_hosts, 0o600)
+
+        os.environ["GIT_SSH_COMMAND"] = (
+            "ssh -i " + str(key) +
+            " -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+        )
+        remote = subprocess.run(
+            ["git", "remote", "get-url", "origin"], cwd=ROOT,
+            text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+        if remote.returncode == 0:
+            set_remote = ["git", "remote", "set-url", "origin", "git@github.com:XoPo6o/ASHUR.git"]
+        else:
+            set_remote = ["git", "remote", "add", "origin", "git@github.com:XoPo6o/ASHUR.git"]
+        configured = subprocess.run(
+            set_remote, cwd=ROOT, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+        if configured.returncode:
+            log("LEDGER_AUTH_SETUP_ERROR git remote: " + (configured.stdout or "").strip())
+            return False
+
+        log("GITHUB_DEPLOY_KEY_PUBLIC (add to XoPo6o/ASHUR -> Settings -> Deploy keys; enable Allow write access):")
+        print(public_key.read_text(encoding="utf-8").strip(), flush=True)
+        return True
+    except Exception as exc:
+        log("LEDGER_AUTH_SETUP_ERROR " + type(exc).__name__ + ": " + str(exc))
+        return False
+
+
 def main():
     log(f"ASHUR paper daemon started; interval={INTERVAL_SECONDS}s; branch={BRANCH}")
+    configure_github_push()
     while True:
         started = time.monotonic()
         log("WORKER_CYCLE_START")
