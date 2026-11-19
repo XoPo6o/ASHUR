@@ -2,15 +2,7 @@ name: ASHUR Live Shadow Paper Lab
 run-name: ASHUR · 6 parallel live-data paper strategies
 
 on:
-  push:
-    branches: [main, ashur-live-shadow]
-    paths:
-      - ".github/workflows/ashur-live-shadow.yml"
-      - "trading-lab/live_shadow_worker.py"
   workflow_dispatch:
-  # Run five-minute checks away from the top of the hour, when GitHub cron is busiest.
-  schedule:
-    - cron: "2-59/5 * * * *"
 
 permissions:
   contents: write
