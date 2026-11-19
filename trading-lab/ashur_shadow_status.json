@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-18T20:37:36.814878+00:00",
+  "updated_at": "2026-11-19T01:59:13.350663+00:00",
   "mode": "PAPER_ONLY",
   "market_data": "Public spot market data; Bybit primary, Binance fallback",
   "accounts": [
@@ -21,8 +21,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 578.95,
-      "last_price_at": "2026-11-18T20:37:36.808487+00:00",
+      "last_price": 582.32,
+      "last_price_at": "2026-11-19T01:59:13.349239+00:00",
       "position": null
     },
     {
@@ -43,8 +43,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 578.95,
-      "last_price_at": "2026-11-18T20:37:34.525366+00:00",
+      "last_price": 582.32,
+      "last_price_at": "2026-11-19T01:59:10.049299+00:00",
       "position": null
     },
     {
@@ -65,8 +65,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 578.95,
-      "last_price_at": "2026-11-18T20:37:33.364146+00:00",
+      "last_price": 582.22,
+      "last_price_at": "2026-11-19T01:59:08.541418+00:00",
       "position": null
     },
     {
@@ -87,8 +87,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 578.95,
-      "last_price_at": "2026-11-18T20:37:33.362121+00:00",
+      "last_price": 582.22,
+      "last_price_at": "2026-11-19T01:59:08.539159+00:00",
       "position": null
     },
     {
@@ -109,8 +109,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 73.02,
-      "last_price_at": "2026-11-18T20:37:35.688139+00:00",
+      "last_price": 73.57,
+      "last_price_at": "2026-11-19T01:59:11.549532+00:00",
       "position": null
     }
   ]
