@@ -32,8 +32,19 @@ jobs:
 
           if [ -z "$PROJECT_ID" ]; then
             echo "Project '$PROJECT_NAME' was not found in the Enzonic projects response."
-            echo "Available projects:"
-            jq -r '.. | objects | select(.name? != null) | [.name, (.id // .project_id // "NO_ID")] | @tsv' projects.json
+            echo "Raw projects API response (no credentials):"
+            jq . projects.json || cat projects.json
+            echo "Detected project-like entries:"
+            jq -r '
+              .. | objects
+              | select((.id? != null) or (.project_id? != null))
+              | [
+                  (.name // .slug // .project_name // .key // "NO_NAME"),
+                  (.id // .project_id // "NO_ID")
+                ]
+              | @tsv
+            ' projects.json || true
+            echo "Check that this API token belongs to the Enzonic Deploy account and has Deploy access."
             exit 1
           fi
 
