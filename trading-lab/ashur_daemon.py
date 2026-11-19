@@ -115,7 +115,7 @@ def configure_github_push():
             if derived.returncode:
                 log("LEDGER_AUTH_SETUP_ERROR cannot derive public key: " + (derived.stdout or "").strip())
                 return False
-            public_key.write_text(derived.stdout.strip() + " ashur-enzonic-paper-worker\\n", encoding="utf-8")
+            public_key.write_text(derived.stdout.strip() + " ashur-enzonic-paper-worker\n", encoding="utf-8")
         os.chmod(public_key, 0o644)
 
         if shutil.which("ssh-keyscan"):
@@ -128,8 +128,8 @@ def configure_github_push():
                 with known_hosts.open("a", encoding="utf-8") as handle:
                     for line in scan.stdout.splitlines():
                         if line and line not in existing:
-                            handle.write(line + "\\n")
-                            existing += line + "\\n"
+                            handle.write(line + "\n")
+                            existing += line + "\n"
                 os.chmod(known_hosts, 0o600)
 
         os.environ["GIT_SSH_COMMAND"] = (
