@@ -1,5 +1,5 @@
 name: ASHUR Live Shadow Paper Lab
-run-name: ASHUR · 5 parallel live-data paper strategies
+run-name: ASHUR · 6 parallel live-data paper strategies
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependency
         run: python -m pip install --disable-pip-version-check pandas
-      - name: Run five independent paper strategies on live public market data
+      - name: Run six independent paper strategies on live public market data
         env:
           PYTHONUNBUFFERED: "1"
         run: python trading-lab/live_shadow_worker.py
