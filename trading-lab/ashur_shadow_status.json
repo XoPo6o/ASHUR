@@ -1,8 +1,39 @@
 {
-  "updated_at": "2026-11-19T01:59:13.350663+00:00",
+  "updated_at": "2026-11-19T09:11:34.625662+00:00",
   "mode": "PAPER_ONLY",
   "market_data": "Public spot market data; Bybit primary, Binance fallback",
   "accounts": [
+    {
+      "strategy_id": "BNB_15M_EMA_TREND",
+      "label": "EMA20/50 trend continuation",
+      "symbol": "BNB/USDT",
+      "timeframe": "15m",
+      "grade": "PAPER_VALIDATION",
+      "starting_cash": 1000.0,
+      "cash": 331.7974,
+      "equity": 998.9989,
+      "net_pnl": -1.0011,
+      "realized_pnl": 0,
+      "unrealized_pnl": -1.6683,
+      "return_pct": -0.1001,
+      "trades": 0,
+      "wins": 0,
+      "win_rate_pct": 0,
+      "profit_factor": null,
+      "fees": 0,
+      "last_price": 590.95,
+      "last_price_at": "2026-11-19T09:11:32.354131+00:00",
+      "position": {
+        "symbol": "BNB/USDT",
+        "qty": 1.1290320055555942,
+        "entry": 591.245475,
+        "mark": 590.95,
+        "stop": 586.816902580975,
+        "target": 608.9597646761001,
+        "unrealized_pnl": -1.6683,
+        "opened_at": "2026-11-19T09:11:32.354555+00:00"
+      }
+    },
     {
       "strategy_id": "BNB_1D_DONCHIAN55",
       "label": "Donchian55 trend",
@@ -21,8 +52,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 582.32,
-      "last_price_at": "2026-11-19T01:59:13.349239+00:00",
+      "last_price": 590.94,
+      "last_price_at": "2026-11-19T09:11:34.624454+00:00",
       "position": null
     },
     {
@@ -43,8 +74,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 582.32,
-      "last_price_at": "2026-11-19T01:59:10.049299+00:00",
+      "last_price": 590.94,
+      "last_price_at": "2026-11-19T09:11:30.902977+00:00",
       "position": null
     },
     {
@@ -65,8 +96,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 582.22,
-      "last_price_at": "2026-11-19T01:59:08.541418+00:00",
+      "last_price": 590.95,
+      "last_price_at": "2026-11-19T09:11:29.368226+00:00",
       "position": null
     },
     {
@@ -87,8 +118,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 582.22,
-      "last_price_at": "2026-11-19T01:59:08.539159+00:00",
+      "last_price": 590.95,
+      "last_price_at": "2026-11-19T09:11:29.366245+00:00",
       "position": null
     },
     {
@@ -109,8 +140,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 73.57,
-      "last_price_at": "2026-11-19T01:59:11.549532+00:00",
+      "last_price": 74.58,
+      "last_price_at": "2026-11-19T09:11:33.522928+00:00",
       "position": null
     }
   ]
