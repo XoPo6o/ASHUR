@@ -1,0 +1,31 @@
+
+name: Deploy ASHUR to Enzonic
+
+on:
+  push:
+    branches:
+      - ashur-live-shadow
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Enzonic
+        uses: enzonic/deploy-action@v1
+        id: enzonic
+        with:
+          token: ${{ secrets.ENZONIC_TOKEN }}
+          project: ASHUR-PAPER-TRADING
+          source: git
+          ref: ${{ github.ref_name }}
+          target: production
+          wait: true
+
+      - name: Show deployment result
+        run: |
+          echo "Deployment URL: ${{ steps.enzonic.outputs.url }}"
+          echo "Deployment ID: ${{ steps.enzonic.outputs.deployment-id }}"
+          echo "Deployment state: ${{ steps.enzonic.outputs.state }}"
+          
