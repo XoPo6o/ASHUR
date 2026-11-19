@@ -1,0 +1,35 @@
+name: ASHUR daemon regression checks
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - "trading-lab/ashur_daemon.py"
+      - "trading-lab/live_shadow_worker.py"
+      - "trading-lab/test_ashur_daemon.py"
+      - "requirements.txt"
+      - ".github/workflows/ashur-daemon-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  daemon-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout paper branch
+        uses: actions/checkout@v4
+        with:
+          ref: ashur-live-shadow
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned runtime dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
+      - name: Compile worker and daemon
+        run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py
+      - name: Test transport selection and UID fallback
+        run: python trading-lab/test_ashur_daemon.py
