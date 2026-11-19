@@ -18,7 +18,26 @@ def log(message):
     print(f"[{stamp}] {message}", flush=True)
 
 
+def git_config(key, value):
+    result = subprocess.run(
+        ["git", "config", "--local", key, value],
+        cwd=ROOT, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
+    )
+    if result.returncode:
+        log("LEDGER_GIT_CONFIG_ERROR " + (result.stdout or "").strip())
+        return False
+    return True
+
+
 def publish_ledger():
+    # Give Git a deterministic identity inside this clone; no global account
+    # settings or personal identity are needed for automated paper-ledger commits.
+    if not git_config("user.name", "ASHUR Paper Bot"):
+        return
+    if not git_config("user.email", "ashur-paper-bot@users.noreply.github.com"):
+        return
+
     files = [
         "trading-lab/ashur_shadow.db",
         "trading-lab/ashur_shadow_status.json",
