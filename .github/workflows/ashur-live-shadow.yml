@@ -2,10 +2,6 @@ name: ASHUR Live Shadow Paper Lab
 run-name: ASHUR · 6 parallel live-data paper strategies
 
 on:
-  push:
-    branches: [main, ashur-live-shadow]
-    paths:
-      - "trading-lab/live_shadow_worker.py"
   workflow_dispatch:
 
 permissions:
