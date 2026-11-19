@@ -17,7 +17,7 @@ FEE = 0.001
 SLIPPAGE = 0.0005
 MAX_NOTIONAL = 0.95
 
-# Five isolated paper accounts. The last two are exploratory: historical samples were small.
+# Six isolated paper accounts. The final strategies are exploratory and require forward validation.
 # Public market-data polling is read-only; this worker never sends exchange orders.
 STRATEGIES = [
     {"id": "BNB_4H_KELTNER_ADX", "symbol": "BNB/USDT", "interval": "240",
@@ -258,7 +258,7 @@ def export_status(conn):
         equity = cash + (float(pos["qty"])*price if pos and price is not None else (float(pos["qty"])*float(pos["entry"]) if pos else 0.0))
         output["accounts"].append({
             "strategy_id":a["strategy_id"],"label":a["label"],"symbol":a["symbol"],
-            "timeframe":{"60":"1h","240":"4h","D":"1d"}.get(a["interval"],a["interval"]),
+            "timeframe":{"15":"15m","60":"1h","240":"4h","D":"1d"}.get(a["interval"],a["interval"]),
             "grade":a["grade"],"starting_cash":float(a["starting_cash"]),"cash":round(cash,4),
             "equity":round(equity,4),"net_pnl":round(equity-float(a["starting_cash"]),4),
             "realized_pnl":round(realized,4),"unrealized_pnl":round(unrealized,4),
