@@ -8,8 +8,9 @@ on:
       - ".github/workflows/ashur-live-shadow.yml"
       - "trading-lab/live_shadow_worker.py"
   workflow_dispatch:
+  # Run five-minute checks away from the top of the hour, when GitHub cron is busiest.
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "2-59/5 * * * *"
 
 permissions:
   contents: write
