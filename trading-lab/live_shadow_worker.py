@@ -26,6 +26,8 @@ STRATEGIES = [
      "label": "ADX trend filter", "grade": "RESEARCH_PASS"},
     {"id": "BNB_1H_DONCHIAN_ADX25", "symbol": "BNB/USDT", "interval": "60",
      "label": "Donchian ensemble + ADX25", "grade": "RESEARCH_PASS"},
+    {"id": "BNB_15M_EMA_TREND", "symbol": "BNB/USDT", "interval": "15",
+     "label": "EMA20/50 trend continuation", "grade": "PAPER_VALIDATION"},
     {"id": "SOL_4H_DONCHIAN_VOL", "symbol": "SOL/USDT", "interval": "240",
      "label": "Donchian volatility regime", "grade": "EXPERIMENTAL_LOW_SAMPLE"},
     {"id": "BNB_1D_DONCHIAN55", "symbol": "BNB/USDT", "interval": "D",
@@ -42,7 +44,7 @@ def api_json(url):
 
 def fetch_bybit_klines(symbol, interval, limit=350):
     market_symbol = symbol.replace("/", "")
-    ms = {"60": 3600000, "240": 14400000, "D": 86400000}[interval]
+    ms = {"15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
     cutoff = int(datetime.now(timezone.utc).timestamp() * 1000)
     errors = []
     try:
@@ -65,7 +67,7 @@ def fetch_bybit_klines(symbol, interval, limit=350):
     # Binance public market-data mirror is the automatic fallback for runner regions
     # where Bybit's public REST endpoint is blocked.
     try:
-        binance_interval = {"60": "1h", "240": "4h", "D": "1d"}[interval]
+        binance_interval = {"15": "15m", "60": "1h", "240": "4h", "D": "1d"}[interval]
         query = urllib.parse.urlencode({"symbol": market_symbol, "interval": binance_interval,
                                         "limit": limit})
         rows = api_json("https://data-api.binance.vision/api/v3/klines?" + query)
@@ -139,6 +141,9 @@ def signals(row, strategy_id):
     elif strategy_id == "SOL_4H_DONCHIAN_VOL":
         entry = close > row.dh55 and close > row.ema200 and row.atr_pct < row.atr_p80
         exit_ = close < row.dl20 or close < row.ema100
+    elif strategy_id == "BNB_15M_EMA_TREND":
+        entry = close > row.ema20 and row.ema20 > row.ema50 and row.adx > 12
+        exit_ = close < row.ema50 or row.ema20 < row.ema50
     else:  # BNB_1D_DONCHIAN55
         entry = close > row.dh55 and close > row.ema200
         exit_ = close < row.dl10
@@ -166,6 +171,8 @@ def init_db(conn):
       strategy_id TEXT NOT NULL, event TEXT NOT NULL, details TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_marks(
       strategy_id TEXT PRIMARY KEY, price REAL NOT NULL, updated_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS shadow_trade_guard(
+      strategy_id TEXT PRIMARY KEY, last_closed_candle TEXT NOT NULL);
     """)
     for s in STRATEGIES:
         conn.execute("""INSERT OR IGNORE INTO shadow_accounts
@@ -178,7 +185,7 @@ def event(conn, sid, kind, details):
     conn.execute("INSERT INTO shadow_events(created_at,strategy_id,event,details) VALUES(?,?,?,?)",
                  (now(), sid, kind, details))
 
-def close_position(conn, s, price, reason):
+def close_position(conn, s, price, reason, candle_id):
     p = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (s["id"],)).fetchone()
     if not p:
         return
@@ -194,6 +201,9 @@ def close_position(conn, s, price, reason):
       (s["id"],s["symbol"],p["entry"],fill,p["qty"],p["entry_fee"]+exit_fee,
        pnl,reason,p["opened_at"],now()))
     conn.execute("DELETE FROM shadow_positions WHERE strategy_id=?", (s["id"],))
+    conn.execute("""INSERT INTO shadow_trade_guard(strategy_id,last_closed_candle)
+      VALUES(?,?) ON CONFLICT(strategy_id) DO UPDATE SET last_closed_candle=excluded.last_closed_candle""",
+      (s["id"], candle_id))
     event(conn,s["id"],"CLOSE",f"{reason}; fill={fill:.6f}; net_pnl={pnl:.4f}")
 
 def open_position(conn, s, price, atr):
@@ -272,30 +282,38 @@ def run():
             if key not in cache:
                 cache[key] = (indicators(fetch_bybit_klines(*key)), fetch_ticker(s["symbol"]))
             data, price = cache[key]
-            row = data.iloc[-1]  # latest fully closed candle
+            row = data.iloc[-1]  # latest fully closed candle; indicators never use a forming candle
             candle_id = str(int(row.timestamp))
-            entry_signal, exit_signal = signals(row,s["id"])
+            # Evaluate the current live ticker against the last closed candle's indicators on
+            # EVERY five-minute worker cycle, rather than only once when a new candle appears.
+            signal_row = row.copy()
+            signal_row["close"] = price
+            entry_signal, exit_signal = signals(signal_row,s["id"])
             conn.execute("INSERT OR REPLACE INTO shadow_marks VALUES(?,?,?)",(s["id"],price,now()))
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             closed_this_cycle = False
             if pos:
                 if price <= pos["stop"]:
-                    close_position(conn,s,price,"STOP")
-                elif price >= pos["target"]:
-                    close_position(conn,s,price,"TARGET")
-                elif exit_signal:
-                    close_position(conn,s,price,"SIGNAL")
-                if price <= pos["stop"] or price >= pos["target"] or exit_signal:
+                    close_position(conn,s,price,"STOP",candle_id)
                     closed_this_cycle = True
+                elif price >= pos["target"]:
+                    close_position(conn,s,price,"TARGET",candle_id)
+                    closed_this_cycle = True
+                elif exit_signal:
+                    close_position(conn,s,price,"SIGNAL",candle_id)
+                    closed_this_cycle = True
+            guard = conn.execute("SELECT last_closed_candle FROM shadow_trade_guard WHERE strategy_id=?",(s["id"],)).fetchone()
+            cooldown_active = bool(guard and guard["last_closed_candle"] == candle_id)
+            pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
+            if not pos and entry_signal and not closed_this_cycle and not cooldown_active:
+                open_position(conn,s,price,float(row.atr))
+                pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             previous = conn.execute("SELECT last_candle FROM shadow_state WHERE strategy_id=?",(s["id"],)).fetchone()
             if not previous or previous["last_candle"] != candle_id:
-                pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
-                if not pos and entry_signal and not closed_this_cycle:
-                    open_position(conn,s,price,float(row.atr))
                 conn.execute("INSERT OR REPLACE INTO shadow_state VALUES(?,?)",(s["id"],candle_id))
-                event(conn,s["id"],"CHECK",f"candle={candle_id}; close={float(row.close):.6f}; live={price:.6f}; entry={entry_signal}; exit={exit_signal}")
+                event(conn,s["id"],"CHECK",f"candle={candle_id}; candle_close={float(row.close):.6f}; live={price:.6f}; entry={entry_signal}; exit={exit_signal}; cooldown={cooldown_active}")
             conn.commit()
-            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal}')
+            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} cooldown={cooldown_active} position={bool(pos)}')
         except Exception as exc:
             conn.rollback()
             event(conn,s["id"],"ERROR",f"{type(exc).__name__}: {exc}")
