@@ -67,15 +67,24 @@ def publish_ledger():
         log("LEDGER_DIFF_ERROR")
         return
 
-    push = subprocess.run(
-        ["git", "push", "origin", f"HEAD:refs/heads/{BRANCH}"],
-        cwd=ROOT, text=True, stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT
-    )
-    if push.returncode:
-        log("LEDGER_PUBLISH_PENDING " + (push.stdout or "").strip())
-    else:
+    try:
+        # Use Dulwich + Paramiko instead of the system OpenSSH client.
+        # Enzonic's container UID has no passwd entry, which makes OpenSSH
+        # abort with "No user exists for uid 999" before authentication.
+        from dulwich import porcelain
+        from dulwich.contrib.paramiko_vendor import ParamikoSSHVendor
+
+        porcelain.push(
+            str(ROOT),
+            remote_location="git@github.com:XoPo6o/ASHUR.git",
+            refspecs=f"HEAD:refs/heads/{BRANCH}",
+            username="git",
+            key_filename=str(Path.home() / ".ssh" / "id_ed25519_ashur"),
+            vendor=ParamikoSSHVendor(),
+        )
         log("LEDGER_PUBLISHED to " + BRANCH)
+    except Exception as exc:
+        log("LEDGER_PUBLISH_PENDING " + type(exc).__name__ + ": " + str(exc))
 
 
 def configure_github_push():
