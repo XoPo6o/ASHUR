@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Run the ASHUR paper worker every five minutes and publish its paper ledger."""
 import os
+# Enzonic runs as UID 999 without a passwd entry. Python SSH config helpers
+# may call getpass.getuser(), which otherwise falls through to pwd.getpwuid().
+# Supplying a harmless local identity avoids that lookup; GitHub auth still uses
+# the explicit remote username "git" and the dedicated deploy key.
+os.environ["USER"] = "container"
+os.environ["LOGNAME"] = "container"
+os.environ["LNAME"] = "container"
+os.environ["USERNAME"] = "container"
 import subprocess
 import shutil
 import sys
