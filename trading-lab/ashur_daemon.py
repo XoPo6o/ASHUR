@@ -83,14 +83,13 @@ def configure_github_push():
     if not shutil.which("git"):
         log("LEDGER_AUTH_SETUP_ERROR git executable not found")
         return False
-    if not shutil.which("ssh-keygen"):
-        log("LEDGER_AUTH_SETUP_ERROR ssh-keygen executable not found")
+    if not shutil.which("ssh-keygen") or not shutil.which("ssh"):
+        log("LEDGER_AUTH_SETUP_ERROR OpenSSH client (ssh and ssh-keygen) not found")
         return False
 
     ssh_dir = Path.home() / ".ssh"
     key = ssh_dir / "id_ed25519_ashur"
     public_key = Path(str(key) + ".pub")
-    known_hosts = ssh_dir / "known_hosts"
 
     try:
         ssh_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -118,20 +117,7 @@ def configure_github_push():
             public_key.write_text(derived.stdout.strip() + " ashur-enzonic-paper-worker\n", encoding="utf-8")
         os.chmod(public_key, 0o644)
 
-        if shutil.which("ssh-keyscan"):
-            scan = subprocess.run(
-                ["ssh-keyscan", "-H", "github.com"],
-                text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=15
-            )
-            if scan.returncode == 0 and scan.stdout.strip():
-                existing = known_hosts.read_text(encoding="utf-8") if known_hosts.exists() else ""
-                with known_hosts.open("a", encoding="utf-8") as handle:
-                    for line in scan.stdout.splitlines():
-                        if line and line not in existing:
-                            handle.write(line + "\n")
-                            existing += line + "\n"
-                os.chmod(known_hosts, 0o600)
-
+        # StrictHostKeyChecking=accept-new trusts GitHub on first SSH connection.
         os.environ["GIT_SSH_COMMAND"] = (
             "ssh -i " + str(key) +
             " -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
