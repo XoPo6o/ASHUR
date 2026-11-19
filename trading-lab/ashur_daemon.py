@@ -95,26 +95,32 @@ def configure_github_push():
         ssh_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(ssh_dir, 0o700)
 
+        # Generate OpenSSH-format Ed25519 keys in Python. ssh-keygen relies on
+        # getpwuid(), which fails in Enzonic containers without a passwd entry.
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
         if not key.exists():
-            generated = subprocess.run(
-                ["ssh-keygen", "-t", "ed25519", "-N", "", "-C",
-                 "ashur-enzonic-paper-worker", "-f", str(key)],
-                text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            private_obj = Ed25519PrivateKey.generate()
+            key.write_bytes(private_obj.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.OpenSSH,
+                encryption_algorithm=serialization.NoEncryption(),
+            ))
+        else:
+            private_obj = serialization.load_ssh_private_key(
+                key.read_bytes(), password=None
             )
-            if generated.returncode:
-                log("LEDGER_AUTH_SETUP_ERROR ssh-keygen: " + (generated.stdout or "").strip())
-                return False
         os.chmod(key, 0o600)
 
         if not public_key.exists():
-            derived = subprocess.run(
-                ["ssh-keygen", "-y", "-f", str(key)],
-                text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            public_line = private_obj.public_key().public_bytes(
+                encoding=serialization.Encoding.OpenSSH,
+                format=serialization.PublicFormat.OpenSSH,
+            ).decode("ascii")
+            public_key.write_text(
+                public_line + " ashur-enzonic-paper-worker\\n", encoding="utf-8"
             )
-            if derived.returncode:
-                log("LEDGER_AUTH_SETUP_ERROR cannot derive public key: " + (derived.stdout or "").strip())
-                return False
-            public_key.write_text(derived.stdout.strip() + " ashur-enzonic-paper-worker\n", encoding="utf-8")
         os.chmod(public_key, 0o644)
 
         # StrictHostKeyChecking=accept-new trusts GitHub on first SSH connection.
