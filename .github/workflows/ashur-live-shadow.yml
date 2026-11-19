@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: ashur-live-shadow
@@ -48,6 +49,57 @@ jobs:
             exit 0
           fi
           git commit -m "Update ASHUR live shadow paper ledger"
+          git pull --rebase origin ashur-live-shadow
+          git push origin HEAD:ashur-live-shadow
+      - name: Notify when a paper trade closes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import os, sqlite3
+          from pathlib import Path
+          db = sqlite3.connect("trading-lab/ashur_shadow.db")
+          db.row_factory = sqlite3.Row
+          marker = Path("trading-lab/last_notified_trade_id.txt")
+          last_id = int(marker.read_text().strip()) if marker.exists() else 0
+          rows = db.execute("""
+            SELECT id, strategy_id, symbol, entry, exit, qty, fees, pnl, reason, opened_at, closed_at
+            FROM shadow_trades WHERE id > ? ORDER BY id
+          """, (last_id,)).fetchall()
+          if not rows:
+            print("No newly closed paper trades.")
+            raise SystemExit(0)
+          ids = [r["id"] for r in rows]
+          lines = ["## ASHUR — закрытые paper-сделки", "",
+                   "Это виртуальные сделки на публичных рыночных котировках. Реальных ордеров не было.", ""]
+          for r in rows:
+            lines += [
+              f"### Trade #{r['id']} · {r['strategy_id']}",
+              f"- Инструмент: {r['symbol']}",
+              f"- Вход: {r['entry']:.6f} USDT",
+              f"- Выход: {r['exit']:.6f} USDT",
+              f"- Объём: {r['qty']:.8f}",
+              f"- Причина закрытия: {r['reason']}",
+              f"- Комиссии суммарно: {r['fees']:.4f} USDT",
+              f"- **Чистый P&L: {r['pnl']:+.4f} USDT**",
+              f"- Открыта: {r['opened_at']}",
+              f"- Закрыта: {r['closed_at']}",
+              ""
+            ]
+          Path("/tmp/ashur-close-report.md").write_text("\n".join(lines))
+          Path("/tmp/ashur-new-last-id").write_text(str(max(ids)))
+          print("New closed trade IDs:", ",".join(map(str, ids)))
+          PY
+          if [ ! -f /tmp/ashur-new-last-id ]; then
+            exit 0
+          fi
+          IDS=$(python -c "print(','.join(open('/tmp/ashur-new-last-id').read().strip().split()))")
+          gh issue create --title "ASHUR PAPER CLOSE: trade $IDS" --body-file /tmp/ashur-close-report.md
+          cp /tmp/ashur-new-last-id trading-lab/last_notified_trade_id.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add trading-lab/last_notified_trade_id.txt
+          git commit -m "Record ASHUR paper close notification"
           git pull --rebase origin ashur-live-shadow
           git push origin HEAD:ashur-live-shadow
       - name: Upload ledger snapshot
