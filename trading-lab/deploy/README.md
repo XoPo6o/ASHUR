@@ -72,3 +72,22 @@ Do not disable the existing GitHub Actions schedule until the VM has been verifi
 - The SQLite ledger remains on the VM and is published to the repository branch.
 - A GitHub deploy key is used only for this repository; keep its private half on the VM.
 - Oracle Always Free has no uptime SLA and can reclaim sufficiently idle compute instances. Check OCI usage/alerts periodically.
+
+## Enzonic Python Generic (persistent server)
+
+Use the **Python Generic server** in Enzonic's server catalog for this worker. Do not use the separate Enzonic Deploy/serverless project flow: ASHUR is a long-running background process and needs a persistent server filesystem.
+
+1. Create/select a Python Generic server and connect repository `XoPo6o/ASHUR`, branch `ashur-live-shadow`, repository root `/`.
+2. Use Python 3.12. The repository-root `requirements.txt` installs the worker dependency (`pandas`).
+3. Set the startup command to:
+
+   ```bash
+   bash trading-lab/deploy/start_enzonic.sh
+   ```
+
+4. Start the server. On first launch, the script creates a repository-scoped SSH key and prints its **public** half in the console.
+5. Add that public key at `XoPo6o/ASHUR → Settings → Deploy keys → Add deploy key`, with **Allow write access** enabled. Do not copy or share the private `id_ed25519` file.
+6. The daemon runs the six paper strategies every 300 seconds and publishes the SQLite ledger plus JSON status to `ashur-live-shadow`. Check the console for `WORKER_CYCLE_START` and `LEDGER_PUBLISHED to ashur-live-shadow`.
+
+GitHub Actions is retained as a **manual-only fallback** (`workflow_dispatch`). Do not run it while the Enzonic worker is active, because both processes write to the same SQLite ledger.
+
