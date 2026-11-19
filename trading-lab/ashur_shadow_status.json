@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-19T09:11:34.625662+00:00",
+  "updated_at": "2026-11-19T09:12:04.137005+00:00",
   "mode": "PAPER_ONLY",
   "market_data": "Public spot market data; Bybit primary, Binance fallback",
   "accounts": [
@@ -11,26 +11,26 @@
       "grade": "PAPER_VALIDATION",
       "starting_cash": 1000.0,
       "cash": 331.7974,
-      "equity": 998.9989,
-      "net_pnl": -1.0011,
+      "equity": 998.7279,
+      "net_pnl": -1.2721,
       "realized_pnl": 0,
-      "unrealized_pnl": -1.6683,
-      "return_pct": -0.1001,
+      "unrealized_pnl": -1.939,
+      "return_pct": -0.1272,
       "trades": 0,
       "wins": 0,
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 590.95,
-      "last_price_at": "2026-11-19T09:11:32.354131+00:00",
+      "last_price": 590.71,
+      "last_price_at": "2026-11-19T09:12:01.468551+00:00",
       "position": {
         "symbol": "BNB/USDT",
         "qty": 1.1290320055555942,
         "entry": 591.245475,
-        "mark": 590.95,
+        "mark": 590.71,
         "stop": 586.816902580975,
         "target": 608.9597646761001,
-        "unrealized_pnl": -1.6683,
+        "unrealized_pnl": -1.939,
         "opened_at": "2026-11-19T09:11:32.354555+00:00"
       }
     },
@@ -52,8 +52,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 590.94,
-      "last_price_at": "2026-11-19T09:11:34.624454+00:00",
+      "last_price": 590.71,
+      "last_price_at": "2026-11-19T09:12:04.135192+00:00",
       "position": null
     },
     {
@@ -74,8 +74,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 590.94,
-      "last_price_at": "2026-11-19T09:11:30.902977+00:00",
+      "last_price": 590.71,
+      "last_price_at": "2026-11-19T09:11:59.433876+00:00",
       "position": null
     },
     {
@@ -96,8 +96,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 590.95,
-      "last_price_at": "2026-11-19T09:11:29.368226+00:00",
+      "last_price": 590.72,
+      "last_price_at": "2026-11-19T09:11:58.249032+00:00",
       "position": null
     },
     {
@@ -118,8 +118,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 590.95,
-      "last_price_at": "2026-11-19T09:11:29.366245+00:00",
+      "last_price": 590.72,
+      "last_price_at": "2026-11-19T09:11:58.234786+00:00",
       "position": null
     },
     {
@@ -140,8 +140,8 @@
       "win_rate_pct": 0,
       "profit_factor": null,
       "fees": 0,
-      "last_price": 74.58,
-      "last_price_at": "2026-11-19T09:11:33.522928+00:00",
+      "last_price": 74.56,
+      "last_price_at": "2026-11-19T09:12:02.663897+00:00",
       "position": null
     }
   ]
