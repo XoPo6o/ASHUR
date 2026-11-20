@@ -1,0 +1,147 @@
+name: ASHUR Enzonic API connection diagnostic
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - ".github/workflows/enzonic-api-diagnostic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check Enzonic MCP authentication and server access
+        env:
+          ENZONIC_TOKEN: ${{ secrets.ENZONIC_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          token = os.environ.get("ENZONIC_TOKEN", "").strip()
+          if not token:
+              print("RESULT: GitHub Actions secret ENZONIC_TOKEN is missing or empty.")
+              sys.exit(2)
+
+          endpoint = "https://enzonic.com/api/mcp"
+          session_id = None
+          request_id = 0
+
+          def parse_response(raw, content_type):
+              if not raw:
+                  return None
+              text = raw.decode("utf-8", "replace")
+              if "text/event-stream" in content_type:
+                  messages = []
+                  for block in text.split("\\n\\n"):
+                      data = "\\n".join(
+                          line[5:].lstrip()
+                          for line in block.splitlines()
+                          if line.startswith("data:")
+                      )
+                      if data and data != "[DONE]":
+                          try:
+                              messages.append(json.loads(data))
+                          except json.JSONDecodeError:
+                              pass
+                  return messages[-1] if messages else None
+              try:
+                  return json.loads(text)
+              except json.JSONDecodeError:
+                  print("Unexpected response body (first 1000 chars):", text[:1000])
+                  return None
+
+          def post(payload):
+              global session_id
+              headers = {
+                  "Authorization": "Bearer " + token,
+                  "Content-Type": "application/json",
+                  "Accept": "application/json, text/event-stream",
+                  "User-Agent": "ASHUR-Enzonic-Diagnostic/1.0",
+              }
+              if session_id:
+                  headers["MCP-Session-Id"] = session_id
+              req = urllib.request.Request(
+                  endpoint,
+                  data=json.dumps(payload).encode(),
+                  headers=headers,
+                  method="POST",
+              )
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as response:
+                      session_id = response.headers.get("MCP-Session-Id", session_id)
+                      body = response.read()
+                      return response.status, parse_response(
+                          body, response.headers.get("Content-Type", "")
+                      )
+              except urllib.error.HTTPError as exc:
+                  body = exc.read().decode("utf-8", "replace")
+                  body = body.replace(token, "[REDACTED]")
+                  print("HTTP ERROR:", exc.code, body[:2000])
+                  raise SystemExit(3)
+              except Exception as exc:
+                  print("NETWORK ERROR:", type(exc).__name__, str(exc).replace(token, "[REDACTED]"))
+                  raise SystemExit(4)
+
+          request_id += 1
+          status, initialized = post({
+              "jsonrpc": "2.0",
+              "id": request_id,
+              "method": "initialize",
+              "params": {
+                  "protocolVersion": "2025-03-26",
+                  "capabilities": {},
+                  "clientInfo": {"name": "ASHUR-GitHub-Actions", "version": "1.0.0"},
+              },
+          })
+          if not initialized or "error" in initialized:
+              print("MCP INITIALIZE FAILED:", json.dumps(initialized)[:2000])
+              sys.exit(5)
+          print("MCP INITIALIZE: OK; HTTP", status)
+          print("MCP SERVER INFO:", json.dumps(initialized.get("result", {}).get("serverInfo", {})))
+
+          post({"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}})
+
+          request_id += 1
+          status, listed = post({
+              "jsonrpc": "2.0",
+              "id": request_id,
+              "method": "tools/list",
+              "params": {},
+          })
+          if not listed or "error" in listed:
+              print("TOOLS/LIST FAILED:", json.dumps(listed)[:2000])
+              sys.exit(6)
+
+          tools = listed.get("result", {}).get("tools", [])
+          names = [item.get("name", "") for item in tools]
+          print("MCP TOOLS DISCOVERED:", len(names))
+          print("TOOLS:", ", ".join(names))
+
+          server_tool = next((name for name in names if name.endswith("list_servers")), None)
+          if not server_tool:
+              print("RESULT: API authenticated, but no list_servers tool was exposed.")
+              sys.exit(7)
+
+          request_id += 1
+          status, servers = post({
+              "jsonrpc": "2.0",
+              "id": request_id,
+              "method": "tools/call",
+              "params": {"name": server_tool, "arguments": {}},
+          })
+          if not servers or "error" in servers:
+              print("LIST SERVERS FAILED:", json.dumps(servers)[:3000])
+              sys.exit(8)
+
+          print("SERVER LIST RESULT:", json.dumps(servers.get("result", {}), ensure_ascii=False)[:6000])
+          print("RESULT: Enzonic MCP authentication and server-list request succeeded.")
+          PY
