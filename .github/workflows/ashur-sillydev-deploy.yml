@@ -38,6 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy tested ASHUR branch to Silly Development
+        if: ${{ env.SILLYDEV_API_KEY != '' && env.SILLYDEV_SERVER_ID != '' }}
         env:
           SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
