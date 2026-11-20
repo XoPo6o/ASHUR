@@ -2,6 +2,7 @@
 import importlib.util
 import sqlite3
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 MODULE_DIR = Path(__file__).resolve().parent
@@ -70,6 +71,33 @@ class TestAshurRuntime(unittest.TestCase):
                     worker.STATUS_FILE.read_text(encoding="utf-8"),
                     '{"mode":"PAPER_ONLY"}',
                 )
+            finally:
+                worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE = original
+
+
+    def test_worker_returns_failure_when_market_data_fails(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temporary:
+            tmp_path = Path(temporary)
+            original = (worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE)
+            try:
+                worker.ROOT = tmp_path
+                worker.DATA_DIR = tmp_path / "state"
+                worker.DB = worker.DATA_DIR / "ashur_shadow.db"
+                worker.STATUS_FILE = worker.DATA_DIR / "ashur_shadow_status.json"
+
+                def unavailable(*args, **kwargs):
+                    raise RuntimeError("simulated market-data outage")
+
+                with patch.object(worker, "fetch_bybit_klines", side_effect=unavailable):
+                    with self.assertRaises(SystemExit) as result:
+                        worker.run()
+
+                self.assertEqual(result.exception.code, 1)
+                self.assertTrue(worker.STATUS_FILE.exists())
+                status = worker.STATUS_FILE.read_text(encoding="utf-8")
+                self.assertIn('"mode": "PAPER_ONLY"', status)
             finally:
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE = original
 
