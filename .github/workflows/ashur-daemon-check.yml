@@ -1,4 +1,5 @@
 name: ASHUR daemon regression checks
+# Triggered by a safe branch update to validate the current paper daemon.
 
 on:
   push:
