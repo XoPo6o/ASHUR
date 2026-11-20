@@ -30,6 +30,8 @@ jobs:
       - name: Run six independent paper strategies on live public market data
         env:
           PYTHONUNBUFFERED: "1"
+          # Keep the manual Actions fallback isolated from the daemon's persistent home directory.
+          ASHUR_DATA_DIR: trading-lab
         run: python trading-lab/live_shadow_worker.py
       - name: Persist isolated paper ledger
         run: |
