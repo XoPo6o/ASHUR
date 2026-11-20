@@ -1,0 +1,103 @@
+name: Check existing Enzonic token against both products
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - ".github/workflows/enzonic-token-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Test current secret without exposing it
+        env:
+          ENZONIC_TOKEN: ${{ secrets.ENZONIC_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error, sys
+
+          token = os.environ.get("ENZONIC_TOKEN", "").strip()
+          if not token:
+              print("ENZONIC_TOKEN is missing or empty in GitHub Actions.")
+              sys.exit(2)
+
+          print("Secret present: yes")
+          print("Secret prefix is enc_live_: ", token.startswith("enc_live_"))
+
+          def get_status(label, url):
+              req = urllib.request.Request(url, headers={
+                  "Authorization": "Bearer " + token,
+                  "Accept": "application/json",
+                  "User-Agent": "ASHUR-token-check/1.0",
+              })
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as r:
+                      body = r.read(20000).decode("utf-8", "replace")
+                      print(label, "HTTP", r.status)
+                      try:
+                          data = json.loads(body)
+                          if isinstance(data, dict):
+                              print(label, "response keys:", ",".join(data.keys()))
+                              if "data" in data and isinstance(data["data"], list):
+                                  print(label, "items:", len(data["data"]))
+                      except Exception:
+                          print(label, "response received; non-JSON")
+              except urllib.error.HTTPError as e:
+                  body = e.read(2000).decode("utf-8", "replace")
+                  print(label, "HTTP", e.code)
+                  try:
+                      j = json.loads(body)
+                      print(label, "error:", j.get("error", {}).get("message", j.get("message", "HTTP error")))
+                  except Exception:
+                      print(label, "error response received; body omitted")
+              except Exception as e:
+                  print(label, "NETWORK ERROR:", type(e).__name__)
+
+          get_status("OLD_DEPLOY_API", "https://panel.enzonic.com/api/cloud/v1/projects")
+
+          req = urllib.request.Request(
+              "https://enzonic.com/api/mcp",
+              data=json.dumps({
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "method": "initialize",
+                  "params": {
+                      "protocolVersion": "2025-03-26",
+                      "capabilities": {},
+                      "clientInfo": {"name": "ASHUR-token-check", "version": "1.0"}
+                  }
+              }).encode(),
+              headers={
+                  "Authorization": "Bearer " + token,
+                  "Content-Type": "application/json",
+                  "Accept": "application/json, text/event-stream",
+                  "User-Agent": "ASHUR-token-check/1.0",
+              },
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  body = r.read(5000).decode("utf-8", "replace")
+                  print("GAME_SERVER_MCP HTTP", r.status)
+                  try:
+                      j = json.loads(body)
+                      print("GAME_SERVER_MCP initialize:", "success" if "result" in j else "unexpected response")
+                  except Exception:
+                      print("GAME_SERVER_MCP response received; non-JSON")
+          except urllib.error.HTTPError as e:
+              body = e.read(2000).decode("utf-8", "replace")
+              print("GAME_SERVER_MCP HTTP", e.code)
+              try:
+                  j = json.loads(body)
+                  print("GAME_SERVER_MCP error:", j.get("error", {}).get("message", "HTTP error"))
+              except Exception:
+                  print("GAME_SERVER_MCP error response received; body omitted")
+          except Exception as e:
+              print("GAME_SERVER_MCP NETWORK ERROR:", type(e).__name__)
+          PY
