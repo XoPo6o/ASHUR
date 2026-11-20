@@ -38,13 +38,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy tested ASHUR branch to Silly Development
-        if: ${{ env.SILLYDEV_API_KEY != '' && env.SILLYDEV_SERVER_ID != '' }}
         env:
           SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
         run: |
-          test -n "$SILLYDEV_API_KEY" || { echo "Missing GitHub secret SILLYDEV_API_KEY"; exit 1; }
-          test -n "$SILLYDEV_SERVER_ID" || { echo "Missing GitHub variable SILLYDEV_SERVER_ID"; exit 1; }
+          if [ -z "$SILLYDEV_API_KEY" ] || [ -z "$SILLYDEV_SERVER_ID" ]; then
+            echo "Deploy skipped: configure SILLYDEV_API_KEY and SILLYDEV_SERVER_ID in GitHub first."
+            exit 0
+          fi
           curl --fail-with-body --silent --show-error -X POST \
             "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/git/deploy" \
             -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
