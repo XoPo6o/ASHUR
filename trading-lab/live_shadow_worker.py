@@ -308,6 +308,7 @@ def run():
     conn.row_factory = sqlite3.Row
     init_db(conn)
     cache = {}
+    strategy_errors = 0
     for s in STRATEGIES:
         try:
             key = (s["symbol"],s["interval"])
@@ -347,12 +348,16 @@ def run():
             conn.commit()
             print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} cooldown={cooldown_active} position={bool(pos)}')
         except Exception as exc:
+            strategy_errors += 1
             conn.rollback()
             event(conn,s["id"],"ERROR",f"{type(exc).__name__}: {exc}")
             conn.commit()
             print(f'{s["id"]}: ERROR {type(exc).__name__}: {exc}')
     export_status(conn)
     conn.close()
+    print(f"WORKER_SUMMARY strategies={len(STRATEGIES)} errors={strategy_errors}", flush=True)
+    if strategy_errors:
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     run()
