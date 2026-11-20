@@ -48,7 +48,12 @@ def main():
             for line in (result.stdout or "").splitlines():
                 print(line, flush=True)
             log(f"WORKER_CYCLE_END exit_code={result.returncode}")
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
+            partial = exc.stdout or b""
+            if isinstance(partial, bytes):
+                partial = partial.decode("utf-8", errors="replace")
+            for line in partial.splitlines():
+                print(line, flush=True)
             log("WORKER_TIMEOUT after 240s; daemon remains alive for next cycle")
         except Exception as exc:
             log(f"WORKER_EXCEPTION {type(exc).__name__}: {exc}")
