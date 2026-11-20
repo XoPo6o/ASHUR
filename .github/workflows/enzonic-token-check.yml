@@ -17,14 +17,14 @@ jobs:
     steps:
       - name: Test current secret without exposing it
         env:
-          ENZONIC_TOKEN: ${{ secrets.ENZONIC_TOKEN }}
+          ENZONIC_MCP_TOKEN: ${{ secrets.ENZONIC_MCP_TOKEN }}
         run: |
           python - <<'PY'
           import json, os, urllib.request, urllib.error, sys
 
-          token = os.environ.get("ENZONIC_TOKEN", "").strip()
+          token = os.environ.get("ENZONIC_MCP_TOKEN", "").strip()
           if not token:
-              print("ENZONIC_TOKEN is missing or empty in GitHub Actions.")
+              print("ENZONIC_MCP_TOKEN is missing or empty in GitHub Actions.")
               sys.exit(2)
 
           print("Secret present: yes")
