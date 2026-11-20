@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install ASHUR dependencies
-        run: python -m pip install --disable-pip-version-check -r trading-lab/requirements.txt
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Compile daemon and worker
         run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py
       - name: Run offline regression tests
