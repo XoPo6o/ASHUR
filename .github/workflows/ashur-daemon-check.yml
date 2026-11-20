@@ -31,5 +31,5 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Compile worker and daemon
         run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py
-      - name: Test transport selection and UID fallback
+      - name: Test persistent-state migration and no Git ledger publishing
         run: python trading-lab/test_ashur_daemon.py
