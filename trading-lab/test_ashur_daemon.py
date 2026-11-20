@@ -1,42 +1,62 @@
-"""Offline regression tests for ASHUR's Enzonic ledger publisher."""
+"""Offline regression tests for ASHUR daemon and persistent paper state."""
 import importlib.util
+import sqlite3
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import patch
 
-import dulwich.client
-from dulwich import porcelain
-from dulwich.contrib.paramiko_vendor import ParamikoSSHVendor
-
-MODULE_PATH = Path(__file__).with_name("ashur_daemon.py")
-SPEC = importlib.util.spec_from_file_location("ashur_daemon_under_test", MODULE_PATH)
-daemon = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(daemon)
+MODULE_DIR = Path(__file__).resolve().parent
 
 
-def test_paramiko_vendor_is_the_actual_dulwich_default(monkeypatch):
-    captured = {}
-
-    def fake_push(*args, **kwargs):
-        captured["args"] = args
-        captured["kwargs"] = kwargs
-        return SimpleNamespace(ref_status=None)
-
-    monkeypatch.setattr(porcelain, "push", fake_push)
-    daemon._push_with_paramiko(Path("/tmp/ashur-test-key"))
-
-    assert dulwich.client.get_ssh_vendor is ParamikoSSHVendor
-    assert captured["kwargs"]["username"] == "git"
-    assert captured["kwargs"]["key_filename"] == "/tmp/ashur-test-key"
-    assert "vendor" not in captured["kwargs"]
+def load_module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def test_openssh_fallback_is_skipped_for_unmapped_container_uid(monkeypatch):
-    def missing_user(_uid):
-        raise KeyError("uid not present in passwd database")
+daemon = load_module("ashur_daemon_under_test", MODULE_DIR / "ashur_daemon.py")
+worker = load_module("live_shadow_worker_under_test", MODULE_DIR / "live_shadow_worker.py")
 
-    monkeypatch.setattr(daemon.pwd, "getpwuid", missing_user)
-    assert daemon._push_with_openssh_if_uid_resolves() is False
+
+def test_daemon_has_no_git_ledger_publisher():
+    assert not hasattr(daemon, "publish_ledger")
+    assert daemon.WORKER.name == "live_shadow_worker.py"
+
+
+def test_legacy_sqlite_and_status_migrate_to_persistent_storage_once(tmp_path, monkeypatch):
+    repo_dir = tmp_path / "repo"
+    state_dir = tmp_path / "persistent-state"
+    repo_dir.mkdir()
+
+    legacy_db = repo_dir / "ashur_shadow.db"
+    with sqlite3.connect(legacy_db) as conn:
+        conn.execute("CREATE TABLE migration_probe (value TEXT)")
+        conn.execute("INSERT INTO migration_probe VALUES ('preserve-me')")
+
+    legacy_status = repo_dir / "ashur_shadow_status.json"
+    legacy_status.write_text('{"mode":"PAPER_ONLY"}', encoding="utf-8")
+
+    monkeypatch.setattr(worker, "ROOT", repo_dir)
+    monkeypatch.setattr(worker, "DATA_DIR", state_dir)
+    monkeypatch.setattr(worker, "DB", state_dir / "ashur_shadow.db")
+    monkeypatch.setattr(worker, "STATUS_FILE", state_dir / "ashur_shadow_status.json")
+
+    worker.prepare_data_dir()
+
+    with sqlite3.connect(worker.DB) as conn:
+        value = conn.execute("SELECT value FROM migration_probe").fetchone()[0]
+    assert value == "preserve-me"
+    assert worker.STATUS_FILE.read_text(encoding="utf-8") == '{"mode":"PAPER_ONLY"}'
+
+    # A later code sync must never overwrite already-migrated live state.
+    with sqlite3.connect(legacy_db) as conn:
+        conn.execute("UPDATE migration_probe SET value='stale-repo-copy'")
+    legacy_status.write_text('{"mode":"STALE"}', encoding="utf-8")
+
+    worker.prepare_data_dir()
+    with sqlite3.connect(worker.DB) as conn:
+        value = conn.execute("SELECT value FROM migration_probe").fetchone()[0]
+    assert value == "preserve-me"
+    assert worker.STATUS_FILE.read_text(encoding="utf-8") == '{"mode":"PAPER_ONLY"}'
 
 
 if __name__ == "__main__":
