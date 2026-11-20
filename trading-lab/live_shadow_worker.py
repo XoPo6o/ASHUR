@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 import sqlite3
 import time
 import urllib.parse
@@ -9,7 +11,36 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
-DB = ROOT / "ashur_shadow.db"
+# Keep mutable paper state outside the Git checkout. The default is persistent
+# across code syncs/redeploys on a normal Enzonic server filesystem.
+DATA_DIR = Path(
+    os.environ.get("ASHUR_DATA_DIR", str(Path.home() / ".local" / "share" / "ashur"))
+).expanduser()
+DB = DATA_DIR / "ashur_shadow.db"
+STATUS_FILE = DATA_DIR / "ashur_shadow_status.json"
+
+
+def prepare_data_dir():
+    """Create persistent storage and migrate the legacy in-repository state once."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    legacy_db = ROOT / "ashur_shadow.db"
+    legacy_status = ROOT / "ashur_shadow_status.json"
+
+    if not DB.exists() and legacy_db.exists():
+        # SQLite's backup API also includes committed WAL content safely.
+        with sqlite3.connect(str(legacy_db), timeout=30) as source:
+            with sqlite3.connect(str(DB), timeout=30) as target:
+                source.backup(target)
+        print(f"STATE_MIGRATED source={legacy_db} destination={DB}", flush=True)
+
+    if not STATUS_FILE.exists() and legacy_status.exists():
+        shutil.copy2(legacy_status, STATUS_FILE)
+        print(
+            f"STATUS_MIGRATED source={legacy_status} destination={STATUS_FILE}",
+            flush=True,
+        )
+
+    print(f"STATE_STORAGE_READY path={DATA_DIR} db_exists={DB.exists()}", flush=True)
 START_CASH = 1000.0
 RISK = 0.005
 DAILY_STOP = 0.02
@@ -268,10 +299,11 @@ def export_status(conn):
             "fees":round(sum(float(t["fees"]) for t in trades),4),"last_price":price,
             "last_price_at":mark["updated_at"] if mark else None,"position":position
         })
-    out = ROOT / "ashur_shadow_status.json"
-    out.write_text(json.dumps(output, indent=2), encoding="utf-8")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    STATUS_FILE.write_text(json.dumps(output, indent=2), encoding="utf-8")
 
 def run():
+    prepare_data_dir()
     conn = sqlite3.connect(DB, timeout=30)
     conn.row_factory = sqlite3.Row
     init_db(conn)
