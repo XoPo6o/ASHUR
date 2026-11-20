@@ -1,0 +1,50 @@
+name: ASHUR checks and Silly Development deploy
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - "trading-lab/**"
+      - "requirements.txt"
+      - "sillydev.conf"
+      - ".github/workflows/ashur-sillydev-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout ASHUR paper branch
+        uses: actions/checkout@v4
+        with:
+          ref: ashur-live-shadow
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ASHUR dependencies
+        run: python -m pip install --disable-pip-version-check -r trading-lab/requirements.txt
+      - name: Compile daemon and worker
+        run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py
+      - name: Run offline regression tests
+        run: python trading-lab/test_ashur_daemon.py
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy tested ASHUR branch to Silly Development
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        run: |
+          test -n "$SILLYDEV_API_KEY" || { echo "Missing GitHub secret SILLYDEV_API_KEY"; exit 1; }
+          test -n "$SILLYDEV_SERVER_ID" || { echo "Missing GitHub variable SILLYDEV_SERVER_ID"; exit 1; }
+          curl --fail-with-body --silent --show-error -X POST \
+            "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/git/deploy" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+            -H "Accept: application/json"
