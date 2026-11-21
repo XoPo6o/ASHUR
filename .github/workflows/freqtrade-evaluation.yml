@@ -67,9 +67,7 @@ jobs:
         run: |
           set -euo pipefail
           ft() {
-            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-              -v "$PWD/user_data:/freqtrade/user_data" \
-              freqtradeorg/freqtrade:2026.10 "$@"
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
           ft --version
           ft list-strategies --userdir user_data --strategy-path user_data/strategies
@@ -79,9 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           ft() {
-            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-              -v "$PWD/user_data:/freqtrade/user_data" \
-              freqtradeorg/freqtrade:2026.10 "$@"
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
           for config in user_data/config-*.json; do
             echo "Validating $config"
@@ -93,9 +89,7 @@ jobs:
         run: |
           set -euo pipefail
           ft() {
-            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-              -v "$PWD/user_data:/freqtrade/user_data" \
-              freqtradeorg/freqtrade:2026.10 "$@"
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
           # Bybit blocks GitHub-hosted runners by region (CloudFront 403).
           # Binance is used only as a public OHLCV proxy for strategy-engine tests.
@@ -109,9 +103,7 @@ jobs:
           set -euo pipefail
           mkdir -p user_data/backtest_results
           ft() {
-            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-              -v "$PWD/user_data:/freqtrade/user_data" \
-              freqtradeorg/freqtrade:2026.10 "$@"
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
           run_bt() {
             local config="$1" strategy="$2" detail="$3" period="$4"
@@ -135,9 +127,7 @@ jobs:
         run: |
           set -euo pipefail
           ft() {
-            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-              -v "$PWD/user_data:/freqtrade/user_data" \
-              freqtradeorg/freqtrade:2026.10 "$@"
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
           ft lookahead-analysis --userdir user_data --config user_data/config-bnb-15m.json \
             --strategy-path user_data/strategies --strategy BNB_15M_EMA_TREND \
@@ -152,7 +142,9 @@ jobs:
       - name: Build machine-readable summary
         if: always()
         working-directory: freqtrade-lab
-        run: python3 summarize.py | tee summary.json
+        run: |
+          sudo chown -R "$USER:$USER" user_data || true
+          python3 summarize.py | tee summary.json
 
       - name: Upload raw data, backtests and summary
         if: always()
