@@ -19,15 +19,10 @@ jobs:
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
         run: |
           set -euo pipefail
-          for endpoint in servers startup; do
+          for endpoint in "servers/${SILLYDEV_SERVER_ID}" "servers/${SILLYDEV_SERVER_ID}/startup" "servers/${SILLYDEV_SERVER_ID}/resources"; do
             echo "===== GET $endpoint ====="
             curl --fail-with-body --silent --show-error \
-              "https://sillydev.co.uk/panel/api/client/${endpoint}/${SILLYDEV_SERVER_ID}" \
+              "https://sillydev.co.uk/panel/api/client/${endpoint}" \
               -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
               -H "Accept: application/json" | python -m json.tool
           done
-          echo "===== GET resources ====="
-          curl --fail-with-body --silent --show-error \
-            "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/resources" \
-            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
-            -H "Accept: application/json" | python -m json.tool
