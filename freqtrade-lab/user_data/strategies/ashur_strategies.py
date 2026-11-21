@@ -10,7 +10,7 @@ from freqtrade.strategy import IStrategy, stoploss_from_absolute, timeframe_to_p
 class AshurBase(IStrategy):
     INTERFACE_VERSION = 3
     can_short = False
-    startup_candle_count = 220
+    startup_candle_count = 999
     minimal_roi = {}
     stoploss = -0.15
     use_custom_stoploss = True
