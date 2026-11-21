@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: freqtrade-evaluation
+  cancel-in-progress: true
+
 jobs:
   backtest:
     runs-on: ubuntu-latest
@@ -29,8 +33,8 @@ jobs:
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
-          docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 --version
-          docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 list-strategies --userdir user_data --strategy-path user_data/strategies
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 --version
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 list-strategies --userdir user_data --strategy-path user_data/strategies
 
       - name: Validate all dry-run configurations
         working-directory: freqtrade-lab
@@ -38,14 +42,14 @@ jobs:
           set -euo pipefail
           for config in user_data/config-*.json; do
             echo "Validating $config"
-            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 show-config --config "$config" >/dev/null
+            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 show-config --config "$config" >/dev/null
           done
 
       - name: Download Bybit Spot OHLCV history
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
-          FT="docker run --rm -v $PWD/user_data:/freqtrade/user_data freqtradeorg/freqtrade:2026.10"
+          FT="docker run --rm --user $(id -u):$(id -g) -e HOME=/tmp -v $PWD/user_data:/freqtrade/user_data freqtradeorg/freqtrade:2026.10"
           $FT download-data --config user_data/config-bnb-15m.json --timeframes 5m 15m 1h --days 730
           $FT download-data --config user_data/config-bnb-4h.json --timeframes 4h 1d --days 1095
           $FT download-data --config user_data/config-sol-4h.json --timeframes 15m 4h --days 1095
@@ -58,7 +62,7 @@ jobs:
           run_bt() {
             local config="$1" strategy="$2" detail="$3" period="$4"
             echo "BACKTEST strategy=$strategy period=$period detail=$detail"
-            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10               backtesting --userdir user_data --config "$config" --strategy-path user_data/strategies               --strategy "$strategy" --timerange "$period" --fee 0.0015               --timeframe-detail "$detail" --enable-protections --export trades
+            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10               backtesting --userdir user_data --config "$config" --strategy-path user_data/strategies               --strategy "$strategy" --timerange "$period" --fee 0.0015               --timeframe-detail "$detail" --enable-protections --export trades
           }
           for period in 20241121-20251121 20251121-20261121; do
             run_bt user_data/config-bnb-15m.json BNB_15M_EMA_TREND 5m "$period"
@@ -82,7 +86,7 @@ jobs:
       - name: Build machine-readable summary
         if: always()
         working-directory: freqtrade-lab
-        run: python3 summarize.py | tee user_data/backtest_results/summary.json
+        run: python3 summarize.py | tee summary.json
 
       - name: Upload raw data, backtests, summary and logs
         if: always()
@@ -93,5 +97,6 @@ jobs:
             freqtrade-lab/user_data/data/
             freqtrade-lab/user_data/backtest_results/
             freqtrade-lab/user_data/logs/
+            freqtrade-lab/summary.json
           if-no-files-found: warn
           retention-days: 30
