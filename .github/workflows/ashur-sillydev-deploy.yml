@@ -4,6 +4,7 @@ on:
   push:
     branches: [ashur-live-shadow]
     paths:
+      - "ashur_sillydev_start.py"
       - "trading-lab/**"
       - "requirements.txt"
       - "sillydev.conf"
@@ -22,14 +23,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ashur-live-shadow
-      - name: Set up Python 3.12
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
       - name: Install ASHUR dependencies
         run: python -m pip install --disable-pip-version-check -r requirements.txt
-      - name: Compile daemon and worker
-        run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py
+      - name: Compile launcher, daemon and worker
+        run: python -m py_compile ashur_sillydev_start.py trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py
       - name: Run offline regression tests
         run: python trading-lab/test_ashur_daemon.py
 
@@ -44,7 +45,7 @@ jobs:
         run: |
           if [ -z "$SILLYDEV_API_KEY" ] || [ -z "$SILLYDEV_SERVER_ID" ]; then
             echo "Deploy skipped: configure SILLYDEV_API_KEY and SILLYDEV_SERVER_ID in GitHub first."
-            exit 0
+            exit 1
           fi
           curl --fail-with-body --silent --show-error -X POST \
             "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/git/deploy" \
