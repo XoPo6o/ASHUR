@@ -137,6 +137,26 @@ class TestAshurRuntime(unittest.TestCase):
             ))
             conn.close()
 
+    def test_status_reports_partial_worker_failures(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temporary:
+            original = (worker.DATA_DIR, worker.STATUS_FILE)
+            try:
+                worker.DATA_DIR = Path(temporary)
+                worker.STATUS_FILE = Path(temporary) / "status.json"
+                conn = sqlite3.connect(":memory:")
+                conn.row_factory = sqlite3.Row
+                worker.init_db(conn)
+                worker.export_status(conn, worker_errors=2, successful_strategies=4)
+                import json
+                status = json.loads(worker.STATUS_FILE.read_text(encoding="utf-8"))
+                self.assertEqual(status["worker_health"]["error_count"], 2)
+                self.assertEqual(status["worker_health"]["successful_strategies"], 4)
+                self.assertFalse(status["worker_health"]["all_strategies_ok"])
+                conn.close()
+            finally:
+                worker.DATA_DIR, worker.STATUS_FILE = original
+
     def test_worker_returns_failure_when_market_data_fails(self):
         import tempfile
 
