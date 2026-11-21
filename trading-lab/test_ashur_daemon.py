@@ -180,6 +180,8 @@ class TestAshurRuntime(unittest.TestCase):
                 self.assertTrue(worker.STATUS_FILE.exists())
                 status = worker.STATUS_FILE.read_text(encoding="utf-8")
                 self.assertIn('"mode": "PAPER_ONLY"', status)
+                self.assertIn('"error_count": 6', status)
+                self.assertIn('"all_strategies_ok": false', status)
             finally:
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE = original
 
