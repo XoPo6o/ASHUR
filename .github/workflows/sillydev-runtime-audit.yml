@@ -122,6 +122,12 @@ jobs:
           for table in ("shadow_accounts","shadow_positions","shadow_trades","shadow_state","shadow_events","shadow_marks","shadow_trade_guard"):
               count=db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
               print("SQLITE_TABLE",table,"ROWS",count)
+          print("ALL_TRADES")
+          for row in db.execute("SELECT id,strategy_id,symbol,entry,exit,qty,fees,pnl,reason,opened_at,closed_at FROM shadow_trades ORDER BY id"):
+              print(*row,sep=" | ")
+          print("BNB_15M_TRADE_EVENTS")
+          for row in db.execute("SELECT created_at,event,details FROM shadow_events WHERE strategy_id='BNB_15M_EMA_TREND' AND event IN ('OPEN','CLOSE','ERROR') ORDER BY id"):
+              print(*row,sep=" | ")
           print("RECENT_EVENTS")
           for row in db.execute("SELECT created_at,strategy_id,event,details FROM shadow_events ORDER BY id DESC LIMIT 12"):
               print(*row,sep=" | ")
