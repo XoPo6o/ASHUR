@@ -135,6 +135,16 @@ def fetch_bybit_klines(symbol, interval, limit=350):
         errors.append("Binance: " + str(exc))
     raise RuntimeError("No usable candle source: " + " | ".join(errors))
 
+def validate_binance_ticker(payload, now_ms=None):
+    """Require a recent Binance last-trade timestamp, not merely a fast HTTP response."""
+    now_ms = int(now_ms if now_ms is not None else time.time() * 1000)
+    close_ms = int(payload.get("closeTime", 0))
+    age_ms = now_ms - close_ms
+    if close_ms <= 0 or age_ms < 0 or age_ms > 30000:
+        raise ValueError("Binance ticker last trade is stale")
+    return validate_ticker_price(payload["lastPrice"])
+
+
 def fetch_ticker(symbol):
     market_symbol = symbol.replace("/", "")
     errors = []
@@ -155,10 +165,10 @@ def fetch_ticker(symbol):
     try:
         query = urllib.parse.urlencode({"symbol": market_symbol})
         request_started = time.monotonic()
-        payload = api_json("https://data-api.binance.vision/api/v3/ticker/price?" + query)
+        payload = api_json("https://data-api.binance.vision/api/v3/ticker/24hr?" + query)
         if time.monotonic() - request_started > 10:
             raise RuntimeError("Binance ticker response took too long")
-        return validate_ticker_price(payload["price"])
+        return validate_binance_ticker(payload)
     except Exception as exc:
         errors.append("Binance: " + str(exc))
     raise RuntimeError("No usable ticker source: " + " | ".join(errors))
