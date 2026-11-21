@@ -13,49 +13,44 @@ jobs:
   console:
     runs-on: ubuntu-latest
     steps:
-      - name: Read ASHUR console output after package installation
+      - name: Read server state and collect console output
         env:
           SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
         run: |
           set -euo pipefail
-          echo "===== FILESYSTEM CHECK ====="
-          for dir in / /.local /.local/lib/python3.13/site-packages; do
-            echo "DIRECTORY=$dir"
-            curl --fail-with-body --silent --show-error --get --data-urlencode "directory=$dir" "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/files/list" -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" | python -c 'import json,sys; d=json.load(sys.stdin); print(" ".join(x["attributes"]["name"] for x in d.get("data",[])))'
-          done
-          code=$(curl --silent --show-error --output /tmp/pip-stamp --write-out "%{http_code}" --get --data-urlencode "file=/.local/.pip-installed" "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/files/contents" -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json")
-          echo "PIP_STAMP_HTTP=$code"
-          if [ "$code" = "200" ]; then cat /tmp/pip-stamp; fi
-          echo "===== LIVE RESOURCES ====="
-          curl --fail-with-body --silent --show-error "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/resources" -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" | python -m json.tool
+          curl --fail-with-body --silent --show-error "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/resources" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" | python -m json.tool
+
           base="https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/websocket/relay"
           curl --fail-with-body --silent --show-error -X POST "$base" \
-            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
-            -H "Accept: application/json" > /tmp/relay.json
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" > /tmp/relay.json
           session=$(python -c 'import json; print(json.load(open("/tmp/relay.json"))["data"]["session"])')
           cleanup() {
             curl --silent --show-error -X DELETE "$base/$session" \
-              -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
-              -H "Accept: application/json" >/dev/null || true
+              -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" >/dev/null || true
           }
           trap cleanup EXIT
           curl --fail-with-body --silent --show-error -X POST "$base/$session/send" \
             -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/json" \
+            -H "Accept: application/json" -H "Content-Type: application/json" \
             --data '{"event":"send logs"}' >/dev/null
-          sleep 2
-          curl --fail-with-body --silent --show-error "$base/$session?after=0" \
-            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
-            -H "Accept: application/json" > /tmp/console.json
-          python - <<'PY'
+
+          after=0
+          for attempt in $(seq 1 10); do
+            curl --fail-with-body --silent --show-error "$base/$session?after=$after" \
+              -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" > /tmp/console.json
+            python - <<'PY'
           import json
           d=json.load(open("/tmp/console.json"))["data"]
-          print("MISSED_EVENTS=" + str(d.get("missed")))
-          for event in d.get("events", []):
-              name=event.get("event")
-              args=event.get("args") or []
-              if name in ("status", "console output", "daemon error", "jwt error", "throttled"):
-                  print(name + (": " + " ".join(args) if args else ""))
+          for e in d.get("events", []):
+              n=e.get("event")
+              a=e.get("args") or []
+              if n in ("status","console output","daemon error","jwt error","throttled"):
+                  print(n + (": " + " ".join(a) if a else ""))
+          print("LAST_ID=" + str(max([e.get("id", 0) for e in d.get("events", [])], default=0)))
           PY
+            next_after=$(python -c 'import json; d=json.load(open("/tmp/console.json"))["data"]; print(max([e.get("id",0) for e in d.get("events",[])],default=0))')
+            if [ "$next_after" -gt "$after" ]; then after="$next_after"; fi
+            sleep 2
+          done
