@@ -1,0 +1,62 @@
+name: ASHUR isolated paper execution smoke test
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-paper-execution-smoke.yml"
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Test actual paper open-close accounting in an isolated database
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet "pandas>=2.2,<3"
+          curl --fail --silent --show-error "https://raw.githubusercontent.com/XoPo6o/ASHUR/ashur-live-shadow/trading-lab/live_shadow_worker.py" -o /tmp/live_shadow_worker.py
+          python - <<'PY'
+          import importlib.util, sqlite3, tempfile, math
+          from pathlib import Path
+          spec=importlib.util.spec_from_file_location("ashur_worker", "/tmp/live_shadow_worker.py")
+          worker=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(worker)
+          with tempfile.TemporaryDirectory(prefix="ashur-paper-smoke-") as td:
+              worker.DATA_DIR=Path(td)
+              worker.DB=Path(td)/"smoke.db"
+              conn=sqlite3.connect(worker.DB)
+              conn.row_factory=sqlite3.Row
+              worker.init_db(conn)
+              strategy=next(s for s in worker.STRATEGIES if s["id"]=="BNB_15M_EMA_TREND")
+              worker.open_position(conn,strategy,500.0,2.0)
+              opened=conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(strategy["id"],)).fetchone()
+              assert opened is not None, "Paper BUY did not create a position"
+              qty=float(opened["qty"])
+              entry=float(opened["entry"])
+              stop=float(opened["stop"])
+              worker.close_position(conn,strategy,500.0,"SMOKE_TEST","isolated-smoke-candle")
+              trade=conn.execute("SELECT * FROM shadow_trades WHERE strategy_id=?",(strategy["id"],)).fetchone()
+              assert trade is not None, "Paper SELL did not write a closed trade"
+              assert trade["reason"]=="SMOKE_TEST"
+              assert conn.execute("SELECT COUNT(*) FROM shadow_positions").fetchone()[0]==0
+              assert math.isfinite(float(trade["pnl"]))
+              assert float(trade["fees"])>0
+              account=conn.execute("SELECT cash FROM shadow_accounts WHERE strategy_id=?",(strategy["id"],)).fetchone()
+              print("SMOKE_RESULT=PASS")
+              print("MODE=PAPER_ONLY")
+              print("ISOLATED_TEMP_DATABASE=True")
+              print("STRATEGY=",strategy["id"])
+              print("PAPER_BUY_QTY=",qty)
+              print("PAPER_ENTRY=",entry)
+              print("PAPER_STOP=",stop)
+              print("PAPER_SELL_EXIT=",trade["exit"])
+              print("PAPER_FEES=",trade["fees"])
+              print("PAPER_NET_PNL=",trade["pnl"])
+              print("CLOSED_REASON=",trade["reason"])
+              print("OPEN_POSITIONS_AFTER_CLOSE=",conn.execute("SELECT COUNT(*) FROM shadow_positions").fetchone()[0])
+              print("VIRTUAL_CASH_AFTER_CLOSE=",account["cash"])
+              print("LIVE_SERVER_OR_EXCHANGE_TOUCHED=False")
+              conn.close()
+          PY
