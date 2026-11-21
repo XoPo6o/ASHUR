@@ -346,9 +346,15 @@ def open_position(conn, s, price, atr):
       (s["id"],s["symbol"],qty,fill,fee,stop,target,now()))
     event(conn,s["id"],"OPEN",f"paper BUY; qty={qty:.8f}; entry={fill:.6f}; SL={stop:.6f}; TP={target:.6f}")
 
-def export_status(conn):
+def export_status(conn, worker_errors=0, successful_strategies=None):
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
-    output = {"updated_at": now(), "mode": "PAPER_ONLY", "market_data": "Public spot market data; Bybit primary, Binance fallback",
+    successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
+    output = {"updated_at": now(), "mode": "PAPER_ONLY",
+              "market_data": "Public spot market data; Bybit primary, Binance fallback",
+              "worker_health": {"strategy_count": len(STRATEGIES),
+                                "successful_strategies": successful_strategies,
+                                "error_count": int(worker_errors),
+                                "all_strategies_ok": int(worker_errors) == 0 and successful_strategies == len(STRATEGIES)},
               "accounts": []}
     for a in accounts:
         pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
@@ -391,6 +397,7 @@ def run():
     init_db(conn)
     cache = {}
     strategy_errors = 0
+    successful_strategies = 0
     for s in STRATEGIES:
         try:
             key = (s["symbol"],s["interval"])
@@ -431,6 +438,7 @@ def run():
                 conn.execute("INSERT OR REPLACE INTO shadow_state VALUES(?,?)",(s["id"],candle_id))
                 event(conn,s["id"],"CHECK",f"candle={candle_id}; candle_close={float(row.close):.6f}; live={price:.6f}; entry={entry_signal}; exit={exit_signal}; cooldown={cooldown_active}")
             conn.commit()
+            successful_strategies += 1
             print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} cooldown={cooldown_active} position={bool(pos)}')
         except Exception as exc:
             strategy_errors += 1
@@ -438,7 +446,7 @@ def run():
             event(conn,s["id"],"ERROR",f"{type(exc).__name__}: {exc}")
             conn.commit()
             print(f'{s["id"]}: ERROR {type(exc).__name__}: {exc}')
-    export_status(conn)
+    export_status(conn, worker_errors=strategy_errors, successful_strategies=successful_strategies)
     conn.close()
     print(f"WORKER_SUMMARY strategies={len(STRATEGIES)} errors={strategy_errors}", flush=True)
     if strategy_errors:
