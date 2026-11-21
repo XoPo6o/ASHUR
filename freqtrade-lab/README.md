@@ -48,3 +48,7 @@ docker run --rm freqtradeorg/freqtrade:2026.10 --version
 ```
 
 Official docs: https://www.freqtrade.io/en/stable/
+
+## Indicator warmup validation
+
+The strategy baseline uses `startup_candle_count = 999` to reduce recursive EMA200 variance while staying within Binance's typical 1000-candle OHLCV request window (999 startup candles plus the current candle). The evaluation downloads 3000 days of daily BNB candles so the daily strategy can be checked over a multi-year lookahead-analysis window and recursive-analysis startup values 499, 999, and 1999. The lookahead minimum trade count is set to 5 for this diagnostic; a pass with only five signals is a limited check, not proof that all possible signal paths are unbiased.
