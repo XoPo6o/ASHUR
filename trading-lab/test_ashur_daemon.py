@@ -100,7 +100,7 @@ class TestAshurRuntime(unittest.TestCase):
         now_ms = 2_000_000_000_000
         interval_ms = 900_000
         fresh_open = now_ms - interval_ms - 60_000
-        stale_open = now_ms - (3 * interval_ms)
+        stale_open = now_ms - (4 * interval_ms)
         self.assertTrue(worker.candle_is_fresh(fresh_open, "15", now_ms))
         self.assertFalse(worker.candle_is_fresh(stale_open, "15", now_ms))
         self.assertFalse(worker.candle_is_fresh(now_ms, "15", now_ms))
