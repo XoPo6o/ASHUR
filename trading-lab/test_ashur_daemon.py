@@ -182,6 +182,10 @@ class TestAshurRuntime(unittest.TestCase):
         self.assertFalse(worker.candle_is_fresh(stale_open, "15", now_ms))
         self.assertFalse(worker.candle_is_fresh(now_ms, "15", now_ms))
 
+    def test_market_data_fetch_uses_999_closed_candle_warmup(self):
+        self.assertEqual(worker.CANDLE_WARMUP, 999)
+        self.assertEqual(worker.fetch_bybit_klines.__defaults__, (999,))
+
     def test_ticker_price_must_be_finite_and_positive(self):
         self.assertEqual(worker.validate_ticker_price("123.45"), 123.45)
         for invalid in (0, -1, float("nan"), float("inf")):
