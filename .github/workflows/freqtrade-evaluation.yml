@@ -1,11 +1,6 @@
 name: Freqtrade market-data benchmark
 
 on:
-  push:
-    branches: [freqtrade-evaluation]
-    paths:
-      - "freqtrade-lab/**"
-      - ".github/workflows/freqtrade-evaluation.yml"
   pull_request:
     branches: [ashur-live-shadow]
   workflow_dispatch:
