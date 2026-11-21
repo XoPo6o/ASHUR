@@ -139,21 +139,33 @@ jobs:
             done
           done
 
-      - name: Check lookahead and recursive indicator stability for all six strategies
+      - name: Check lookahead and recursive indicator stability for all 15 strategies across three timeframes
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
           ft() {
             docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
+          validation_failures=0
           check_strategy() {
             local config="$1" strategy="$2" timerange="$3"
-            echo "LOOKAHEAD_CHECK strategy=$strategy"
-            ft lookahead-analysis --userdir user_data --config "$config" \
-              --strategy "$strategy" --timerange "$timerange" --minimum-trade-amount 5
-            echo "RECURSIVE_CHECK strategy=$strategy"
-            ft recursive-analysis --userdir user_data --config "$config" \
-              --strategy "$strategy" --timerange "$timerange" --startup-candle 499 999 1999
+            local pair="BNB/USDT"
+            if [[ "$strategy" == "SOL_4H_DONCHIAN_VOL" ]]; then
+              pair="SOL/USDT"
+            fi
+            echo "LOOKAHEAD_CHECK strategy=$strategy config=$config"
+            if ! ft lookahead-analysis --userdir user_data --config "$config" \
+              --strategy "$strategy" --timerange "$timerange" --minimum-trade-amount 5; then
+              echo "LOOKAHEAD_FAILED strategy=$strategy config=$config"
+              validation_failures=$((validation_failures + 1))
+            fi
+            echo "RECURSIVE_CHECK strategy=$strategy config=$config pair=$pair"
+            if ! ft recursive-analysis --userdir user_data --config "$config" \
+              --strategy "$strategy" --timerange "$timerange" --pairs "$pair" \
+              --startup-candle 499 999 1999; then
+              echo "RECURSIVE_FAILED strategy=$strategy config=$config pair=$pair"
+              validation_failures=$((validation_failures + 1))
+            fi
           }
           strategies=(
             "BNB_15M_EMA_TREND"
@@ -177,6 +189,11 @@ jobs:
             check_strategy user_data/config-multi-4h.json "$strategy" 20231121-20261121
             check_strategy user_data/config-multi-1d.json "$strategy" 20191121-20261121
           done
+          if (( validation_failures > 0 )); then
+            echo "VALIDATION_FAILURES=$validation_failures"
+            exit 1
+          fi
+          echo "VALIDATION_PASSED=45 lookahead checks and 45 recursive checks"
 
       - name: Build machine-readable summary
         if: always()
