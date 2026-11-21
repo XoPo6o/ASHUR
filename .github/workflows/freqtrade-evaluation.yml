@@ -68,7 +68,7 @@ jobs:
             docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
           ft --version
-          ft list-strategies --userdir user_data --strategy-path user_data/strategies
+          ft list-strategies --userdir user_data 
 
       - name: Validate all dry-run configurations
         working-directory: freqtrade-lab
@@ -107,17 +107,17 @@ jobs:
             local config="$1" strategy="$2" detail="$3" period="$4"
             echo "BACKTEST strategy=$strategy period=$period detail=$detail"
             ft backtesting --userdir user_data --config "$config" \
-              --strategy-path user_data/strategies --strategy "$strategy" \
+               --strategy "$strategy" \
               --timerange "$period" --fee 0.0015 --timeframe-detail "$detail" \
-              --enable-protections --export trades
+              --enable-protections --export trades || { echo "BACKTEST_FAILED strategy=$strategy period=$period"; return 1; }
           }
           for period in 20241121-20251121 20251121-20261121; do
-            run_bt user_data/config-bnb-15m.json BNB_15M_EMA_TREND 5m "$period"
-            run_bt user_data/config-bnb-1h.json BNB_1H_DONCHIAN_ADX25 15m "$period"
-            run_bt user_data/config-bnb-4h.json BNB_4H_ADX_TREND 15m "$period"
-            run_bt user_data/config-bnb-4h.json BNB_4H_KELTNER_ADX 15m "$period"
-            run_bt user_data/config-sol-4h.json SOL_4H_DONCHIAN_VOL 15m "$period"
-            run_bt user_data/config-bnb-1d.json BNB_1D_DONCHIAN55 1h "$period"
+            run_bt user_data/config-bnb-15m.json BNB_15M_EMA_TREND 5m "$period" || exit 1
+            run_bt user_data/config-bnb-1h.json BNB_1H_DONCHIAN_ADX25 15m "$period" || exit 1
+            run_bt user_data/config-bnb-4h.json BNB_4H_ADX_TREND 15m "$period" || exit 1
+            run_bt user_data/config-bnb-4h.json BNB_4H_KELTNER_ADX 15m "$period" || exit 1
+            run_bt user_data/config-sol-4h.json SOL_4H_DONCHIAN_VOL 15m "$period" || exit 1
+            run_bt user_data/config-bnb-1d.json BNB_1D_DONCHIAN55 1h "$period" || exit 1
           done
 
       - name: Check lookahead and recursive indicator stability
@@ -128,13 +128,13 @@ jobs:
             docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
           }
           ft lookahead-analysis --userdir user_data --config user_data/config-bnb-15m.json \
-            --strategy-path user_data/strategies --strategy BNB_15M_EMA_TREND \
+             --strategy BNB_15M_EMA_TREND \
             --timerange 20241121-20261121
           ft lookahead-analysis --userdir user_data --config user_data/config-bnb-1h.json \
-            --strategy-path user_data/strategies --strategy BNB_1H_DONCHIAN_ADX25 \
+             --strategy BNB_1H_DONCHIAN_ADX25 \
             --timerange 20241121-20261121
           ft recursive-analysis --userdir user_data --config user_data/config-bnb-4h.json \
-            --strategy-path user_data/strategies --strategy BNB_4H_ADX_TREND \
+             --strategy BNB_4H_ADX_TREND \
             --timerange 20231121-20261121
 
       - name: Build machine-readable summary

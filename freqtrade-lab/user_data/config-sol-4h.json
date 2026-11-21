@@ -7,7 +7,7 @@
   "db_url": "sqlite:///user_data/tradesv3.dryrun.sqlite",
   "max_open_trades": 1,
   "stake_currency": "USDT",
-  "stake_amount": 1000,
+  "stake_amount": 900,
   "tradable_balance_ratio": 0.95,
   "fiat_display_currency": "USD",
   "trading_mode": "spot",
