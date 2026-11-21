@@ -29,6 +29,7 @@ for archive in sorted(root.glob("*.zip")):
                 "strategy": name,
                 "timeframe": stats.get("timeframe"),
                 "pair": (stats.get("pairlist") or [None])[0],
+                "pairs": stats.get("pairlist") or [],
                 "period_start": stats.get("backtest_start"),
                 "period_end": stats.get("backtest_end"),
                 "days": stats.get("backtest_days"),
@@ -48,7 +49,7 @@ for archive in sorted(root.glob("*.zip")):
     except Exception as exc:
         errors.append({"archive": archive.name, "error": str(exc)})
 
-expected = 12
+expected = 90
 report = {
     "expected_runs": expected,
     "parsed_runs": len(rows),
