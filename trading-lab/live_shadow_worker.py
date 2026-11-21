@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import shutil
 import sqlite3
@@ -73,6 +74,22 @@ def api_json(url):
     with urllib.request.urlopen(req, timeout=15) as response:
         return json.loads(response.read().decode("utf-8"))
 
+def candle_is_fresh(last_candle_open_ms, interval, now_ms=None):
+    """A closed candle must not be more than two full intervals behind now."""
+    now_ms = int(now_ms if now_ms is not None else time.time() * 1000)
+    interval_ms = {"15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
+    candle_close_ms = int(last_candle_open_ms) + interval_ms
+    age_ms = now_ms - candle_close_ms
+    return 0 <= age_ms <= 2 * interval_ms
+
+
+def validate_ticker_price(price):
+    price = float(price)
+    if not math.isfinite(price) or price <= 0:
+        raise ValueError("Ticker price must be finite and positive")
+    return price
+
+
 def fetch_bybit_klines(symbol, interval, limit=350):
     market_symbol = symbol.replace("/", "")
     ms = {"15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
@@ -91,6 +108,8 @@ def fetch_bybit_klines(symbol, interval, limit=350):
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
         if len(frame) >= 220:
+            if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
+                raise RuntimeError("Bybit latest closed candle is stale")
             return frame
         errors.append("Bybit returned too few closed candles")
     except Exception as exc:
@@ -108,6 +127,8 @@ def fetch_bybit_klines(symbol, interval, limit=350):
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
         if len(frame) >= 220:
+            if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
+                raise RuntimeError("Binance latest closed candle is stale")
             return frame
         errors.append("Binance returned too few closed candles")
     except Exception as exc:
@@ -119,16 +140,25 @@ def fetch_ticker(symbol):
     errors = []
     try:
         query = urllib.parse.urlencode({"category": "spot", "symbol": market_symbol})
+        request_started = time.monotonic()
         payload = api_json("https://api.bybit.com/v5/market/tickers?" + query)
+        request_elapsed = time.monotonic() - request_started
         if payload.get("retCode") == 0 and payload.get("result", {}).get("list"):
-            return float(payload["result"]["list"][0]["lastPrice"])
+            server_time_ms = int(payload.get("time", 0))
+            now_ms = int(time.time() * 1000)
+            if request_elapsed > 10 or not server_time_ms or abs(now_ms - server_time_ms) > 30000:
+                raise RuntimeError("Bybit ticker response is stale")
+            return validate_ticker_price(payload["result"]["list"][0]["lastPrice"])
         errors.append("Bybit ticker unavailable")
     except Exception as exc:
         errors.append("Bybit: " + str(exc))
     try:
         query = urllib.parse.urlencode({"symbol": market_symbol})
+        request_started = time.monotonic()
         payload = api_json("https://data-api.binance.vision/api/v3/ticker/price?" + query)
-        return float(payload["price"])
+        if time.monotonic() - request_started > 10:
+            raise RuntimeError("Binance ticker response took too long")
+        return validate_ticker_price(payload["price"])
     except Exception as exc:
         errors.append("Binance: " + str(exc))
     raise RuntimeError("No usable ticker source: " + " | ".join(errors))
