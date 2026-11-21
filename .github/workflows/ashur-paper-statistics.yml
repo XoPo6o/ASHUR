@@ -47,6 +47,8 @@ jobs:
           print("Generated UTC:",datetime.now(timezone.utc).isoformat())
           print("Server:",r.get("current_state"),"| memory bytes:",r.get("resources",{}).get("memory_bytes"))
           print("Mode:",s.get("mode"),"| status updated:",s.get("updated_at"))
+          health=s.get("worker_health",{})
+          print("Worker health:",health)
           print()
           print("| Strategy | Grade | Last price | Trades | Realized PnL | Unrealized PnL | Equity | Return |")
           print("|---|---|---:|---:|---:|---:|---:|---:|")
@@ -70,6 +72,8 @@ jobs:
           print("Heartbeat age seconds:",int(age))
           if s.get("mode")!="PAPER_ONLY": raise SystemExit("Unexpected trading mode; refusing report")
           if len(s.get("accounts",[]))!=6: raise SystemExit("Unexpected strategy count")
+          if not s.get("worker_health",{}).get("all_strategies_ok",False):
+              raise SystemExit("Worker health degraded or missing; report is not considered healthy")
           if r.get("current_state")!="running": raise SystemExit("SillyDev server is not running")
           if age>900: raise SystemExit("ASHUR heartbeat stale")
           PY
