@@ -2,7 +2,7 @@ name: Freqtrade market-data benchmark
 
 on:
   push:
-    branches: [freqtrade-evaluation]
+    branches: [freqtrade-evaluation, freqtrade-expanded-research]
     paths:
       - "freqtrade-lab/**"
       - ".github/workflows/freqtrade-evaluation.yml"
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: freqtrade-evaluation
+  group: freqtrade-evaluation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -55,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: freqtrade-evaluation
+          ref: ${{ github.ref_name }}
 
       - name: Pull pinned official Freqtrade image
         run: docker pull freqtradeorg/freqtrade:2026.10
@@ -91,11 +91,12 @@ jobs:
           }
           # Bybit blocks GitHub-hosted runners by region (CloudFront 403).
           # Binance is used only as a public OHLCV proxy for strategy-engine tests.
-          ft download-data --config user_data/config-bnb-15m.json --timeframes 5m 15m 1h --days 730
-          ft download-data --config user_data/config-bnb-4h.json --timeframes 4h --days 1095
-          # Daily Donchian needs a longer history both for EMA200 warmup and enough lookahead signals.
-          ft download-data --config user_data/config-bnb-1d.json --timeframes 1d --days 3000
-          ft download-data --config user_data/config-sol-4h.json --timeframes 15m 4h --days 1095
+          # Expanded, multi-asset research: BTC, ETH, SOL and BNB on 1h, 4h and 1d.
+          # 15m detail data models more realistic intrabar fills for 1h/4h strategies.
+          ft download-data --config user_data/config-multi-1h.json --timeframes 1h 15m --days 1095
+          ft download-data --config user_data/config-multi-4h.json --timeframes 4h 15m --days 1095
+          # Daily data needs enough pre-roll for the 999-candle EMA200 warmup.
+          ft download-data --config user_data/config-multi-1d.json --timeframes 1d 1h --days 3000
 
       - name: Run chronological in-sample and out-of-sample backtests
         working-directory: freqtrade-lab
@@ -113,13 +114,29 @@ jobs:
               --timerange "$period" --fee 0.0015 --timeframe-detail "$detail" \
               --enable-protections --export trades || { echo "BACKTEST_FAILED strategy=$strategy period=$period"; return 1; }
           }
+          strategies=(
+            "BNB_15M_EMA_TREND"
+            "BNB_1H_DONCHIAN_ADX25"
+            "BNB_4H_ADX_TREND"
+            "BNB_4H_KELTNER_ADX"
+            "SOL_4H_DONCHIAN_VOL"
+            "BNB_1D_DONCHIAN55"
+            "ASHUR_TIME_SERIES_MOMENTUM_60"
+            "ASHUR_DONCHIAN_55_TREND"
+            "ASHUR_SUPERTREND_10_3"
+            "ASHUR_BULL_REGIME_MEAN_REVERSION"
+            "ASHUR_MULTI_HORIZON_MOMENTUM"
+            "ASHUR_DONCHIAN_ENSEMBLE_20_55_100"
+            "ASHUR_DONCHIAN_COST_AWARE_025"
+            "ASHUR_TREND_PULLBACK_RSI40"
+            "ASHUR_TRIPLE_HORIZON_MOMENTUM"
+          )
           for period in 20241121-20251121 20251121-20261121; do
-            run_bt user_data/config-bnb-15m.json BNB_15M_EMA_TREND 5m "$period" || exit 1
-            run_bt user_data/config-bnb-1h.json BNB_1H_DONCHIAN_ADX25 15m "$period" || exit 1
-            run_bt user_data/config-bnb-4h.json BNB_4H_ADX_TREND 15m "$period" || exit 1
-            run_bt user_data/config-bnb-4h.json BNB_4H_KELTNER_ADX 15m "$period" || exit 1
-            run_bt user_data/config-sol-4h.json SOL_4H_DONCHIAN_VOL 15m "$period" || exit 1
-            run_bt user_data/config-bnb-1d.json BNB_1D_DONCHIAN55 1h "$period" || exit 1
+            for strategy in "${strategies[@]}"; do
+              run_bt user_data/config-multi-1h.json "$strategy" 15m "$period" || exit 1
+              run_bt user_data/config-multi-4h.json "$strategy" 15m "$period" || exit 1
+              run_bt user_data/config-multi-1d.json "$strategy" 1h "$period" || exit 1
+            done
           done
 
       - name: Check lookahead and recursive indicator stability for all six strategies
@@ -138,12 +155,28 @@ jobs:
             ft recursive-analysis --userdir user_data --config "$config" \
               --strategy "$strategy" --timerange "$timerange" --startup-candle 499 999 1999
           }
-          check_strategy user_data/config-bnb-15m.json BNB_15M_EMA_TREND 20241121-20261121
-          check_strategy user_data/config-bnb-1h.json BNB_1H_DONCHIAN_ADX25 20241121-20261121
-          check_strategy user_data/config-bnb-4h.json BNB_4H_ADX_TREND 20231121-20261121
-          check_strategy user_data/config-bnb-4h.json BNB_4H_KELTNER_ADX 20231121-20261121
-          check_strategy user_data/config-sol-4h.json SOL_4H_DONCHIAN_VOL 20231121-20261121
-          check_strategy user_data/config-bnb-1d.json BNB_1D_DONCHIAN55 20191121-20261121
+          strategies=(
+            "BNB_15M_EMA_TREND"
+            "BNB_1H_DONCHIAN_ADX25"
+            "BNB_4H_ADX_TREND"
+            "BNB_4H_KELTNER_ADX"
+            "SOL_4H_DONCHIAN_VOL"
+            "BNB_1D_DONCHIAN55"
+            "ASHUR_TIME_SERIES_MOMENTUM_60"
+            "ASHUR_DONCHIAN_55_TREND"
+            "ASHUR_SUPERTREND_10_3"
+            "ASHUR_BULL_REGIME_MEAN_REVERSION"
+            "ASHUR_MULTI_HORIZON_MOMENTUM"
+            "ASHUR_DONCHIAN_ENSEMBLE_20_55_100"
+            "ASHUR_DONCHIAN_COST_AWARE_025"
+            "ASHUR_TREND_PULLBACK_RSI40"
+            "ASHUR_TRIPLE_HORIZON_MOMENTUM"
+          )
+          for strategy in "${strategies[@]}"; do
+            check_strategy user_data/config-multi-1h.json "$strategy" 20231121-20261121
+            check_strategy user_data/config-multi-4h.json "$strategy" 20231121-20261121
+            check_strategy user_data/config-multi-1d.json "$strategy" 20191121-20261121
+          done
 
       - name: Build machine-readable summary
         if: always()
