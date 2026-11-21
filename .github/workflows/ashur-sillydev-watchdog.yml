@@ -2,6 +2,10 @@ name: ASHUR SillyDev watchdog
 run-name: ASHUR watchdog · server availability
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-sillydev-watchdog.yml"
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
