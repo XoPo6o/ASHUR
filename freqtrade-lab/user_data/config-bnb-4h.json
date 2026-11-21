@@ -41,6 +41,11 @@
           "public": "https://data-api.binance.vision/api/v3",
           "private": "https://api.binance.com/api/v3"
         }
+      },
+      "options": {
+        "fetchMarkets": [
+          "spot"
+        ]
       }
     },
     "ccxt_async_config": {
@@ -50,6 +55,11 @@
           "public": "https://data-api.binance.vision/api/v3",
           "private": "https://api.binance.com/api/v3"
         }
+      },
+      "options": {
+        "fetchMarkets": [
+          "spot"
+        ]
       }
     },
     "pair_whitelist": [
