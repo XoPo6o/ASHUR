@@ -3,7 +3,7 @@ name: ASHUR daemon regression checks
 
 on:
   push:
-    branches: [ashur-live-shadow]
+    branches: [ashur-live-shadow, ashur-warmup-evaluation]
     paths:
       - "trading-lab/ashur_daemon.py"
       - "trading-lab/live_shadow_worker.py"
@@ -23,7 +23,7 @@ jobs:
       - name: Checkout paper branch
         uses: actions/checkout@v4
         with:
-          ref: ashur-live-shadow
+          ref: ${{ github.ref_name }}
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
