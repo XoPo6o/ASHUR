@@ -75,6 +75,27 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE = original
 
 
+    def test_gap_through_stop_is_classified_separately(self):
+        self.assertEqual(worker.stop_exit_reason(100.0, 100.0), "STOP")
+        self.assertEqual(worker.stop_exit_reason(99.99, 100.0), "GAP_STOP")
+        self.assertEqual(worker.stop_exit_reason(100.01, 100.0), "STOP")
+
+    def test_position_size_respects_risk_after_fees_and_slippage(self):
+        cash, price, atr = 1000.0, 500.0, 2.0
+        qty = worker.calculate_position_size(cash, price, atr)
+        entry = price * (1 + worker.SLIPPAGE)
+        stop = entry - 3 * atr
+        exit_fill = stop * (1 - worker.SLIPPAGE)
+        modeled_loss = qty * (entry * (1 + worker.FEE) - exit_fill * (1 - worker.FEE))
+        self.assertGreater(qty, 0)
+        self.assertLessEqual(modeled_loss, cash * worker.RISK + 1e-9)
+        self.assertLessEqual(qty * entry * (1 + worker.FEE), cash * worker.MAX_NOTIONAL + 1e-9)
+
+    def test_position_size_rejects_invalid_market_inputs(self):
+        self.assertEqual(worker.calculate_position_size(1000, 0, 2), 0)
+        self.assertEqual(worker.calculate_position_size(1000, 500, 0), 0)
+        self.assertEqual(worker.calculate_position_size(1000, 500, 200), 0)
+
     def test_worker_returns_failure_when_market_data_fails(self):
         import tempfile
 
