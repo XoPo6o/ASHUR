@@ -1,0 +1,52 @@
+name: Audit ASHUR SillyDev deployment
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - ".github/workflows/sillydev-deployment-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read deployment history and server resources
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+          DEPLOYMENT_ID: d0b6aa97-525f-417f-bc01-95879539a211
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/git" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+            -H "Accept: application/json" > /tmp/git.json
+          python - <<'PY'
+          import json, os
+          d=json.load(open("/tmp/git.json"))
+          print("CAN_MANAGE=", d.get("can_manage"))
+          print("REPOSITORY=", d.get("repository"))
+          print("CONFIG=", d.get("config"))
+          print("LIMITS=", d.get("limits"))
+          target=os.environ["DEPLOYMENT_ID"]
+          for item in d.get("deployments", []):
+              if item.get("uuid")==target:
+                  print("TARGET_DEPLOYMENT=", json.dumps(item, sort_keys=True))
+          print("RECENT_DEPLOYMENTS=")
+          for item in d.get("deployments", [])[:5]:
+              print(json.dumps({k:item.get(k) for k in ("uuid","status","branch","commit","error","files","power_action","attempts","run_after","started_at","completed_at")}, sort_keys=True))
+          PY
+          curl --fail-with-body --silent --show-error \
+            "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/resources" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+            -H "Accept: application/json" > /tmp/resources.json
+          python - <<'PY'
+          import json
+          d=json.load(open("/tmp/resources.json"))["attributes"]
+          print("SERVER_STATE=", d.get("current_state"))
+          print("IS_BOOTING=", d.get("is_booting"))
+          print("RESOURCES=", d.get("resources"))
+          PY
