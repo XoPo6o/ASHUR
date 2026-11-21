@@ -1,4 +1,4 @@
-name: Freqtrade Bybit evaluation
+name: Freqtrade market-data benchmark
 
 on:
   push:
@@ -33,36 +33,60 @@ jobs:
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
-          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 --version
-          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 list-strategies --userdir user_data --strategy-path user_data/strategies
+          ft() {
+            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+              -v "$PWD/user_data:/freqtrade/user_data" \
+              freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          ft --version
+          ft list-strategies --userdir user_data --strategy-path user_data/strategies
 
       - name: Validate all dry-run configurations
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
+          ft() {
+            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+              -v "$PWD/user_data:/freqtrade/user_data" \
+              freqtradeorg/freqtrade:2026.10 "$@"
+          }
           for config in user_data/config-*.json; do
             echo "Validating $config"
-            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 show-config --config "$config" >/dev/null
+            ft show-config --config "$config" >/dev/null
           done
 
-      - name: Download Bybit Spot OHLCV history
+      - name: Download historical OHLCV from Binance public market data
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
-          FT="docker run --rm --user $(id -u):$(id -g) -e HOME=/tmp -v $PWD/user_data:/freqtrade/user_data freqtradeorg/freqtrade:2026.10"
-          $FT download-data --config user_data/config-bnb-15m.json --timeframes 5m 15m 1h --days 730
-          $FT download-data --config user_data/config-bnb-4h.json --timeframes 4h 1d --days 1095
-          $FT download-data --config user_data/config-sol-4h.json --timeframes 15m 4h --days 1095
+          ft() {
+            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+              -v "$PWD/user_data:/freqtrade/user_data" \
+              freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          # Bybit blocks GitHub-hosted runners by region (CloudFront 403).
+          # Binance is used only as a public OHLCV proxy for strategy-engine tests.
+          ft download-data --config user_data/config-bnb-15m.json --timeframes 5m 15m 1h --days 730
+          ft download-data --config user_data/config-bnb-4h.json --timeframes 4h 1d --days 1095
+          ft download-data --config user_data/config-sol-4h.json --timeframes 15m 4h --days 1095
 
       - name: Run chronological in-sample and out-of-sample backtests
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
           mkdir -p user_data/backtest_results
+          ft() {
+            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+              -v "$PWD/user_data:/freqtrade/user_data" \
+              freqtradeorg/freqtrade:2026.10 "$@"
+          }
           run_bt() {
             local config="$1" strategy="$2" detail="$3" period="$4"
             echo "BACKTEST strategy=$strategy period=$period detail=$detail"
-            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10               backtesting --userdir user_data --config "$config" --strategy-path user_data/strategies               --strategy "$strategy" --timerange "$period" --fee 0.0015               --timeframe-detail "$detail" --enable-protections --export trades
+            ft backtesting --userdir user_data --config "$config" \
+              --strategy-path user_data/strategies --strategy "$strategy" \
+              --timerange "$period" --fee 0.0015 --timeframe-detail "$detail" \
+              --enable-protections --export trades
           }
           for period in 20241121-20251121 20251121-20261121; do
             run_bt user_data/config-bnb-15m.json BNB_15M_EMA_TREND 5m "$period"
@@ -77,22 +101,31 @@ jobs:
         working-directory: freqtrade-lab
         run: |
           set -euo pipefail
-          FT="docker run --rm -v $PWD/user_data:/freqtrade/user_data freqtradeorg/freqtrade:2026.10"
-          $FT lookahead-analysis --userdir user_data --config user_data/config-bnb-15m.json --strategy-path user_data/strategies --strategy BNB_15M_EMA_TREND --timerange 20241121-20261121
-          $FT lookahead-analysis --userdir user_data --config user_data/config-bnb-1h.json --strategy-path user_data/strategies --strategy BNB_1H_DONCHIAN_ADX25 --timerange 20241121-20261121
-          $FT recursive-analysis --userdir user_data --config user_data/config-bnb-4h.json --strategy-path user_data/strategies --strategy BNB_4H_ADX_TREND --timerange 20241121-20261121
-          $FT recursive-analysis --userdir user_data --config user_data/config-bnb-1d.json --strategy-path user_data/strategies --strategy BNB_1D_DONCHIAN55 --timerange 20241121-20261121
+          ft() {
+            docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+              -v "$PWD/user_data:/freqtrade/user_data" \
+              freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          ft lookahead-analysis --userdir user_data --config user_data/config-bnb-15m.json \
+            --strategy-path user_data/strategies --strategy BNB_15M_EMA_TREND \
+            --timerange 20241121-20261121
+          ft lookahead-analysis --userdir user_data --config user_data/config-bnb-1h.json \
+            --strategy-path user_data/strategies --strategy BNB_1H_DONCHIAN_ADX25 \
+            --timerange 20241121-20261121
+          ft recursive-analysis --userdir user_data --config user_data/config-bnb-4h.json \
+            --strategy-path user_data/strategies --strategy BNB_4H_ADX_TREND \
+            --timerange 20231121-20261121
 
       - name: Build machine-readable summary
         if: always()
         working-directory: freqtrade-lab
         run: python3 summarize.py | tee summary.json
 
-      - name: Upload raw data, backtests, summary and logs
+      - name: Upload raw data, backtests and summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: freqtrade-bybit-evaluation
+          name: freqtrade-market-data-evaluation
           path: |
             freqtrade-lab/user_data/data/
             freqtrade-lab/user_data/backtest_results/
