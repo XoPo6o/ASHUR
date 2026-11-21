@@ -111,6 +111,16 @@ class TestAshurRuntime(unittest.TestCase):
             with self.assertRaises(ValueError):
                 worker.validate_ticker_price(invalid)
 
+    def test_binance_ticker_requires_recent_last_trade_timestamp(self):
+        now_ms = 2_000_000_000_000
+        fresh = {"closeTime": now_ms - 1000, "lastPrice": "123.45"}
+        stale = {"closeTime": now_ms - 31000, "lastPrice": "123.45"}
+        self.assertEqual(worker.validate_binance_ticker(fresh, now_ms), 123.45)
+        with self.assertRaises(ValueError):
+            worker.validate_binance_ticker(stale, now_ms)
+        with self.assertRaises(ValueError):
+            worker.validate_binance_ticker({"closeTime": 0, "lastPrice": "123.45"}, now_ms)
+
     def test_daily_loss_limit_includes_open_position_loss(self):
         import tempfile
         with tempfile.TemporaryDirectory() as temporary:
