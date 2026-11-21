@@ -1,0 +1,51 @@
+name: SillyDev connection diagnostic
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - ".github/workflows/sillydev-connection-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check SillyDev API credentials and server access (read-only)
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        run: |
+          if [ -z "$SILLYDEV_API_KEY" ]; then
+            echo "RESULT=missing_secret:SILLYDEV_API_KEY"
+            exit 1
+          fi
+          if [ -z "$SILLYDEV_SERVER_ID" ]; then
+            echo "RESULT=missing_variable:SILLYDEV_SERVER_ID"
+            exit 1
+          fi
+          code=$(curl --silent --show-error --output /tmp/sillydev-response.json --write-out "%{http_code}" \
+            "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/git" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+            -H "Accept: application/json")
+          echo "HTTP_STATUS=$code"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("/tmp/sillydev-response.json")
+          try:
+              data = json.loads(p.read_text())
+              if isinstance(data, dict):
+                  for k in ("message", "error", "status", "source", "repository", "branch", "connected"):
+                      if k in data:
+                          print(f"{k}={data[k]}")
+                  if not any(k in data for k in ("message", "error", "status", "source", "repository", "branch", "connected")):
+                      print("JSON_RESPONSE_RECEIVED=true")
+              else:
+                  print("JSON_RESPONSE_RECEIVED=true")
+          except Exception:
+              print("NON_JSON_RESPONSE=true")
+          PY
+          test "$code" = "200"
