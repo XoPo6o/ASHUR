@@ -294,9 +294,27 @@ def calculate_position_size(cash, price, atr):
     return max(0.0, min(risk_limited_qty, cash_limited_qty))
 
 
+def position_net_pnl_at_price(position, price):
+    """Estimate liquidation PnL after exit slippage and fee, including entry fee."""
+    exit_fill = float(price) * (1 - SLIPPAGE)
+    net_exit = float(position["qty"]) * exit_fill * (1 - FEE)
+    entry_cost = float(position["qty"]) * float(position["entry"]) + float(position["entry_fee"])
+    return net_exit - entry_cost
+
+
+def daily_loss_limit_hit(conn, strategy_id, position, price, today=None):
+    today = today or datetime.now(timezone.utc).date().isoformat()
+    realized = conn.execute(
+        """SELECT COALESCE(SUM(pnl),0) AS p FROM shadow_trades
+           WHERE strategy_id=? AND substr(closed_at,1,10)=?""",
+        (strategy_id, today),
+    ).fetchone()["p"]
+    return float(realized) + position_net_pnl_at_price(position, price) <= -START_CASH * DAILY_STOP
+
+
 def open_position(conn, s, price, atr):
     account = conn.execute("SELECT * FROM shadow_accounts WHERE strategy_id=?", (s["id"],)).fetchone()
-    today = date.today().isoformat()
+    today = datetime.now(timezone.utc).date().isoformat()
     day_pnl = conn.execute("""SELECT COALESCE(SUM(pnl),0) AS p FROM shadow_trades
       WHERE strategy_id=? AND substr(closed_at,1,10)=?""",(s["id"],today)).fetchone()["p"]
     if day_pnl <= -START_CASH * DAILY_STOP:
@@ -385,6 +403,9 @@ def run():
                     closed_this_cycle = True
                 elif price >= pos["target"]:
                     close_position(conn,s,price,"TARGET",candle_id)
+                    closed_this_cycle = True
+                elif daily_loss_limit_hit(conn, s["id"], pos, price):
+                    close_position(conn,s,price,"DAILY_STOP",candle_id)
                     closed_this_cycle = True
                 elif exit_signal:
                     close_position(conn,s,price,"SIGNAL",candle_id)
