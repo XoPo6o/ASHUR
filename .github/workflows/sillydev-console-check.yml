@@ -13,7 +13,7 @@ jobs:
   console:
     runs-on: ubuntu-latest
     steps:
-      - name: Read recent server console output
+      - name: Read ASHUR console output after package installation
         env:
           SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
