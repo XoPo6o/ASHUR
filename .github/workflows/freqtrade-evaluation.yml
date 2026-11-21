@@ -18,6 +18,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  inspect_existing_host:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read current ASHUR host capacity (read-only)
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SILLYDEV_API_KEY:-}" || -z "${SILLYDEV_SERVER_ID:-}" ]]; then
+            echo "SillyDev capacity probe skipped: host credentials are not exposed to this workflow."
+            exit 0
+          fi
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+          curl --fail-with-body --silent --show-error "$API/servers/$SILLYDEV_SERVER_ID" "${AUTH[@]}" > /tmp/server.json
+          curl --fail-with-body --silent --show-error "$API/resources?servers=fa52962a-6b4e-4b44-bb26-847c56f5afc1" "${AUTH[@]}" > /tmp/resources.json
+          python3 - <<'PY'
+          import json
+          server=json.load(open("/tmp/server.json"))["attributes"]
+          limits=server["limits"]
+          stats=json.load(open("/tmp/resources.json")).get("data",{}).get(server["uuid"],{}).get("attributes",{})
+          usage=stats.get("resources",{})
+          print("ASHUR_HOST_READ_ONLY_DIAGNOSTIC")
+          print("server_state="+str(stats.get("current_state","unavailable")))
+          print("memory_limit_mib="+str(limits.get("memory")))
+          print("disk_limit_mib="+str(limits.get("disk")))
+          print("cpu_limit_percent_of_one_core="+str(limits.get("cpu")))
+          print("memory_used_mib="+str(round(usage.get("memory_bytes",0)/1048576,2)))
+          print("disk_used_mib="+str(round(usage.get("disk_bytes",0)/1048576,2)))
+          print("cpu_absolute="+str(usage.get("cpu_absolute","unknown")))
+          PY
+
   backtest:
     runs-on: ubuntu-latest
     timeout-minutes: 120
