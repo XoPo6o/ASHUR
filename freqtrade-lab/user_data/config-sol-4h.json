@@ -31,7 +31,7 @@
     "price_last_balance": 0
   },
   "exchange": {
-    "name": "bybit",
+    "name": "binance",
     "key": "",
     "secret": "",
     "ccxt_config": {
