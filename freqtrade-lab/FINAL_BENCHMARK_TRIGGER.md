@@ -1,0 +1,1 @@
+This commit triggers the final single-run evaluation after restricting CCXT to Spot and routing public candles through Binance's official data-only mirror. No production ASHUR files or server settings are changed.
