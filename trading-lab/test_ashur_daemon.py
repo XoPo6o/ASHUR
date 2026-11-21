@@ -96,6 +96,21 @@ class TestAshurRuntime(unittest.TestCase):
         self.assertEqual(worker.calculate_position_size(1000, 500, 0), 0)
         self.assertEqual(worker.calculate_position_size(1000, 500, 200), 0)
 
+    def test_closed_candle_freshness_guard(self):
+        now_ms = 2_000_000_000_000
+        interval_ms = 900_000
+        fresh_open = now_ms - interval_ms - 60_000
+        stale_open = now_ms - (3 * interval_ms)
+        self.assertTrue(worker.candle_is_fresh(fresh_open, "15", now_ms))
+        self.assertFalse(worker.candle_is_fresh(stale_open, "15", now_ms))
+        self.assertFalse(worker.candle_is_fresh(now_ms, "15", now_ms))
+
+    def test_ticker_price_must_be_finite_and_positive(self):
+        self.assertEqual(worker.validate_ticker_price("123.45"), 123.45)
+        for invalid in (0, -1, float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                worker.validate_ticker_price(invalid)
+
     def test_worker_returns_failure_when_market_data_fails(self):
         import tempfile
 
