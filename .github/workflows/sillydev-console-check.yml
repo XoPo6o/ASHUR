@@ -19,6 +19,8 @@ jobs:
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
         run: |
           set -euo pipefail
+          echo "===== LIVE RESOURCES ====="
+          curl --fail-with-body --silent --show-error "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/resources" -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" | python -m json.tool
           base="https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/websocket/relay"
           curl --fail-with-body --silent --show-error -X POST "$base" \
             -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
