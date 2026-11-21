@@ -237,6 +237,33 @@ def close_position(conn, s, price, reason, candle_id):
       (s["id"], candle_id))
     event(conn,s["id"],"CLOSE",f"{reason}; fill={fill:.6f}; net_pnl={pnl:.4f}")
 
+def stop_exit_reason(price, stop):
+    """Distinguish a stop fill from a gap-through-stop recovery fill."""
+    return "GAP_STOP" if float(price) < float(stop) else "STOP"
+
+
+def calculate_position_size(cash, price, atr):
+    """Size a long paper position so stop loss includes both-side fees and slippage."""
+    cash, price, atr = float(cash), float(price), float(atr)
+    if cash <= 0 or price <= 0 or atr <= 0:
+        return 0.0
+    entry_fill = price * (1 + SLIPPAGE)
+    stop_distance = 3 * atr
+    if stop_distance >= entry_fill:
+        return 0.0
+    stop_price = entry_fill - stop_distance
+    exit_fill = stop_price * (1 - SLIPPAGE)
+    # Per-unit loss includes entry fee and net proceeds after the exit fee.
+    risk_per_unit = entry_fill * (1 + FEE) - exit_fill * (1 - FEE)
+    if risk_per_unit <= 0:
+        return 0.0
+    risk_budget = cash * RISK
+    risk_limited_qty = risk_budget / risk_per_unit
+    notional_cap = cash * MAX_NOTIONAL / (1 + FEE)
+    cash_limited_qty = notional_cap / entry_fill
+    return max(0.0, min(risk_limited_qty, cash_limited_qty))
+
+
 def open_position(conn, s, price, atr):
     account = conn.execute("SELECT * FROM shadow_accounts WHERE strategy_id=?", (s["id"],)).fetchone()
     today = date.today().isoformat()
@@ -247,13 +274,10 @@ def open_position(conn, s, price, atr):
         return
     fill = price * (1 + SLIPPAGE)
     stop_distance = 3 * atr
-    if not stop_distance or stop_distance >= fill:
-        return
-    risk_cash = account["cash"] * RISK
-    notional = min(risk_cash / (stop_distance/fill), account["cash"]*MAX_NOTIONAL/(1+FEE))
-    qty = notional / fill
+    qty = calculate_position_size(account["cash"], price, atr)
+    notional = qty * fill
     fee = notional * FEE
-    if qty <= 0 or notional+fee > account["cash"]:
+    if qty <= 0 or notional + fee > account["cash"]:
         return
     stop, target = fill-stop_distance, fill+4*stop_distance
     conn.execute("UPDATE shadow_accounts SET cash=cash-? WHERE strategy_id=?",
@@ -327,7 +351,7 @@ def run():
             closed_this_cycle = False
             if pos:
                 if price <= pos["stop"]:
-                    close_position(conn,s,price,"STOP",candle_id)
+                    close_position(conn,s,price,stop_exit_reason(price, pos["stop"]),candle_id)
                     closed_this_cycle = True
                 elif price >= pos["target"]:
                     close_position(conn,s,price,"TARGET",candle_id)
