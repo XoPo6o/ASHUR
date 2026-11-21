@@ -19,6 +19,14 @@ jobs:
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
         run: |
           set -euo pipefail
+          echo "===== FILESYSTEM CHECK ====="
+          for dir in / /.local /.local/lib/python3.13/site-packages; do
+            echo "DIRECTORY=$dir"
+            curl --fail-with-body --silent --show-error --get --data-urlencode "directory=$dir" "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/files/list" -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" | python -c 'import json,sys; d=json.load(sys.stdin); print(" ".join(x["attributes"]["name"] for x in d.get("data",[])))'
+          done
+          code=$(curl --silent --show-error --output /tmp/pip-stamp --write-out "%{http_code}" --get --data-urlencode "file=/.local/.pip-installed" "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/files/contents" -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json")
+          echo "PIP_STAMP_HTTP=$code"
+          if [ "$code" = "200" ]; then cat /tmp/pip-stamp; fi
           echo "===== LIVE RESOURCES ====="
           curl --fail-with-body --silent --show-error "https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/resources" -H "Authorization: Bearer ${SILLYDEV_API_KEY}" -H "Accept: application/json" | python -m json.tool
           base="https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/websocket/relay"
