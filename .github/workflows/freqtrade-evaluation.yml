@@ -6,6 +6,8 @@ on:
     paths:
       - "freqtrade-lab/**"
       - ".github/workflows/freqtrade-evaluation.yml"
+  pull_request:
+    branches: [ashur-live-shadow]
   workflow_dispatch:
 
 permissions:
