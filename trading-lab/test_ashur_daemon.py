@@ -111,6 +111,22 @@ class TestAshurRuntime(unittest.TestCase):
             with self.assertRaises(ValueError):
                 worker.validate_ticker_price(invalid)
 
+    def test_daily_loss_limit_includes_open_position_loss(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temporary:
+            db_path = Path(temporary) / "risk.sqlite"
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            worker.init_db(conn)
+            position = {"qty": 1.0, "entry": 100.0, "entry_fee": 0.1}
+            self.assertFalse(worker.daily_loss_limit_hit(
+                conn, "BNB_15M_EMA_TREND", position, 99.9, today="2099-01-01"
+            ))
+            self.assertTrue(worker.daily_loss_limit_hit(
+                conn, "BNB_15M_EMA_TREND", position, 70.0, today="2099-01-01"
+            ))
+            conn.close()
+
     def test_worker_returns_failure_when_market_data_fails(self):
         import tempfile
 
