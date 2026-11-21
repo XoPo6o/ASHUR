@@ -1,0 +1,83 @@
+name: ASHUR paper statistics report
+run-name: ASHUR paper report · ${{ github.event_name }}
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-paper-statistics.yml"
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-paper-statistics
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Collect server status, quotes and paper ledger
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+          curl --fail-with-body --silent --show-error --get --data-urlencode "file=/.local/share/ashur/ashur_shadow_status.json" "$API/servers/$SILLYDEV_SERVER_ID/files/contents" "${AUTH[@]}" > /tmp/status.json
+          curl --fail-with-body --silent --show-error "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" > /tmp/resources.json
+          curl --fail-with-body --silent --show-error --get --data-urlencode "file=/.local/share/ashur/ashur_shadow.db" "$API/servers/$SILLYDEV_SERVER_ID/files/download" "${AUTH[@]}" > /tmp/download.json
+          signed_url=$(python -c 'import json; print(json.load(open("/tmp/download.json"))["attributes"]["url"])')
+          curl --fail --silent --show-error "$signed_url" -o /tmp/ashur.db
+          python - <<'PY' | tee /tmp/ashur-report.md
+          import json, sqlite3
+          from datetime import datetime, timezone
+          s=json.load(open("/tmp/status.json"))
+          r=json.load(open("/tmp/resources.json"))["attributes"]
+          c=sqlite3.connect("/tmp/ashur.db")
+          print("# ASHUR paper trading report")
+          print()
+          print("Generated UTC:",datetime.now(timezone.utc).isoformat())
+          print("Server:",r.get("current_state"),"| memory bytes:",r.get("resources",{}).get("memory_bytes"))
+          print("Mode:",s.get("mode"),"| status updated:",s.get("updated_at"))
+          print()
+          print("| Strategy | Grade | Last price | Trades | Realized PnL | Unrealized PnL | Equity | Return |")
+          print("|---|---|---:|---:|---:|---:|---:|---:|")
+          for a in s.get("accounts",[]):
+              print(f'| {a["strategy_id"]} | {a["grade"]} | {a["last_price"]} | {a["trades"]} | {a["realized_pnl"]:.4f} | {a["unrealized_pnl"]:.4f} | {a["equity"]:.4f} | {a["return_pct"]:.4f}% |')
+          print()
+          for t in ("shadow_accounts","shadow_positions","shadow_trades","shadow_events","shadow_marks"):
+              print(f'{t}: {c.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]}')
+          print()
+          print("## Closed paper trades")
+          rows=c.execute("SELECT strategy_id,symbol,entry,exit,qty,fees,pnl,reason,opened_at,closed_at FROM shadow_trades ORDER BY id").fetchall()
+          if not rows: print("No closed trades yet.")
+          for x in rows: print("-"," | ".join(map(str,x)))
+          print()
+          print("## Open paper positions")
+          rows=c.execute("SELECT strategy_id,symbol,qty,entry,stop,target,opened_at FROM shadow_positions").fetchall()
+          if not rows: print("No open positions.")
+          for x in rows: print("-"," | ".join(map(str,x)))
+          age=(datetime.now(timezone.utc)-datetime.fromisoformat(s["updated_at"].replace("Z","+00:00"))).total_seconds()
+          print()
+          print("Heartbeat age seconds:",int(age))
+          if s.get("mode")!="PAPER_ONLY": raise SystemExit("Unexpected trading mode; refusing report")
+          if len(s.get("accounts",[]))!=6: raise SystemExit("Unexpected strategy count")
+          if r.get("current_state")!="running": raise SystemExit("SillyDev server is not running")
+          if age>900: raise SystemExit("ASHUR heartbeat stale")
+          PY
+      - name: Publish report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashur-paper-report-${{ github.run_id }}
+          path: /tmp/ashur-report.md
+          retention-days: 30
+      - name: Add report to workflow summary
+        run: cat /tmp/ashur-report.md >> "$GITHUB_STEP_SUMMARY"
