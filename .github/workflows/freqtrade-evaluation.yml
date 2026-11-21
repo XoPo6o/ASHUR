@@ -1,0 +1,166 @@
+name: Freqtrade market-data benchmark
+
+on:
+  push:
+    branches: [freqtrade-evaluation]
+    paths:
+      - "freqtrade-lab/**"
+      - ".github/workflows/freqtrade-evaluation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: freqtrade-evaluation
+  cancel-in-progress: true
+
+jobs:
+  inspect_existing_host:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read current ASHUR host capacity (read-only)
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SILLYDEV_API_KEY:-}" || -z "${SILLYDEV_SERVER_ID:-}" ]]; then
+            echo "SillyDev capacity probe skipped: host credentials are not exposed to this workflow."
+            exit 0
+          fi
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+          curl --fail-with-body --silent --show-error "$API/servers/$SILLYDEV_SERVER_ID" "${AUTH[@]}" > /tmp/server.json
+          curl --fail-with-body --silent --show-error "$API/resources?servers=fa52962a-6b4e-4b44-bb26-847c56f5afc1" "${AUTH[@]}" > /tmp/resources.json
+          python3 - <<'PY'
+          import json
+          server=json.load(open("/tmp/server.json"))["attributes"]
+          limits=server["limits"]
+          stats=json.load(open("/tmp/resources.json")).get("data",{}).get(server["uuid"],{}).get("attributes",{})
+          usage=stats.get("resources",{})
+          print("ASHUR_HOST_READ_ONLY_DIAGNOSTIC")
+          print("server_state="+str(stats.get("current_state","unavailable")))
+          print("memory_limit_mib="+str(limits.get("memory")))
+          print("disk_limit_mib="+str(limits.get("disk")))
+          print("cpu_limit_percent_of_one_core="+str(limits.get("cpu")))
+          print("memory_used_mib="+str(round(usage.get("memory_bytes",0)/1048576,2)))
+          print("disk_used_mib="+str(round(usage.get("disk_bytes",0)/1048576,2)))
+          print("cpu_absolute="+str(usage.get("cpu_absolute","unknown")))
+          PY
+
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: freqtrade-evaluation
+
+      - name: Pull pinned official Freqtrade image
+        run: docker pull freqtradeorg/freqtrade:2026.10
+
+      - name: Verify Freqtrade version and strategy discovery
+        working-directory: freqtrade-lab
+        run: |
+          set -euo pipefail
+          ft() {
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          ft --version
+          ft list-strategies --userdir user_data 
+
+      - name: Validate all dry-run configurations
+        working-directory: freqtrade-lab
+        run: |
+          set -euo pipefail
+          ft() {
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          for config in user_data/config-*.json; do
+            echo "Validating $config"
+            ft show-config --config "$config" >/dev/null
+          done
+
+      - name: Download historical OHLCV from Binance public market data
+        working-directory: freqtrade-lab
+        run: |
+          set -euo pipefail
+          ft() {
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          # Bybit blocks GitHub-hosted runners by region (CloudFront 403).
+          # Binance is used only as a public OHLCV proxy for strategy-engine tests.
+          ft download-data --config user_data/config-bnb-15m.json --timeframes 5m 15m 1h --days 730
+          ft download-data --config user_data/config-bnb-4h.json --timeframes 4h --days 1095
+          # Daily Donchian needs a longer history both for EMA200 warmup and enough lookahead signals.
+          ft download-data --config user_data/config-bnb-1d.json --timeframes 1d --days 3000
+          ft download-data --config user_data/config-sol-4h.json --timeframes 15m 4h --days 1095
+
+      - name: Run chronological in-sample and out-of-sample backtests
+        working-directory: freqtrade-lab
+        run: |
+          set -euo pipefail
+          mkdir -p user_data/backtest_results
+          ft() {
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          run_bt() {
+            local config="$1" strategy="$2" detail="$3" period="$4"
+            echo "BACKTEST strategy=$strategy period=$period detail=$detail"
+            ft backtesting --userdir user_data --config "$config" \
+               --strategy "$strategy" \
+              --timerange "$period" --fee 0.0015 --timeframe-detail "$detail" \
+              --enable-protections --export trades || { echo "BACKTEST_FAILED strategy=$strategy period=$period"; return 1; }
+          }
+          for period in 20241121-20251121 20251121-20261121; do
+            run_bt user_data/config-bnb-15m.json BNB_15M_EMA_TREND 5m "$period" || exit 1
+            run_bt user_data/config-bnb-1h.json BNB_1H_DONCHIAN_ADX25 15m "$period" || exit 1
+            run_bt user_data/config-bnb-4h.json BNB_4H_ADX_TREND 15m "$period" || exit 1
+            run_bt user_data/config-bnb-4h.json BNB_4H_KELTNER_ADX 15m "$period" || exit 1
+            run_bt user_data/config-sol-4h.json SOL_4H_DONCHIAN_VOL 15m "$period" || exit 1
+            run_bt user_data/config-bnb-1d.json BNB_1D_DONCHIAN55 1h "$period" || exit 1
+          done
+
+      - name: Check lookahead and recursive indicator stability for all six strategies
+        working-directory: freqtrade-lab
+        run: |
+          set -euo pipefail
+          ft() {
+            docker run --rm -v "$PWD/user_data:/freqtrade/user_data" freqtradeorg/freqtrade:2026.10 "$@"
+          }
+          check_strategy() {
+            local config="$1" strategy="$2" timerange="$3"
+            echo "LOOKAHEAD_CHECK strategy=$strategy"
+            ft lookahead-analysis --userdir user_data --config "$config" \
+              --strategy "$strategy" --timerange "$timerange" --minimum-trade-amount 5
+            echo "RECURSIVE_CHECK strategy=$strategy"
+            ft recursive-analysis --userdir user_data --config "$config" \
+              --strategy "$strategy" --timerange "$timerange" --startup-candle 499 999 1999
+          }
+          check_strategy user_data/config-bnb-15m.json BNB_15M_EMA_TREND 20241121-20261121
+          check_strategy user_data/config-bnb-1h.json BNB_1H_DONCHIAN_ADX25 20241121-20261121
+          check_strategy user_data/config-bnb-4h.json BNB_4H_ADX_TREND 20231121-20261121
+          check_strategy user_data/config-bnb-4h.json BNB_4H_KELTNER_ADX 20231121-20261121
+          check_strategy user_data/config-sol-4h.json SOL_4H_DONCHIAN_VOL 20231121-20261121
+          check_strategy user_data/config-bnb-1d.json BNB_1D_DONCHIAN55 20191121-20261121
+
+      - name: Build machine-readable summary
+        if: always()
+        working-directory: freqtrade-lab
+        run: |
+          sudo chown -R "$USER:$USER" user_data || true
+          python3 summarize.py | tee summary.json
+
+      - name: Upload raw data, backtests and summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: freqtrade-market-data-evaluation
+          path: |
+            freqtrade-lab/user_data/data/
+            freqtrade-lab/user_data/backtest_results/
+            freqtrade-lab/user_data/logs/
+            freqtrade-lab/summary.json
+          if-no-files-found: warn
+          retention-days: 30
