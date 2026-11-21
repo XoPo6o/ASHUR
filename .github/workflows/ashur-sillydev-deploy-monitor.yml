@@ -1,0 +1,154 @@
+name: ASHUR SillyDev deployment monitor
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - "ashur_sillydev_start.py"
+      - "trading-lab/**"
+      - "requirements.txt"
+      - "sillydev.conf"
+      - ".github/workflows/ashur-sillydev-deploy.yml"
+      - ".github/workflows/ashur-sillydev-deploy-monitor.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-sillydev-deploy-monitor
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Wait for the matching SillyDev deployment and verify ASHUR runtime
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+          EXPECTED_BRANCH: ashur-live-shadow
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SILLYDEV_API_KEY" || -z "$SILLYDEV_SERVER_ID" ]]; then
+            echo "::error::SILLYDEV_API_KEY or SILLYDEV_SERVER_ID is missing."
+            exit 1
+          fi
+
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+          START_EPOCH=$(date -u +%s)
+          DEPLOY_UUID=""
+
+          echo "Waiting for a deployment created for this push..."
+          for attempt in $(seq 1 80); do
+            curl --fail-with-body --silent --show-error \
+              "$API/servers/$SILLYDEV_SERVER_ID/git" "${AUTH[@]}" > /tmp/git.json
+
+            DEPLOY_UUID=$(python - <<'PY'
+          import json, os, time
+          from datetime import datetime, timezone
+          data=json.load(open("/tmp/git.json"))
+          attrs=data.get("attributes",data)
+          start=int(os.environ["START_EPOCH"])-180
+          matches=[]
+          for d in attrs.get("deployments",[]):
+              created=datetime.fromisoformat(d["created_at"].replace("Z","+00:00")).timestamp()
+              if d.get("branch")==os.environ["EXPECTED_BRANCH"] and d.get("trigger")=="manual" and created>=start:
+                  matches.append(d)
+          if matches:
+              matches.sort(key=lambda x:x["created_at"],reverse=True)
+              print(matches[0]["uuid"])
+          PY
+          )
+
+            if [[ -n "$DEPLOY_UUID" ]]; then
+              echo "DEPLOY_UUID=$DEPLOY_UUID"
+              break
+            fi
+            sleep 10
+          done
+
+          if [[ -z "$DEPLOY_UUID" ]]; then
+            echo "::error::No matching SillyDev deployment appeared."
+            exit 1
+          fi
+
+          DEPLOY_STATUS=""
+          for attempt in $(seq 1 100); do
+            curl --fail-with-body --silent --show-error \
+              "$API/servers/$SILLYDEV_SERVER_ID/git" "${AUTH[@]}" > /tmp/git.json
+            read -r DEPLOY_STATUS DEPLOY_ERROR DEPLOY_COMMIT < <(python - "$DEPLOY_UUID" <<'PY'
+          import json,sys
+          data=json.load(open("/tmp/git.json"))
+          attrs=data.get("attributes",data)
+          d=next((x for x in attrs.get("deployments",[]) if x.get("uuid")==sys.argv[1]),None)
+          if not d:
+              print("missing none none")
+          else:
+              print(d.get("status","missing"),(d.get("error") or "none").replace(" ","_"),((d.get("commit") or {}).get("sha") or "none"))
+          PY
+          )
+            echo "DEPLOY_STATUS=$DEPLOY_STATUS DEPLOY_COMMIT=$DEPLOY_COMMIT"
+            case "$DEPLOY_STATUS" in
+              succeeded) break ;;
+              failed|superseded|cancelled|missing)
+                echo "::error::SillyDev deployment ended with status $DEPLOY_STATUS ($DEPLOY_ERROR)."
+                exit 1
+                ;;
+              queued|running) sleep 10 ;;
+              *)
+                echo "::error::Unknown deployment status: $DEPLOY_STATUS"
+                exit 1
+                ;;
+            esac
+          done
+
+          if [[ "$DEPLOY_STATUS" != "succeeded" ]]; then
+            echo "::error::SillyDev deployment did not finish within the monitoring window."
+            exit 1
+          fi
+
+          echo "Deployment succeeded. Waiting for ASHUR to restart and report six healthy strategies..."
+          HEALTHY=false
+          for attempt in $(seq 1 40); do
+            STATE=$(curl --fail-with-body --silent --show-error \
+              "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" | \
+              python -c 'import json,sys; print(json.load(sys.stdin)["attributes"].get("current_state","unknown"))')
+
+            CODE=$(curl --silent --show-error --output /tmp/status.json --write-out "%{http_code}" --get \
+              --data-urlencode "file=/.local/share/ashur/ashur_shadow_status.json" \
+              "$API/servers/$SILLYDEV_SERVER_ID/files/contents" "${AUTH[@]}")
+
+            if [[ "$STATE" == "running" && "$CODE" == "200" ]]; then
+              if python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          d=json.load(open("/tmp/status.json"))
+          h=d.get("worker_health",{})
+          stamp=d.get("updated_at")
+          if d.get("mode")!="PAPER_ONLY" or len(d.get("accounts",[]))!=6:
+              raise SystemExit(1)
+          if not h.get("all_strategies_ok") or h.get("error_count")!=0 or h.get("successful_strategies")!=6:
+              raise SystemExit(1)
+          if not stamp:
+              raise SystemExit(1)
+          age=(datetime.now(timezone.utc)-datetime.fromisoformat(stamp.replace("Z","+00:00"))).total_seconds()
+          if age>900 or age<0:
+              raise SystemExit(1)
+          print("MODE=PAPER_ONLY STRATEGIES=6 WORKER_ERRORS=0 HEARTBEAT_AGE_SECONDS="+str(int(age)))
+          PY
+              then
+                HEALTHY=true
+                break
+              fi
+            fi
+            sleep 10
+          done
+
+          if [[ "$HEALTHY" != "true" ]]; then
+            echo "::error::Deployment succeeded, but ASHUR runtime health was not confirmed."
+            exit 1
+          fi
+          echo "ASHUR deployment and runtime health verified."
