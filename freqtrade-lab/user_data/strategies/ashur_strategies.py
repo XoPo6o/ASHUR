@@ -48,6 +48,34 @@ class AshurBase(IStrategy):
         dataframe["atr_pct"] = dataframe["atr"] / dataframe["close"]
         dataframe["atr_p80"] = dataframe["atr_pct"].rolling(100, min_periods=50).quantile(0.80)
         dataframe["keltner_upper"] = dataframe["ema20"] + 2.0 * dataframe["atr"]
+        dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
+        for n in (20, 60, 120):
+            dataframe[f"ret{n}"] = dataframe["close"].pct_change(n)
+        # Causal Supertrend(10, 3) state; no future candles are referenced.
+        mid = (dataframe["high"].to_numpy() + dataframe["low"].to_numpy()) / 2.0
+        upper = mid + 3.0 * dataframe["atr"].to_numpy()
+        lower = mid - 3.0 * dataframe["atr"].to_numpy()
+        close = dataframe["close"].to_numpy()
+        final_upper = np.full(len(dataframe), np.nan)
+        final_lower = np.full(len(dataframe), np.nan)
+        direction = np.zeros(len(dataframe), dtype=int)
+        for i in range(len(dataframe)):
+            if not np.isfinite(upper[i]) or not np.isfinite(lower[i]):
+                continue
+            if i == 0 or not np.isfinite(final_upper[i - 1]):
+                final_upper[i], final_lower[i] = upper[i], lower[i]
+                direction[i] = 1 if close[i] >= mid[i] else -1
+                continue
+            final_upper[i] = min(upper[i], final_upper[i - 1]) if close[i - 1] <= final_upper[i - 1] else upper[i]
+            final_lower[i] = max(lower[i], final_lower[i - 1]) if close[i - 1] >= final_lower[i - 1] else lower[i]
+            prior = direction[i - 1]
+            if prior <= 0 and close[i] > final_upper[i]:
+                direction[i] = 1
+            elif prior >= 0 and close[i] < final_lower[i]:
+                direction[i] = -1
+            else:
+                direction[i] = prior
+        dataframe["supertrend_dir"] = direction
         return dataframe
 
     def custom_stake_amount(
@@ -208,3 +236,101 @@ class BNB_1D_DONCHIAN55(AshurBase):
         c = (dataframe["close"] < dataframe["dl10"]) & (dataframe["volume"] > 0)
         dataframe.loc[c, ["exit_long", "exit_tag"]] = (1, "donchian10_exit")
         return dataframe
+
+
+def _set_entry(dataframe: DataFrame, condition, tag: str) -> DataFrame:
+    valid = condition.fillna(False) & (dataframe["volume"] > 0)
+    dataframe.loc[valid, ["enter_long", "enter_tag"]] = (1, tag)
+    return dataframe
+
+
+def _set_exit(dataframe: DataFrame, condition, tag: str) -> DataFrame:
+    valid = condition.fillna(False) & (dataframe["volume"] > 0)
+    dataframe.loc[valid, ["exit_long", "exit_tag"]] = (1, tag)
+    return dataframe
+
+
+class ASHUR_TIME_SERIES_MOMENTUM_60(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_entry(dataframe, (dataframe["ret60"] > 0) & (dataframe["close"] > dataframe["ema200"]), "momentum_60_ema200")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, (dataframe["ret20"] < 0) | (dataframe["close"] < dataframe["ema100"]), "momentum_lost")
+
+
+class ASHUR_DONCHIAN_55_TREND(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_entry(dataframe, (dataframe["close"] > dataframe["dh55"]) & (dataframe["close"] > dataframe["ema200"]), "donchian55_ema200")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, dataframe["close"] < dataframe["dl10"], "donchian10_exit")
+
+
+class ASHUR_SUPERTREND_10_3(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        prior = dataframe["supertrend_dir"].shift(1)
+        return _set_entry(dataframe, (dataframe["supertrend_dir"] > 0) & (prior <= 0), "supertrend_flip_long")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, dataframe["supertrend_dir"] < 0, "supertrend_flip_short")
+
+
+class ASHUR_BULL_REGIME_MEAN_REVERSION(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        prior = dataframe["rsi"].shift(1)
+        return _set_entry(dataframe, (dataframe["close"] > dataframe["ema200"]) & (prior < 30) & (dataframe["rsi"] >= 30), "rsi_reclaim_30")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, (dataframe["rsi"] > 60) | (dataframe["close"] < dataframe["ema50"]), "mean_reversion_exit")
+
+
+class ASHUR_MULTI_HORIZON_MOMENTUM(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        votes = ((dataframe["ret20"] > 0).astype(int) + (dataframe["ret60"] > 0).astype(int))
+        return _set_entry(dataframe, (votes >= 2) & (dataframe["close"] > dataframe["ema200"]), "multi_horizon_momentum")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, (dataframe["ret20"] < 0) | (dataframe["close"] < dataframe["ema100"]), "momentum_lost")
+
+
+class ASHUR_DONCHIAN_ENSEMBLE_20_55_100(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        votes = ((dataframe["close"] > dataframe["dh20"]).astype(int) +
+                 (dataframe["close"] > dataframe["dh55"]).astype(int) +
+                 (dataframe["close"] > dataframe["dh100"]).astype(int))
+        return _set_entry(dataframe, (votes >= 2) & (dataframe["close"] > dataframe["ema200"]), "donchian_ensemble")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, (dataframe["close"] < dataframe["dl20"]) | (dataframe["close"] < dataframe["ema100"]), "donchian_ensemble_exit")
+
+
+class ASHUR_DONCHIAN_COST_AWARE_025(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        votes = ((dataframe["close"] > dataframe["dh20"]).astype(int) +
+                 (dataframe["close"] > dataframe["dh55"]).astype(int) +
+                 (dataframe["close"] > dataframe["dh100"]).astype(int))
+        distance = dataframe["close"] / dataframe["dh20"] - 1.0
+        return _set_entry(dataframe, (votes >= 2) & (dataframe["close"] > dataframe["ema200"]) & (distance > 0.0025), "donchian_cost_filter")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, (dataframe["close"] < dataframe["dl20"]) | (dataframe["close"] < dataframe["ema100"]), "donchian_ensemble_exit")
+
+
+class ASHUR_TREND_PULLBACK_RSI40(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        prior = dataframe["rsi"].shift(1)
+        return _set_entry(dataframe, (dataframe["ema50"] > dataframe["ema200"]) & (prior < 40) & (dataframe["rsi"] >= 40) & (dataframe["close"] > dataframe["ema50"]), "trend_pullback_rsi40")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, (dataframe["rsi"] < 45) | (dataframe["close"] < dataframe["ema100"]), "trend_pullback_exit")
+
+
+class ASHUR_TRIPLE_HORIZON_MOMENTUM(AshurBase):
+    timeframe = "4h"
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        votes = ((dataframe["ret20"] > 0).astype(int) +
+                 (dataframe["ret60"] > 0).astype(int) +
+                 (dataframe["ret120"] > 0).astype(int))
+        return _set_entry(dataframe, (votes >= 2) & (dataframe["close"] > dataframe["ema200"]), "triple_horizon_momentum")
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        return _set_exit(dataframe, (dataframe["ret20"] < 0) | (dataframe["close"] < dataframe["ema100"]), "triple_momentum_exit")
