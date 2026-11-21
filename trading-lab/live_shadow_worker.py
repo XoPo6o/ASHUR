@@ -90,7 +90,10 @@ def validate_ticker_price(price):
     return price
 
 
-def fetch_bybit_klines(symbol, interval, limit=350):
+CANDLE_WARMUP = 999  # Match Freqtrade startup_candle_count for stable EMA200 values.
+
+
+def fetch_bybit_klines(symbol, interval, limit=CANDLE_WARMUP):
     market_symbol = symbol.replace("/", "")
     ms = {"15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
     cutoff = int(datetime.now(timezone.utc).timestamp() * 1000)
@@ -107,7 +110,7 @@ def fetch_bybit_klines(symbol, interval, limit=350):
                              columns=["timestamp", "open", "high", "low", "close", "volume"])
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
-        if len(frame) >= 220:
+        if len(frame) >= CANDLE_WARMUP:
             if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
                 raise RuntimeError("Bybit latest closed candle is stale")
             return frame
@@ -126,7 +129,7 @@ def fetch_bybit_klines(symbol, interval, limit=350):
                              columns=["timestamp", "open", "high", "low", "close", "volume"])
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
-        if len(frame) >= 220:
+        if len(frame) >= CANDLE_WARMUP:
             if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
                 raise RuntimeError("Binance latest closed candle is stale")
             return frame
