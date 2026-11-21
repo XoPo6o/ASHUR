@@ -1,0 +1,51 @@
+name: Read ASHUR console diagnostics
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - ".github/workflows/sillydev-console-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  console:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read recent server console output
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        run: |
+          set -euo pipefail
+          base="https://sillydev.co.uk/panel/api/client/servers/${SILLYDEV_SERVER_ID}/websocket/relay"
+          curl --fail-with-body --silent --show-error -X POST "$base" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+            -H "Accept: application/json" > /tmp/relay.json
+          session=$(python -c 'import json; print(json.load(open("/tmp/relay.json"))["data"]["session"])')
+          cleanup() {
+            curl --silent --show-error -X DELETE "$base/$session" \
+              -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+              -H "Accept: application/json" >/dev/null || true
+          }
+          trap cleanup EXIT
+          curl --fail-with-body --silent --show-error -X POST "$base/$session/send" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            --data '{"event":"send logs"}' >/dev/null
+          sleep 2
+          curl --fail-with-body --silent --show-error "$base/$session?after=0" \
+            -H "Authorization: Bearer ${SILLYDEV_API_KEY}" \
+            -H "Accept: application/json" > /tmp/console.json
+          python - <<'PY'
+          import json
+          d=json.load(open("/tmp/console.json"))["data"]
+          print("MISSED_EVENTS=" + str(d.get("missed")))
+          for event in d.get("events", []):
+              name=event.get("event")
+              args=event.get("args") or []
+              if name in ("status", "console output", "daemon error", "jwt error", "throttled"):
+                  print(name + (": " + " ".join(args) if args else ""))
+          PY
