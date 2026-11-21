@@ -121,10 +121,10 @@ class TestAshurRuntime(unittest.TestCase):
                     "close": 100.0,
                     "atr": 1.0,
                 }])
-                with patch.object(worker, "fetch_bybit_klines", return_value=object()), \\
-                     patch.object(worker, "indicators", return_value=closed_candle), \\
-                     patch.object(worker, "fetch_ticker", return_value=90.0), \\
-                     patch.object(worker, "signals", return_value=(True, False)), \\
+                with patch.object(worker, "fetch_bybit_klines", return_value=object()), \
+                     patch.object(worker, "indicators", return_value=closed_candle), \
+                     patch.object(worker, "fetch_ticker", return_value=90.0), \
+                     patch.object(worker, "signals", return_value=(True, False)), \
                      patch.object(worker, "open_position", wraps=worker.open_position) as reopen:
                     worker.run()
                     reopen.assert_not_called()
