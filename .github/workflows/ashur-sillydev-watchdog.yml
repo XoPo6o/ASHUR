@@ -86,6 +86,11 @@ jobs:
           print("BOT_MODE=",d.get("mode"))
           print("BOT_UPDATED_AT=",stamp)
           print("STRATEGY_COUNT=",len(d.get("accounts",[])))
+          health=d.get("worker_health",{})
+          print("WORKER_ERRORS=",health.get("error_count","missing"))
+          print("WORKER_SUCCESSFUL_STRATEGIES=",health.get("successful_strategies","missing"))
+          if not health.get("all_strategies_ok",False):
+              raise SystemExit("Worker health is degraded; at least one strategy failed or health metadata is missing")
           if d.get("mode") != "PAPER_ONLY":
               raise SystemExit("Unexpected bot mode; expected PAPER_ONLY")
           if len(d.get("accounts",[])) != 6:
