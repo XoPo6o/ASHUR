@@ -364,7 +364,8 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                                 "error_count": int(worker_errors),
                                 "all_strategies_ok": int(worker_errors) == 0 and successful_strategies == len(STRATEGIES)},
               "news_intelligence": {**news.collection_stats(conn, 24),
-                                    "news_vetoes_24h": int(news_vetoes_24h)},
+                                    "news_vetoes_24h": int(news_vetoes_24h),
+                                    "veto_outcomes": news.veto_outcome_stats(conn)},
               "accounts": []}
     for a in accounts:
         pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
@@ -415,6 +416,7 @@ def run():
             if key not in cache:
                 cache[key] = (indicators(fetch_bybit_klines(*key)), fetch_ticker(s["symbol"]))
             data, price = cache[key]
+            news.update_veto_outcomes(conn, s["symbol"], price)
             row = data.iloc[-1]  # latest fully closed candle; indicators never use a forming candle
             candle_id = str(int(row.timestamp))
             # Evaluate the current live ticker against the last closed candle's indicators on
@@ -424,6 +426,7 @@ def run():
             entry_signal, exit_signal = signals(signal_row,s["id"])
             news_veto = news.high_risk_news(conn, s["symbol"]) if entry_signal else None
             if news_veto:
+                news.record_veto(conn, s["id"], s["symbol"], news_veto, price)
                 entry_signal = False
                 event(conn, s["id"], "NEWS_VETO",
                       f"new entry blocked by high-risk headline: {news_veto['title'][:240]}")
