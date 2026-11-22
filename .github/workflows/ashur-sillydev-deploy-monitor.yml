@@ -28,6 +28,7 @@ jobs:
           SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
           EXPECTED_BRANCH: ashur-live-shadow
+          EXPECTED_COMMIT: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -42,21 +43,24 @@ jobs:
           export START_EPOCH
           DEPLOY_UUID=""
 
-          echo "Waiting for a deployment created for this push..."
+          echo "Waiting for the SillyDev deployment matching commit $EXPECTED_COMMIT..."
           for attempt in $(seq 1 80); do
             curl --fail-with-body --silent --show-error \
               "$API/servers/$SILLYDEV_SERVER_ID/git" "${AUTH[@]}" > /tmp/git.json
 
             DEPLOY_UUID=$(python - <<'PY'
-          import json, os, time
-          from datetime import datetime, timezone
+          import json, os
+          from datetime import datetime
           data=json.load(open("/tmp/git.json"))
           attrs=data.get("attributes",data)
-          start=int(os.environ["START_EPOCH"])-180
+          start=int(os.environ["START_EPOCH"])-600
+          expected=os.environ["EXPECTED_COMMIT"]
           matches=[]
           for d in attrs.get("deployments",[]):
               created=datetime.fromisoformat(d["created_at"].replace("Z","+00:00")).timestamp()
-              if d.get("branch")==os.environ["EXPECTED_BRANCH"] and d.get("trigger")=="manual" and created>=start:
+              commit=(d.get("commit") or {}).get("sha")
+              if (d.get("branch")==os.environ["EXPECTED_BRANCH"]
+                  and commit==expected and created>=start):
                   matches.append(d)
           if matches:
               matches.sort(key=lambda x:x["created_at"],reverse=True)
@@ -72,11 +76,12 @@ jobs:
           done
 
           if [[ -z "$DEPLOY_UUID" ]]; then
-            echo "::error::No matching SillyDev deployment appeared."
+            echo "::error::No SillyDev deployment found for expected commit $EXPECTED_COMMIT."
             exit 1
           fi
 
           DEPLOY_STATUS=""
+          DEPLOY_COMMIT=""
           for attempt in $(seq 1 100); do
             curl --fail-with-body --silent --show-error \
               "$API/servers/$SILLYDEV_SERVER_ID/git" "${AUTH[@]}" > /tmp/git.json
@@ -108,6 +113,10 @@ jobs:
 
           if [[ "$DEPLOY_STATUS" != "succeeded" ]]; then
             echo "::error::SillyDev deployment did not finish within the monitoring window."
+            exit 1
+          fi
+          if [[ "$DEPLOY_COMMIT" != "$EXPECTED_COMMIT" ]]; then
+            echo "::error::Deployed commit does not match the expected commit."
             exit 1
           fi
 
