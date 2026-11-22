@@ -21,6 +21,11 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertEqual(result["sentiment"], "bearish")
         self.assertTrue(result["high_risk"])
 
+    def test_substring_inside_hackathon_does_not_trigger_security_veto(self):
+        result = news.classify_title("Crypto hackathon announces new developer partnership")
+        self.assertFalse(result["high_risk"])
+        self.assertEqual(result["sentiment"], "neutral")
+
     def test_neutral_title_does_not_trigger_risk_veto(self):
         result = news.classify_title("Bitcoin market update: prices remain stable")
         self.assertFalse(result["high_risk"])
@@ -64,6 +69,16 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertEqual(stats["inserted"], result["inserted"])
         self.assertEqual(stats["feed_errors"], 1)
         self.assertIn("BTC/USDT", result["by_symbol"])
+        conn.close()
+
+    def test_future_dated_headline_does_not_veto(self):
+        conn = sqlite3.connect(":memory:")
+        news.init_db(conn)
+        future = news.utc_now() + news.timedelta(hours=2)
+        item = {"title": "Exchange exploit: withdrawals suspended", "url": "https://example.test/future",
+                "published_at": format_datetime(future), "source": "Test"}
+        news.save_items(conn, "BTC/USDT", [item])
+        self.assertIsNone(news.high_risk_news(conn, "BTC/USDT", hours=6))
         conn.close()
 
     def test_collector_continues_when_one_feed_fails(self):
