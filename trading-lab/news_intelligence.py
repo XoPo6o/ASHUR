@@ -60,7 +60,7 @@ def _contains_term(text, term):
     return re.search(pattern, text) is not None
 
 def classify_title(title):
-    text = re.sub(r"\\s+", " ", title.lower())
+    text = re.sub(r"\s+", " ", title.lower())
     negative = max((score for term, score in NEGATIVE_TERMS.items() if _contains_term(text, term)), default=0.0)
     positive = max((score for term, score in POSITIVE_TERMS.items() if _contains_term(text, term)), default=0.0)
     # Conservative v0: only severe negative event terms may veto a new paper entry.
