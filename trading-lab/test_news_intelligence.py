@@ -38,7 +38,9 @@ class TestNewsIntelligence(unittest.TestCase):
                 "published_at": format_datetime(news.utc_now()), "source": "Test"}
         self.assertEqual(news.save_items(conn, "BTC/USDT", [item]), 1)
         self.assertEqual(news.save_items(conn, "BTC/USDT", [item]), 0)
-        self.assertIsNotNone(news.high_risk_news(conn, "BTC/USDT"))
+        veto = news.high_risk_news(conn, "BTC/USDT")
+        self.assertIsNotNone(veto)
+        self.assertTrue(veto["id"])
         self.assertIsNone(news.high_risk_news(conn, "ETH/USDT"))
         conn.close()
 
