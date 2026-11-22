@@ -54,10 +54,15 @@ def fetch_feed(url, timeout=12):
             items.append({"title": title, "url": link, "published_at": published, "source": source})
     return items
 
+def _contains_term(text, term):
+    # Match complete words/phrases only: "hackathon" must not trigger "hack".
+    pattern = r"(?<![a-z0-9])" + re.escape(term.lower()) + r"(?![a-z0-9])"
+    return re.search(pattern, text) is not None
+
 def classify_title(title):
-    text = re.sub(r"\s+", " ", title.lower())
-    negative = max((score for term, score in NEGATIVE_TERMS.items() if term in text), default=0.0)
-    positive = max((score for term, score in POSITIVE_TERMS.items() if term in text), default=0.0)
+    text = re.sub(r"\\s+", " ", title.lower())
+    negative = max((score for term, score in NEGATIVE_TERMS.items() if _contains_term(text, term)), default=0.0)
+    positive = max((score for term, score in POSITIVE_TERMS.items() if _contains_term(text, term)), default=0.0)
     # Conservative v0: only severe negative event terms may veto a new paper entry.
     return {"sentiment": "bearish" if negative > positive else ("bullish" if positive > negative else "neutral"),
             "score": round(positive - negative, 3), "risk": round(negative, 3),
@@ -137,7 +142,9 @@ def high_risk_news(conn, symbol, hours=6):
             published = parsedate_to_datetime(row[2])
             if published.tzinfo is None:
                 published = published.replace(tzinfo=timezone.utc)
-            if published.astimezone(timezone.utc) < cutoff:
+            published = published.astimezone(timezone.utc)
+            # Reject stale and future-dated headlines; neither is safe for a live veto.
+            if published < cutoff or published > utc_now() + timedelta(minutes=5):
                 continue
         except (TypeError, ValueError, OverflowError):
             continue
