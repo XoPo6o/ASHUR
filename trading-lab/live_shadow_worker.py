@@ -6,7 +6,7 @@ import sqlite3
 import time
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -350,7 +350,7 @@ def open_position(conn, s, price, atr):
 def export_status(conn, worker_errors=0, successful_strategies=None):
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
-    cutoff_24h = (datetime.now(timezone.utc) - __import__("datetime").timedelta(hours=24)).isoformat()
+    cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
     news_vetoes_24h = conn.execute(
         "SELECT COUNT(*) FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?",
         (cutoff_24h,),
