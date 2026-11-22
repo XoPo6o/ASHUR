@@ -75,6 +75,14 @@ def init_db(conn):
         sentiment TEXT NOT NULL, sentiment_score REAL NOT NULL, risk_score REAL NOT NULL,
         high_risk INTEGER NOT NULL)""")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_news_symbol_fetched ON news_items(symbol, fetched_at)")
+    conn.execute("""CREATE TABLE IF NOT EXISTS news_veto_outcomes(
+        id INTEGER PRIMARY KEY AUTOINCREMENT, strategy_id TEXT NOT NULL, symbol TEXT NOT NULL,
+        news_id TEXT NOT NULL, headline TEXT NOT NULL, source TEXT NOT NULL,
+        vetoed_at TEXT NOT NULL, entry_reference REAL NOT NULL,
+        price_1h REAL, return_1h REAL, price_4h REAL, return_4h REAL,
+        price_24h REAL, return_24h REAL,
+        UNIQUE(strategy_id, news_id, vetoed_at))""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_news_veto_pending ON news_veto_outcomes(symbol, vetoed_at)")
     conn.execute("""CREATE TABLE IF NOT EXISTS news_collection_runs(
         id INTEGER PRIMARY KEY AUTOINCREMENT, started_at TEXT NOT NULL, finished_at TEXT NOT NULL,
         source_count INTEGER NOT NULL, fetched_count INTEGER NOT NULL, inserted_count INTEGER NOT NULL,
@@ -131,6 +139,70 @@ def collect(conn, fetcher=fetch_feed):
     conn.commit()
     summary["stats_24h"] = collection_stats(conn, 24)
     return summary
+
+def record_veto(conn, strategy_id, symbol, headline, price):
+    if not headline or not headline.get("id") or float(price) <= 0:
+        return False
+    cursor = conn.execute("""INSERT OR IGNORE INTO news_veto_outcomes
+        (strategy_id,symbol,news_id,headline,source,vetoed_at,entry_reference)
+        VALUES(?,?,?,?,?,?,?)""",
+        (strategy_id, symbol, headline["id"], headline["title"], headline["source"],
+         utc_now().isoformat(), float(price)))
+    conn.commit()
+    return cursor.rowcount == 1
+
+def update_veto_outcomes(conn, symbol, price, at=None):
+    price = float(price)
+    if price <= 0:
+        return 0
+    at = at or utc_now()
+    if isinstance(at, str):
+        at = datetime.fromisoformat(at)
+    if at.tzinfo is None:
+        at = at.replace(tzinfo=timezone.utc)
+    updated = 0
+    rows = conn.execute("""SELECT id,vetoed_at,entry_reference,price_1h,price_4h,price_24h
+        FROM news_veto_outcomes WHERE symbol=? AND price_24h IS NULL""", (symbol,)).fetchall()
+    for row in rows:
+        try:
+            vetoed_at = datetime.fromisoformat(row[1])
+            if vetoed_at.tzinfo is None:
+                vetoed_at = vetoed_at.replace(tzinfo=timezone.utc)
+        except (TypeError, ValueError):
+            continue
+        elapsed = (at - vetoed_at).total_seconds()
+        entry = float(row[2])
+        if elapsed >= 3600 and row[3] is None:
+            ret = (price * (1 - 0.0005) * (1 - 0.001)) / (entry * (1 + 0.0005) * (1 + 0.001)) - 1
+            conn.execute("UPDATE news_veto_outcomes SET price_1h=?,return_1h=? WHERE id=?",
+                         (price, ret, row[0]))
+            updated += 1
+        if elapsed >= 14400 and row[4] is None:
+            ret = (price * (1 - 0.0005) * (1 - 0.001)) / (entry * (1 + 0.0005) * (1 + 0.001)) - 1
+            conn.execute("UPDATE news_veto_outcomes SET price_4h=?,return_4h=? WHERE id=?",
+                         (price, ret, row[0]))
+            updated += 1
+        if elapsed >= 86400 and row[5] is None:
+            ret = (price * (1 - 0.0005) * (1 - 0.001)) / (entry * (1 + 0.0005) * (1 + 0.001)) - 1
+            conn.execute("UPDATE news_veto_outcomes SET price_24h=?,return_24h=? WHERE id=?",
+                         (price, ret, row[0]))
+            updated += 1
+    conn.commit()
+    return updated
+
+def veto_outcome_stats(conn):
+    rows = conn.execute("""SELECT COUNT(*), SUM(return_1h IS NOT NULL), SUM(return_4h IS NOT NULL),
+        SUM(return_24h IS NOT NULL), AVG(return_1h), AVG(return_4h), AVG(return_24h),
+        SUM(return_1h < 0), SUM(return_1h > 0), SUM(return_4h < 0), SUM(return_4h > 0),
+        SUM(return_24h < 0), SUM(return_24h > 0) FROM news_veto_outcomes""").fetchone()
+    return {"tracked_vetoes": int(rows[0] or 0), "measured_1h": int(rows[1] or 0),
+            "measured_4h": int(rows[2] or 0), "measured_24h": int(rows[3] or 0),
+            "avg_net_return_1h_pct": round(float(rows[4] or 0) * 100, 4),
+            "avg_net_return_4h_pct": round(float(rows[5] or 0) * 100, 4),
+            "avg_net_return_24h_pct": round(float(rows[6] or 0) * 100, 4),
+            "avoided_loss_1h": int(rows[7] or 0), "missed_gain_1h": int(rows[8] or 0),
+            "avoided_loss_4h": int(rows[9] or 0), "missed_gain_4h": int(rows[10] or 0),
+            "avoided_loss_24h": int(rows[11] or 0), "missed_gain_24h": int(rows[12] or 0)}
 
 def high_risk_news(conn, symbol, hours=6):
     cutoff = utc_now() - timedelta(hours=hours)
