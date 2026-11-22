@@ -2,6 +2,7 @@
 import importlib.util
 import sqlite3
 import unittest
+from email.utils import format_datetime
 from pathlib import Path
 
 MODULE = Path(__file__).with_name("news_intelligence.py")
@@ -29,11 +30,21 @@ class TestNewsIntelligence(unittest.TestCase):
         conn = sqlite3.connect(":memory:")
         news.init_db(conn)
         item = {"title": "Exchange exploit: withdrawals suspended", "url": "https://example.test/story",
-                "published_at": "", "source": "Test"}
+                "published_at": format_datetime(news.utc_now()), "source": "Test"}
         self.assertEqual(news.save_items(conn, "BTC/USDT", [item]), 1)
         self.assertEqual(news.save_items(conn, "BTC/USDT", [item]), 0)
         self.assertIsNotNone(news.high_risk_news(conn, "BTC/USDT"))
         self.assertIsNone(news.high_risk_news(conn, "ETH/USDT"))
+        conn.close()
+
+    def test_old_headline_does_not_veto_a_new_entry(self):
+        conn = sqlite3.connect(":memory:")
+        news.init_db(conn)
+        old = news.utc_now() - news.timedelta(hours=12)
+        item = {"title": "Exchange exploit: withdrawals suspended", "url": "https://example.test/old",
+                "published_at": format_datetime(old), "source": "Test"}
+        news.save_items(conn, "BTC/USDT", [item])
+        self.assertIsNone(news.high_risk_news(conn, "BTC/USDT", hours=6))
         conn.close()
 
     def test_collector_continues_when_one_feed_fails(self):
