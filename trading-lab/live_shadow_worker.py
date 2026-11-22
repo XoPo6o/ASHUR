@@ -424,12 +424,7 @@ def run():
             signal_row = row.copy()
             signal_row["close"] = price
             entry_signal, exit_signal = signals(signal_row,s["id"])
-            news_veto = news.high_risk_news(conn, s["symbol"]) if entry_signal else None
-            if news_veto:
-                news.record_veto(conn, s["id"], s["symbol"], news_veto, price)
-                entry_signal = False
-                event(conn, s["id"], "NEWS_VETO",
-                      f"new entry blocked by high-risk headline: {news_veto['title'][:240]}")
+            news_veto = None
             conn.execute("INSERT OR REPLACE INTO shadow_marks VALUES(?,?,?)",(s["id"],price,now()))
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             closed_this_cycle = False
@@ -450,8 +445,15 @@ def run():
             cooldown_active = bool(guard and guard["last_closed_candle"] == candle_id)
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             if not pos and entry_signal and not closed_this_cycle and not cooldown_active:
-                open_position(conn,s,price,float(row.atr))
-                pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
+                news_veto = news.high_risk_news(conn, s["symbol"])
+                if news_veto:
+                    news.record_veto(conn, s["id"], s["symbol"], news_veto, price)
+                    entry_signal = False
+                    event(conn, s["id"], "NEWS_VETO",
+                          f"new entry blocked by high-risk headline: {news_veto['title'][:240]}")
+                if entry_signal:
+                    open_position(conn,s,price,float(row.atr))
+                    pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             previous = conn.execute("SELECT last_candle FROM shadow_state WHERE strategy_id=?",(s["id"],)).fetchone()
             if not previous or previous["last_candle"] != candle_id:
                 conn.execute("INSERT OR REPLACE INTO shadow_state VALUES(?,?)",(s["id"],candle_id))
