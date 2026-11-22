@@ -81,7 +81,7 @@ def init_db(conn):
         vetoed_at TEXT NOT NULL, entry_reference REAL NOT NULL,
         price_1h REAL, return_1h REAL, price_4h REAL, return_4h REAL,
         price_24h REAL, return_24h REAL,
-        UNIQUE(strategy_id, news_id, vetoed_at))""")
+        UNIQUE(strategy_id, news_id))""")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_news_veto_pending ON news_veto_outcomes(symbol, vetoed_at)")
     conn.execute("""CREATE TABLE IF NOT EXISTS news_collection_runs(
         id INTEGER PRIMARY KEY AUTOINCREMENT, started_at TEXT NOT NULL, finished_at TEXT NOT NULL,
