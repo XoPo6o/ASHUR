@@ -350,12 +350,19 @@ def open_position(conn, s, price, atr):
 def export_status(conn, worker_errors=0, successful_strategies=None):
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
+    cutoff_24h = (datetime.now(timezone.utc) - __import__("datetime").timedelta(hours=24)).isoformat()
+    news_vetoes_24h = conn.execute(
+        "SELECT COUNT(*) FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?",
+        (cutoff_24h,),
+    ).fetchone()[0]
     output = {"updated_at": now(), "mode": "PAPER_ONLY",
               "market_data": "Public spot market data; Bybit primary, Binance fallback",
               "worker_health": {"strategy_count": len(STRATEGIES),
                                 "successful_strategies": successful_strategies,
                                 "error_count": int(worker_errors),
                                 "all_strategies_ok": int(worker_errors) == 0 and successful_strategies == len(STRATEGIES)},
+              "news_intelligence": {**news.collection_stats(conn, 24),
+                                    "news_vetoes_24h": int(news_vetoes_24h)},
               "accounts": []}
     for a in accounts:
         pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
