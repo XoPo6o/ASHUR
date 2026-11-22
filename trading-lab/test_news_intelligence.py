@@ -71,6 +71,30 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertIn("BTC/USDT", result["by_symbol"])
         conn.close()
 
+    def test_veto_outcomes_capture_1h_4h_and_24h_counterfactual_returns(self):
+        conn = sqlite3.connect(":memory:")
+        news.init_db(conn)
+        headline = {"id": "news-1", "title": "Exchange exploit", "source": "Test"}
+        self.assertTrue(news.record_veto(conn, "strategy-a", "BTC/USDT", headline, 100.0))
+        self.assertFalse(news.record_veto(conn, "strategy-a", "BTC/USDT", headline, 100.0))
+        vetoed_at = news.datetime.fromisoformat(conn.execute(
+            "SELECT vetoed_at FROM news_veto_outcomes"
+        ).fetchone()[0])
+        self.assertEqual(news.update_veto_outcomes(
+            conn, "BTC/USDT", 98.0, vetoed_at + news.timedelta(hours=1)), 1)
+        self.assertEqual(news.update_veto_outcomes(
+            conn, "BTC/USDT", 102.0, vetoed_at + news.timedelta(hours=4)), 1)
+        self.assertEqual(news.update_veto_outcomes(
+            conn, "BTC/USDT", 95.0, vetoed_at + news.timedelta(hours=24)), 1)
+        stats = news.veto_outcome_stats(conn)
+        self.assertEqual(stats["tracked_vetoes"], 1)
+        self.assertEqual(stats["measured_1h"], 1)
+        self.assertEqual(stats["measured_4h"], 1)
+        self.assertEqual(stats["measured_24h"], 1)
+        self.assertEqual(stats["avoided_loss_1h"], 1)
+        self.assertEqual(stats["missed_gain_4h"], 1)
+        conn.close()
+
     def test_future_dated_headline_does_not_veto(self):
         conn = sqlite3.connect(":memory:")
         news.init_db(conn)
