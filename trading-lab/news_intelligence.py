@@ -211,7 +211,7 @@ def high_risk_news(conn, symbol, hours=6):
         ORDER BY fetched_at DESC LIMIT 100""", (symbol,)).fetchall()
     for row in rows:
         try:
-            published = parsedate_to_datetime(row[2])
+            published = parsedate_to_datetime(row[3])
             if published.tzinfo is None:
                 published = published.replace(tzinfo=timezone.utc)
             published = published.astimezone(timezone.utc)
