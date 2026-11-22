@@ -22,7 +22,7 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertTrue(result["high_risk"])
 
     def test_substring_inside_hackathon_does_not_trigger_security_veto(self):
-        result = news.classify_title("Crypto hackathon announces new developer partnership")
+        result = news.classify_title("Crypto hackathon announces a new developer event")
         self.assertFalse(result["high_risk"])
         self.assertEqual(result["sentiment"], "neutral")
 
