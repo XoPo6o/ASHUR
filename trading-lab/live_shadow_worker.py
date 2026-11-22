@@ -10,6 +10,7 @@ from datetime import datetime, timezone, date
 from pathlib import Path
 
 import pandas as pd
+import news_intelligence as news
 
 ROOT = Path(__file__).resolve().parent
 # Keep mutable paper state outside the Git checkout. The default is persistent
@@ -395,6 +396,7 @@ def run():
     conn = sqlite3.connect(DB, timeout=30)
     conn.row_factory = sqlite3.Row
     init_db(conn)
+    news.init_db(conn)
     cache = {}
     strategy_errors = 0
     successful_strategies = 0
@@ -411,6 +413,11 @@ def run():
             signal_row = row.copy()
             signal_row["close"] = price
             entry_signal, exit_signal = signals(signal_row,s["id"])
+            news_veto = news.high_risk_news(conn, s["symbol"]) if entry_signal else None
+            if news_veto:
+                entry_signal = False
+                event(conn, s["id"], "NEWS_VETO",
+                      f"new entry blocked by high-risk headline: {news_veto['title'][:240]}")
             conn.execute("INSERT OR REPLACE INTO shadow_marks VALUES(?,?,?)",(s["id"],price,now()))
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             closed_this_cycle = False
@@ -439,7 +446,7 @@ def run():
                 event(conn,s["id"],"CHECK",f"candle={candle_id}; candle_close={float(row.close):.6f}; live={price:.6f}; entry={entry_signal}; exit={exit_signal}; cooldown={cooldown_active}")
             conn.commit()
             successful_strategies += 1
-            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} cooldown={cooldown_active} position={bool(pos)}')
+            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} news_veto={bool(news_veto)} cooldown={cooldown_active} position={bool(pos)}')
         except Exception as exc:
             strategy_errors += 1
             conn.rollback()
