@@ -47,6 +47,25 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertIsNone(news.high_risk_news(conn, "BTC/USDT", hours=6))
         conn.close()
 
+    def test_collector_persists_run_metrics_and_feed_errors(self):
+        conn = sqlite3.connect(":memory:")
+        news.init_db(conn)
+        calls = {"count": 0}
+        def fake_fetch(url):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                raise RuntimeError("temporary feed outage")
+            return [{"title": "Bitcoin market update", "url": "https://example.test/metric",
+                     "published_at": format_datetime(news.utc_now()), "source": "Test"}]
+        result = news.collect(conn, fetcher=fake_fetch)
+        stats = news.collection_stats(conn, 24)
+        self.assertEqual(stats["collector_runs"], 1)
+        self.assertEqual(stats["fetched"], result["fetched"])
+        self.assertEqual(stats["inserted"], result["inserted"])
+        self.assertEqual(stats["feed_errors"], 1)
+        self.assertIn("BTC/USDT", result["by_symbol"])
+        conn.close()
+
     def test_collector_continues_when_one_feed_fails(self):
         conn = sqlite3.connect(":memory:")
         news.init_db(conn)
