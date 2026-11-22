@@ -348,7 +348,7 @@ def open_position(conn, s, price, atr):
     event(conn,s["id"],"OPEN",f"paper BUY; qty={qty:.8f}; entry={fill:.6f}; SL={stop:.6f}; TP={target:.6f}")
 
 def export_status(conn, worker_errors=0, successful_strategies=None):
-    accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
+    # Keep status export safe for legacy/test databases created before News Intelligence.\n    news.init_db(conn)\n    accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
     cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
     news_vetoes_24h = conn.execute(
