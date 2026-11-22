@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Free-source ASHUR news collector. Metadata only; no paid APIs or trading actions."""
 import hashlib
+from email.utils import parsedate_to_datetime
 import json
 import os
 import re
@@ -74,7 +75,7 @@ def init_db(conn):
 def save_items(conn, symbol, items):
     inserted = 0
     for item in items:
-        key = hashlib.sha256((item["url"] or item["title"]).encode("utf-8")).hexdigest()
+        key = hashlib.sha256((symbol + "|" + (item["url"] or item["title"])).encode("utf-8")).hexdigest()
         classification = classify_title(item["title"])
         cursor = conn.execute("""INSERT OR IGNORE INTO news_items
             (id,symbol,title,url,source,published_at,fetched_at,sentiment,sentiment_score,risk_score,high_risk)
@@ -98,14 +99,22 @@ def collect(conn, fetcher=fetch_feed):
     return summary
 
 def high_risk_news(conn, symbol, hours=6):
-    cutoff = (utc_now() - timedelta(hours=hours)).isoformat()
-    row = conn.execute("""SELECT title, source, published_at, fetched_at, risk_score
-        FROM news_items WHERE symbol=? AND high_risk=1 AND fetched_at>=?
-        ORDER BY fetched_at DESC LIMIT 1""", (symbol, cutoff)).fetchone()
-    if not row:
-        return None
-    return {"title": row[0], "source": row[1], "published_at": row[2],
-            "fetched_at": row[3], "risk_score": float(row[4])}
+    cutoff = utc_now() - timedelta(hours=hours)
+    rows = conn.execute("""SELECT title, source, published_at, fetched_at, risk_score
+        FROM news_items WHERE symbol=? AND high_risk=1
+        ORDER BY fetched_at DESC LIMIT 100""", (symbol,)).fetchall()
+    for row in rows:
+        try:
+            published = parsedate_to_datetime(row[2])
+            if published.tzinfo is None:
+                published = published.replace(tzinfo=timezone.utc)
+            if published.astimezone(timezone.utc) < cutoff:
+                continue
+        except (TypeError, ValueError, OverflowError):
+            continue
+        return {"title": row[0], "source": row[1], "published_at": row[2],
+                "fetched_at": row[3], "risk_score": float(row[4])}
+    return None
 
 def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
