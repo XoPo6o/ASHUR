@@ -1,25 +1,21 @@
 name: ASHUR SillyDev deployment monitor
 
 on:
-  push:
+  workflow_run:
+    workflows: ["ASHUR checks and Silly Development deploy"]
+    types: [completed]
     branches: [ashur-live-shadow]
-    paths:
-      - "ashur_sillydev_start.py"
-      - "trading-lab/**"
-      - "requirements.txt"
-      - "sillydev.conf"
-      - ".github/workflows/ashur-sillydev-deploy.yml"
-      - ".github/workflows/ashur-sillydev-deploy-monitor.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: ashur-sillydev-deploy-monitor-${{ github.sha }}
-  cancel-in-progress: false
+  group: ashur-sillydev-deploy-monitor-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
 
 jobs:
   monitor:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -27,8 +23,8 @@ jobs:
         env:
           SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
           SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
-          EXPECTED_BRANCH: ashur-live-shadow
-          EXPECTED_COMMIT: ${{ github.sha }}
+          EXPECTED_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          EXPECTED_COMMIT: ${{ github.event.workflow_run.head_sha }}
         shell: bash
         run: |
           set -euo pipefail
