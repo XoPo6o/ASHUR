@@ -97,6 +97,23 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertEqual(stats["missed_gain_4h"], 1)
         conn.close()
 
+    def test_late_observation_is_not_mislabeled_as_1h_return(self):
+        conn = sqlite3.connect(":memory:")
+        news.init_db(conn)
+        headline = {"id": "news-late", "title": "Exchange exploit", "source": "Test"}
+        news.record_veto(conn, "strategy-a", "BTC/USDT", headline, 100.0)
+        vetoed_at = news.datetime.fromisoformat(conn.execute(
+            "SELECT vetoed_at FROM news_veto_outcomes"
+        ).fetchone()[0])
+        self.assertEqual(news.update_veto_outcomes(
+            conn, "BTC/USDT", 97.0, vetoed_at + news.timedelta(hours=2)), 0)
+        self.assertEqual(news.update_veto_outcomes(
+            conn, "BTC/USDT", 96.0, vetoed_at + news.timedelta(hours=4)), 1)
+        stats = news.veto_outcome_stats(conn)
+        self.assertEqual(stats["measured_1h"], 0)
+        self.assertEqual(stats["measured_4h"], 1)
+        conn.close()
+
     def test_future_dated_headline_does_not_veto(self):
         conn = sqlite3.connect(":memory:")
         news.init_db(conn)
