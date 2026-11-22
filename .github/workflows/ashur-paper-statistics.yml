@@ -1,5 +1,5 @@
 name: ASHUR paper statistics report
-run-name: ASHUR paper report · ${{ github.event_name }}
+run-name: ASHUR paper report · ${{ github.event_name }} · fresh snapshot
 
 on:
   push:
