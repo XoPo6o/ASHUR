@@ -172,17 +172,17 @@ def update_veto_outcomes(conn, symbol, price, at=None):
             continue
         elapsed = (at - vetoed_at).total_seconds()
         entry = float(row[2])
-        if elapsed >= 3600 and row[3] is None:
+        if 3600 <= elapsed < 5400 and row[3] is None:
             ret = (price * (1 - 0.0005) * (1 - 0.001)) / (entry * (1 + 0.0005) * (1 + 0.001)) - 1
             conn.execute("UPDATE news_veto_outcomes SET price_1h=?,return_1h=? WHERE id=?",
                          (price, ret, row[0]))
             updated += 1
-        if elapsed >= 14400 and row[4] is None:
+        if 14400 <= elapsed < 16200 and row[4] is None:
             ret = (price * (1 - 0.0005) * (1 - 0.001)) / (entry * (1 + 0.0005) * (1 + 0.001)) - 1
             conn.execute("UPDATE news_veto_outcomes SET price_4h=?,return_4h=? WHERE id=?",
                          (price, ret, row[0]))
             updated += 1
-        if elapsed >= 86400 and row[5] is None:
+        if 86400 <= elapsed < 88200 and row[5] is None:
             ret = (price * (1 - 0.0005) * (1 - 0.001)) / (entry * (1 + 0.0005) * (1 + 0.001)) - 1
             conn.execute("UPDATE news_veto_outcomes SET price_24h=?,return_24h=? WHERE id=?",
                          (price, ret, row[0]))
