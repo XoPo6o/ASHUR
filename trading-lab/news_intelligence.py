@@ -206,7 +206,7 @@ def veto_outcome_stats(conn):
 
 def high_risk_news(conn, symbol, hours=6):
     cutoff = utc_now() - timedelta(hours=hours)
-    rows = conn.execute("""SELECT title, source, published_at, fetched_at, risk_score
+    rows = conn.execute("""SELECT id, title, source, published_at, fetched_at, risk_score
         FROM news_items WHERE symbol=? AND high_risk=1
         ORDER BY fetched_at DESC LIMIT 100""", (symbol,)).fetchall()
     for row in rows:
@@ -220,8 +220,8 @@ def high_risk_news(conn, symbol, hours=6):
                 continue
         except (TypeError, ValueError, OverflowError):
             continue
-        return {"title": row[0], "source": row[1], "published_at": row[2],
-                "fetched_at": row[3], "risk_score": float(row[4])}
+        return {"id": row[0], "title": row[1], "source": row[2], "published_at": row[3],
+                "fetched_at": row[4], "risk_score": float(row[5])}
     return None
 
 def main():
