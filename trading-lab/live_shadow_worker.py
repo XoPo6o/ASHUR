@@ -354,7 +354,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
     cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
     news_vetoes_24h = conn.execute(
-        "SELECT COUNT(*) FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?",
+        "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
         (cutoff_24h,),
     ).fetchone()[0]
     output = {"updated_at": now(), "mode": "PAPER_ONLY",
