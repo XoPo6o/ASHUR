@@ -9,6 +9,7 @@ on:
       - "requirements.txt"
       - "sillydev.conf"
       - ".github/workflows/ashur-sillydev-deploy.yml"
+      - ".github/workflows/ashur-sillydev-deploy-monitor.yml"
   workflow_dispatch:
 
 permissions:
