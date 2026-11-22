@@ -70,7 +70,23 @@ def init_db(conn):
         sentiment TEXT NOT NULL, sentiment_score REAL NOT NULL, risk_score REAL NOT NULL,
         high_risk INTEGER NOT NULL)""")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_news_symbol_fetched ON news_items(symbol, fetched_at)")
+    conn.execute("""CREATE TABLE IF NOT EXISTS news_collection_runs(
+        id INTEGER PRIMARY KEY AUTOINCREMENT, started_at TEXT NOT NULL, finished_at TEXT NOT NULL,
+        source_count INTEGER NOT NULL, fetched_count INTEGER NOT NULL, inserted_count INTEGER NOT NULL,
+        error_count INTEGER NOT NULL, errors_json TEXT NOT NULL)""")
     conn.commit()
+
+def collection_stats(conn, hours=24):
+    cutoff = (utc_now() - timedelta(hours=hours)).isoformat()
+    news_row = conn.execute("""SELECT COUNT(*), COUNT(DISTINCT url), SUM(high_risk)
+        FROM news_items WHERE fetched_at >= ?""", (cutoff,)).fetchone()
+    run_row = conn.execute("""SELECT COUNT(*), COALESCE(SUM(fetched_count),0),
+        COALESCE(SUM(inserted_count),0), COALESCE(SUM(error_count),0)
+        FROM news_collection_runs WHERE started_at >= ?""", (cutoff,)).fetchone()
+    return {"window_hours": hours, "stored_items": int(news_row[0] or 0),
+            "unique_urls": int(news_row[1] or 0), "high_risk_items": int(news_row[2] or 0),
+            "collector_runs": int(run_row[0] or 0), "fetched": int(run_row[1] or 0),
+            "inserted": int(run_row[2] or 0), "feed_errors": int(run_row[3] or 0)}
 
 def save_items(conn, symbol, items):
     inserted = 0
@@ -88,14 +104,27 @@ def save_items(conn, symbol, items):
     return inserted
 
 def collect(conn, fetcher=fetch_feed):
-    summary = {"enabled": True, "sources": ["Google News RSS"], "fetched": 0, "inserted": 0, "errors": []}
+    started_at = utc_now().isoformat()
+    summary = {"enabled": True, "sources": ["Google News RSS"], "fetched": 0,
+               "inserted": 0, "errors": [], "by_symbol": {}}
     for symbol, query in SYMBOL_QUERIES.items():
         try:
             items = fetcher(google_news_url(query))
+            inserted = save_items(conn, symbol, items)
             summary["fetched"] += len(items)
-            summary["inserted"] += save_items(conn, symbol, items)
+            summary["inserted"] += inserted
+            summary["by_symbol"][symbol] = {"fetched": len(items), "inserted": inserted}
         except Exception as exc:
-            summary["errors"].append(f"{symbol}: {type(exc).__name__}: {exc}")
+            message = f"{symbol}: {type(exc).__name__}: {exc}"
+            summary["errors"].append(message)
+            summary["by_symbol"][symbol] = {"fetched": 0, "inserted": 0, "error": message}
+    conn.execute("""INSERT INTO news_collection_runs
+        (started_at,finished_at,source_count,fetched_count,inserted_count,error_count,errors_json)
+        VALUES(?,?,?,?,?,?,?)""",
+        (started_at, utc_now().isoformat(), len(summary["sources"]), summary["fetched"],
+         summary["inserted"], len(summary["errors"]), json.dumps(summary["errors"], ensure_ascii=False)))
+    conn.commit()
+    summary["stats_24h"] = collection_stats(conn, 24)
     return summary
 
 def high_risk_news(conn, symbol, hours=6):
