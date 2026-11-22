@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ashur-sillydev-deploy-monitor
+  group: ashur-sillydev-deploy-monitor-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
