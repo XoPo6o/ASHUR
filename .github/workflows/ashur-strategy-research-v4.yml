@@ -1,5 +1,5 @@
 name: ASHUR Strategy Research v4
-run-name: ASHUR research v4 · Keltner ADX robustness · validation-led
+run-name: ASHUR research v4 · Keltner ADX robustness · validation-led · continuation
 
 on:
   workflow_dispatch:
