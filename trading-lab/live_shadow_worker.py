@@ -177,6 +177,8 @@ def fetch_bybit_klines(symbol, interval, limit=350):
 def validate_execution_klines(frame, since_ms, cutoff_ms):
     """Require a continuous sequence starting at the exact next expected minute."""
     if frame.empty:
+        if int(since_ms) + 60000 <= int(cutoff_ms):
+            raise RuntimeError("1m execution data missing: expected at least one closed minute")
         return frame
     frame = validate_ohlcv_frame(frame, "1")
     timestamps = frame["timestamp"].astype("int64").to_numpy()
