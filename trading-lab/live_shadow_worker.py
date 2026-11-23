@@ -618,7 +618,7 @@ def run():
                             )
                         if intrabar_exit:
                             reason, reference_price, exit_candle_ms = intrabar_exit
-                            close_position(conn, s, reference_price, reason, str(exit_candle_ms))
+                            close_position(conn, s, reference_price, reason, candle_id)
                             event(conn, s["id"], "INTRABAR_EXIT",
                                   f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
                             closed_this_cycle = True
