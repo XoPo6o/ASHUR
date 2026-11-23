@@ -326,6 +326,8 @@ class TestAshurRuntime(unittest.TestCase):
         empty = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
         checked = worker.validate_execution_klines(empty, 1_999_999_980_000, 2_000_000_000_000)
         self.assertTrue(checked.empty)
+        with self.assertRaisesRegex(RuntimeError, "missing"):
+            worker.validate_execution_klines(empty, 1_999_000_000_000, 2_000_000_000_000)
 
 
     def test_intrabar_gap_stop_uses_candle_open(self):
