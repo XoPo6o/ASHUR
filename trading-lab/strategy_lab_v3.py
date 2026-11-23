@@ -13,6 +13,7 @@ from execution_model import (
     DEFAULT_MAX_IMPACT_BPS,
     DEFAULT_SPREAD_BPS,
     DEFAULT_VOLATILITY_IMPACT,
+    adverse_cost_components_bps,
     fill_price,
 )
 
@@ -45,6 +46,24 @@ def execution_fill(price, side, reference_bar, order_notional):
         volatility_impact=VOLATILITY_IMPACT,
         max_impact_bps=MAX_IMPACT_BPS,
     )
+
+
+
+def execution_cost_breakdown(reference_bar, order_notional):
+    atr_pct = float(reference_bar.atr_pct) if pd.notna(reference_bar.atr_pct) else 0.0
+    dollar_volume = float(reference_bar.close) * float(reference_bar.volume)
+    parts = adverse_cost_components_bps(
+        atr_pct, dollar_volume, order_notional,
+        spread_bps=SPREAD_BPS,
+        base_slippage_bps=BASE_SLIPPAGE_BPS,
+        volatility_impact=VOLATILITY_IMPACT,
+        max_impact_bps=MAX_IMPACT_BPS,
+    )
+    return {
+        "spread_cost_usdt": order_notional * parts["spread_bps"] / 10_000,
+        "base_slippage_cost_usdt": order_notional * parts["base_slippage_bps"] / 10_000,
+        "market_impact_cost_usdt": order_notional * parts["market_impact_bps"] / 10_000,
+    }
 
 
 def fetch_history(symbol, timeframe, interval_ms):
@@ -212,8 +231,10 @@ def simulate(x, strategy, start, end, annual_bars):
                 px = execution_fill(raw_exit, "sell", prev, pos["qty"] * raw_exit)
                 proceeds = pos["qty"] * px
                 fee = proceeds * FEE_RATE
+                exit_costs = execution_cost_breakdown(prev, pos["qty"] * raw_exit)
                 cash += proceeds-fee
                 trades.append({"pnl": proceeds-fee-pos["entry_cost"], "fees":pos["entry_fee"]+fee,
+                               **{k: pos["entry_costs"][k] + exit_costs[k] for k in exit_costs},
                                "bars":i-pos["entry_i"]+1, "reason":reason})
                 pos, exited = None, True
         if pos is None and not exited and bool(prev[entry_col]):
@@ -238,11 +259,13 @@ def simulate(x, strategy, start, end, annual_bars):
                     )
                     entry = execution_fill(raw, "buy", prev, notional)
                     qty = notional/entry
+                    entry_costs = execution_cost_breakdown(prev, qty * raw)
                     fee = notional*FEE_RATE
                     cost = notional+fee
                     if cost <= cash and qty > 0:
                         cash -= cost
                         pos = {"qty":qty,"entry":entry,"entry_fee":fee,"entry_cost":cost,"entry_i":i,
+                               "entry_costs":entry_costs,
                                "stop":entry-stop_dist,"target":entry+REWARD_RISK*stop_dist}
                         # Entry-bar barrier check: stop first if OHLC cannot reveal order.
                         if float(bar.low) <= pos["stop"] or float(bar.high) >= pos["target"]:
@@ -253,8 +276,11 @@ def simulate(x, strategy, start, end, annual_bars):
                             px = execution_fill(raw_exit, "sell", prev, qty * raw_exit)
                             proceeds=qty*px
                             exit_fee=proceeds*FEE_RATE
+                            exit_costs = execution_cost_breakdown(prev, qty * raw_exit)
                             cash += proceeds-exit_fee
-                            trades.append({"pnl":proceeds-exit_fee-cost,"fees":fee+exit_fee,"bars":1,"reason":reason})
+                            trades.append({"pnl":proceeds-exit_fee-cost,"fees":fee+exit_fee,
+                                **{k: entry_costs[k] + exit_costs[k] for k in entry_costs},
+                                "bars":1,"reason":reason})
                             pos, exited = None, True
 
         equity = cash
@@ -270,8 +296,10 @@ def simulate(x, strategy, start, end, annual_bars):
         px = execution_fill(raw_exit, "sell", reference_bar, pos["qty"] * raw_exit)
         proceeds=pos["qty"]*px
         fee=proceeds*FEE_RATE
+        exit_costs = execution_cost_breakdown(reference_bar, pos["qty"] * raw_exit)
         cash += proceeds-fee
         trades.append({"pnl":proceeds-fee-pos["entry_cost"],"fees":pos["entry_fee"]+fee,
+                       **{k: pos["entry_costs"][k] + exit_costs[k] for k in exit_costs},
                        "bars":end-pos["entry_i"],"reason":"TEST_END"})
     # Include cash/equity correctly; drawdown includes initial equity and final liquidation.
     values=[INITIAL_EQUITY]+curve+[cash]
@@ -293,6 +321,9 @@ def simulate(x, strategy, start, end, annual_bars):
             "profit_factor":round(gp/gl,3) if gl else ("inf" if gp else 0),
             "max_drawdown_pct":round(mdd,2),"sharpe_approx":round(sharpe,3),
             "fees_usdt":round(sum(t["fees"] for t in trades),2),
+            "spread_cost_usdt":round(sum(t.get("spread_cost_usdt",0) for t in trades),2),
+            "base_slippage_cost_usdt":round(sum(t.get("base_slippage_cost_usdt",0) for t in trades),2),
+            "market_impact_cost_usdt":round(sum(t.get("market_impact_cost_usdt",0) for t in trades),2),
             "expectancy_usdt":round(sum(pnl)/len(pnl),2) if pnl else 0,
             "avg_bars_held":round(sum(t["bars"] for t in trades)/len(trades),2) if trades else 0,
             "ending_equity_usdt":round(cash,2),
