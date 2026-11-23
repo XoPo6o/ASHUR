@@ -277,6 +277,35 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.DATA_DIR, worker.STATUS_FILE = original
 
 
+    def test_intrabar_exit_uses_earliest_minute_and_conservative_same_bar_order(self):
+        import pandas as pd
+
+        position = {"stop": 95.0, "target": 120.0}
+        candles = pd.DataFrame([
+            {"timestamp": 1_000, "open": 100.0, "high": 110.0, "low": 99.0, "close": 105.0, "volume": 1.0},
+            {"timestamp": 61_000, "open": 105.0, "high": 121.0, "low": 103.0, "close": 119.0, "volume": 1.0},
+            {"timestamp": 121_000, "open": 119.0, "high": 122.0, "low": 90.0, "close": 100.0, "volume": 1.0},
+        ])
+        self.assertEqual(worker.intrabar_exit_signal(position, candles), ("TARGET", 120.0, 61_000))
+
+        both_touched = pd.DataFrame([
+            {"timestamp": 181_000, "open": 100.0, "high": 125.0, "low": 90.0, "close": 110.0, "volume": 1.0},
+        ])
+        self.assertEqual(worker.intrabar_exit_signal(position, both_touched), ("STOP", 95.0, 181_000))
+
+    def test_intrabar_gap_stop_uses_candle_open(self):
+        import pandas as pd
+
+        position = {"stop": 95.0, "target": 120.0}
+        candles = pd.DataFrame([
+            {"timestamp": 241_000, "open": 90.0, "high": 94.0, "low": 88.0, "close": 92.0, "volume": 1.0},
+        ])
+        self.assertEqual(worker.intrabar_exit_signal(position, candles), ("GAP_STOP", 90.0, 241_000))
+
+    def test_minute_cursor_rounds_down_to_current_minute(self):
+        self.assertEqual(worker.minute_cursor_for_now(125_999), 120_000)
+
+
     def test_target_gap_fill_is_capped_at_target_reference(self):
         self.assertEqual(worker.target_exit_reference_price(125.0, 120.0), 120.0)
         self.assertEqual(worker.target_exit_reference_price(120.0, 120.0), 120.0)
