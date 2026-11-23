@@ -174,6 +174,23 @@ def fetch_bybit_klines(symbol, interval, limit=350):
         errors.append("Binance: " + str(exc))
     raise RuntimeError("No usable candle source: " + " | ".join(errors))
 
+def validate_execution_klines(frame, since_ms, cutoff_ms):
+    """Require a continuous sequence starting at the exact next expected minute."""
+    if frame.empty:
+        return frame
+    frame = validate_ohlcv_frame(frame, "1")
+    timestamps = frame["timestamp"].astype("int64").to_numpy()
+    if int(timestamps[0]) != int(since_ms):
+        raise RuntimeError(
+            f"1m execution data gap before first candle: expected={since_ms}, got={int(timestamps[0])}"
+        )
+    if len(timestamps) > 1 and (timestamps[1:] - timestamps[:-1] != 60000).any():
+        raise RuntimeError("1m execution candles contain a missing-minute gap")
+    if not candle_is_fresh(timestamps[-1], "1", cutoff_ms):
+        raise RuntimeError("1m execution candles are stale")
+    return frame
+
+
 def fetch_execution_klines(symbol, since_ms):
     """Fetch closed 1m candles since the last processed minute for open-position protection."""
     market_symbol = symbol.replace("/", "")
@@ -196,13 +213,7 @@ def fetch_execution_klines(symbol, since_ms):
         )
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[(frame.timestamp >= int(since_ms)) & (frame.timestamp + 60000 <= cutoff)].reset_index(drop=True)
-        if not frame.empty:
-            frame = validate_ohlcv_frame(frame, "1")
-            if not candle_is_fresh(frame.iloc[-1].timestamp, "1", cutoff):
-                raise RuntimeError("Bybit execution candles are stale")
-            if len(frame) > 1 and (frame.timestamp.diff().dropna() != 60000).any():
-                raise RuntimeError("Bybit execution candles contain a missing-minute gap")
-        return frame
+        return validate_execution_klines(frame, since_ms, cutoff)
     except Exception as exc:
         errors.append("Bybit: " + str(exc))
 
@@ -218,13 +229,7 @@ def fetch_execution_klines(symbol, since_ms):
         )
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[(frame.timestamp >= int(since_ms)) & (frame.timestamp + 60000 <= cutoff)].reset_index(drop=True)
-        if not frame.empty:
-            frame = validate_ohlcv_frame(frame, "1")
-            if not candle_is_fresh(frame.iloc[-1].timestamp, "1", cutoff):
-                raise RuntimeError("Binance execution candles are stale")
-            if len(frame) > 1 and (frame.timestamp.diff().dropna() != 60000).any():
-                raise RuntimeError("Binance execution candles contain a missing-minute gap")
-        return frame
+        return validate_execution_klines(frame, since_ms, cutoff)
     except Exception as exc:
         errors.append("Binance: " + str(exc))
 
@@ -377,6 +382,9 @@ def init_db(conn):
       strategy_id TEXT PRIMARY KEY, last_closed_candle TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_intrabar_state(
       strategy_id TEXT PRIMARY KEY, last_checked_open_ms INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS shadow_intrabar_health(
+      strategy_id TEXT PRIMARY KEY, last_success_at TEXT, last_error TEXT,
+      last_error_at TEXT);
     """)
     for s in STRATEGIES:
         conn.execute("""INSERT OR IGNORE INTO shadow_accounts
@@ -496,6 +504,11 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
         "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
         (cutoff_24h,),
     ).fetchone()[0]
+    intrabar_warnings_24h = conn.execute(
+        """SELECT COUNT(*) FROM shadow_events
+           WHERE event='INTRABAR_DATA_WARNING' AND created_at>=?""",
+        (cutoff_24h,),
+    ).fetchone()[0]
     output = {"updated_at": now(), "mode": "PAPER_ONLY",
               "market_data": "Public spot market data; Bybit primary, Binance fallback",
               "worker_health": {"strategy_count": len(STRATEGIES),
@@ -608,20 +621,40 @@ def run():
                             event(conn, s["id"], "INTRABAR_GAP_RESET",
                                   f"unobserved_minutes={gap_minutes}; resumed_from={recovered_cursor}")
                         since_ms = recovered_cursor + 60000
-                        execution_candles = fetch_execution_klines(s["symbol"], since_ms)
-                        intrabar_exit = intrabar_exit_signal(pos, execution_candles)
-                        if not execution_candles.empty:
-                            last_checked = int(execution_candles.iloc[-1].timestamp)
+                        try:
+                            execution_candles = fetch_execution_klines(s["symbol"], since_ms)
+                        except Exception as exc:
+                            # Keep independent live-price, daily-loss and signal exits active.
+                            # Do not advance the cursor: the missing minute range must be retried.
+                            error_text = f"{type(exc).__name__}: {exc}"[:500]
+                            event(conn, s["id"], "INTRABAR_DATA_WARNING", error_text)
                             conn.execute(
-                                "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
-                                (last_checked, s["id"]),
+                                """INSERT INTO shadow_intrabar_health(strategy_id,last_error,last_error_at)
+                                   VALUES(?,?,?) ON CONFLICT(strategy_id) DO UPDATE SET
+                                   last_error=excluded.last_error,last_error_at=excluded.last_error_at""",
+                                (s["id"], error_text, now()),
                             )
-                        if intrabar_exit:
-                            reason, reference_price, exit_candle_ms = intrabar_exit
-                            close_position(conn, s, reference_price, reason, candle_id)
-                            event(conn, s["id"], "INTRABAR_EXIT",
-                                  f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
-                            closed_this_cycle = True
+                            execution_candles = None
+                        if execution_candles is not None:
+                            conn.execute(
+                                """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
+                                   VALUES(?,?,NULL,NULL) ON CONFLICT(strategy_id) DO UPDATE SET
+                                   last_success_at=excluded.last_success_at,last_error=NULL,last_error_at=NULL""",
+                                (s["id"], now()),
+                            )
+                            intrabar_exit = intrabar_exit_signal(pos, execution_candles)
+                            if not execution_candles.empty:
+                                last_checked = int(execution_candles.iloc[-1].timestamp)
+                                conn.execute(
+                                    "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
+                                    (last_checked, s["id"]),
+                                )
+                            if intrabar_exit:
+                                reason, reference_price, exit_candle_ms = intrabar_exit
+                                close_position(conn, s, reference_price, reason, candle_id)
+                                event(conn, s["id"], "INTRABAR_EXIT",
+                                      f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
+                                closed_this_cycle = True
                 if not closed_this_cycle:
                     if daily_loss_limit_hit(conn, s["id"], pos, price):
                         close_position(conn, s, price, "DAILY_STOP", candle_id)
