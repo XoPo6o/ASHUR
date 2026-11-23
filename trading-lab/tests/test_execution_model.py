@@ -2,6 +2,7 @@ import unittest
 
 from execution_model import (
     adverse_cost_bps,
+    adverse_cost_components_bps,
     fill_price,
     participation_rate,
     within_participation_limit,
@@ -32,6 +33,15 @@ class ExecutionModelTests(unittest.TestCase):
     def test_missing_liquidity_uses_maximum_impact(self):
         cost = adverse_cost_bps(0.01, 0, 10_000)
         self.assertAlmostEqual(cost, 53.0)
+
+    def test_cost_components_sum_to_total(self):
+        parts = adverse_cost_components_bps(0.01, 1_000_000, 10_000)
+        self.assertAlmostEqual(
+            parts["spread_bps"] + parts["base_slippage_bps"] + parts["market_impact_bps"],
+            parts["total_bps"],
+        )
+        self.assertAlmostEqual(parts["spread_bps"], 2.0)
+        self.assertAlmostEqual(parts["base_slippage_bps"], 1.0)
 
     def test_participation_limit(self):
         self.assertTrue(within_participation_limit(10_000, 1_000_000))
