@@ -1,5 +1,5 @@
 name: ASHUR daemon regression checks
-# Triggered by a safe branch update to validate the current paper daemon.
+# Validate the paper worker, daemon, and news sidecar together.
 
 on:
   push:
@@ -7,7 +7,9 @@ on:
     paths:
       - "trading-lab/ashur_daemon.py"
       - "trading-lab/live_shadow_worker.py"
+      - "trading-lab/news_intelligence.py"
       - "trading-lab/test_ashur_daemon.py"
+      - "trading-lab/test_news_intelligence.py"
       - "requirements.txt"
       - ".github/workflows/ashur-daemon-check.yml"
   workflow_dispatch:
@@ -18,7 +20,7 @@ permissions:
 jobs:
   daemon-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Checkout paper branch
         uses: actions/checkout@v4
@@ -30,7 +32,9 @@ jobs:
           python-version: "3.12"
       - name: Install pinned runtime dependencies
         run: python -m pip install --disable-pip-version-check -r requirements.txt
-      - name: Compile worker and daemon
-        run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py
+      - name: Compile worker, daemon, and news sidecar
+        run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py trading-lab/news_intelligence.py
       - name: Test persistent-state migration and no Git ledger publishing
         run: python trading-lab/test_ashur_daemon.py
+      - name: Test News Intelligence and counterfactual tracking
+        run: python trading-lab/test_news_intelligence.py
