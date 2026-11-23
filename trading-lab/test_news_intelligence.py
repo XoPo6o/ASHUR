@@ -124,6 +124,24 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertIsNone(news.high_risk_news(conn, "BTC/USDT", hours=6))
         conn.close()
 
+    def test_collector_respects_minimum_interval(self):
+        conn = sqlite3.connect(":memory:")
+        news.init_db(conn)
+        now = news.utc_now()
+        conn.execute("""INSERT INTO news_collection_runs
+            (started_at,finished_at,source_count,fetched_count,inserted_count,error_count,errors_json)
+            VALUES(?,?,?,?,?,?,?)""",
+            (now.isoformat(), now.isoformat(), 1, 10, 5, 0, "[]"))
+        conn.commit()
+        def should_not_fetch(url):
+            raise AssertionError("RSS fetch must be skipped inside the minimum interval")
+        result = news.collect_if_due(conn, fetcher=should_not_fetch,
+                                     min_interval_seconds=900, at=now + news.timedelta(minutes=5))
+        self.assertTrue(result["skipped"])
+        self.assertEqual(result["reason"], "minimum_interval")
+        self.assertEqual(conn.execute("SELECT COUNT(*) FROM news_collection_runs").fetchone()[0], 1)
+        conn.close()
+
     def test_collector_continues_when_one_feed_fails(self):
         conn = sqlite3.connect(":memory:")
         news.init_db(conn)
