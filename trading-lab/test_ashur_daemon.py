@@ -330,11 +330,13 @@ class TestAshurRuntime(unittest.TestCase):
                 closed_candle = pd.DataFrame([{
                     "timestamp": 2_000_000_000_000, "close": 100.0, "atr": 1.0,
                 }])
-                with patch.object(worker, "fetch_bybit_klines", return_value=object()), \\
-                     patch.object(worker, "indicators", return_value=closed_candle), \\
-                     patch.object(worker, "fetch_ticker", return_value=100.0), \\
-                     patch.object(worker, "signals", return_value=(False, True)), \\
-                     patch.object(worker, "fetch_execution_klines", side_effect=RuntimeError("minute API unavailable")):
+                with (
+                    patch.object(worker, "fetch_bybit_klines", return_value=object()),
+                    patch.object(worker, "indicators", return_value=closed_candle),
+                    patch.object(worker, "fetch_ticker", return_value=100.0),
+                    patch.object(worker, "signals", return_value=(False, True)),
+                    patch.object(worker, "fetch_execution_klines", side_effect=RuntimeError("minute API unavailable")),
+                ):
                     worker.run()
 
                 conn = sqlite3.connect(worker.DB)
