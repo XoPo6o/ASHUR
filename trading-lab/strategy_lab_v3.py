@@ -8,6 +8,14 @@ from pathlib import Path
 
 import pandas as pd
 
+from execution_model import (
+    DEFAULT_BASE_SLIPPAGE_BPS,
+    DEFAULT_MAX_IMPACT_BPS,
+    DEFAULT_SPREAD_BPS,
+    DEFAULT_VOLATILITY_IMPACT,
+    fill_price,
+)
+
 ROOT = Path(__file__).resolve().parent
 SYMBOLS = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT"]
 TIMEFRAMES = {"1h": 3_600_000, "4h": 14_400_000, "1d": 86_400_000}
@@ -16,11 +24,27 @@ INITIAL_EQUITY = 10_000.0
 RISK_PER_TRADE = 0.005
 MAX_NOTIONAL_FRACTION = 0.95
 FEE_RATE = 0.001
-SLIPPAGE_RATE = 0.0005
+SPREAD_BPS = DEFAULT_SPREAD_BPS
+BASE_SLIPPAGE_BPS = DEFAULT_BASE_SLIPPAGE_BPS
+VOLATILITY_IMPACT = DEFAULT_VOLATILITY_IMPACT
+MAX_IMPACT_BPS = DEFAULT_MAX_IMPACT_BPS
+MAX_PARTICIPATION = 0.02
 ATR_STOP_MULTIPLE = 3.0
 REWARD_RISK = 4.0
 TRAIN_FRACTION = 0.60
 VALIDATION_FRACTION = 0.20
+
+def execution_fill(price, side, reference_bar, order_notional):
+    """Use only the last completed candle to estimate spread and market impact."""
+    atr_pct = float(reference_bar.atr_pct) if pd.notna(reference_bar.atr_pct) else 0.0
+    dollar_volume = float(reference_bar.close) * float(reference_bar.volume)
+    return fill_price(
+        price, side, atr_pct, dollar_volume, order_notional,
+        spread_bps=SPREAD_BPS,
+        base_slippage_bps=BASE_SLIPPAGE_BPS,
+        volatility_impact=VOLATILITY_IMPACT,
+        max_impact_bps=MAX_IMPACT_BPS,
+    )
 
 
 def fetch_history(symbol, timeframe, interval_ms):
@@ -185,7 +209,7 @@ def simulate(x, strategy, start, end, annual_bars):
             elif bool(prev[exit_col]):
                 reason, raw_exit = "SIGNAL", float(bar.open)
             if reason:
-                px = raw_exit * (1-SLIPPAGE_RATE)
+                px = execution_fill(raw_exit, "sell", prev, pos["qty"] * raw_exit)
                 proceeds = pos["qty"] * px
                 fee = proceeds * FEE_RATE
                 cash += proceeds-fee
@@ -195,25 +219,50 @@ def simulate(x, strategy, start, end, annual_bars):
         if pos is None and not exited and bool(prev[entry_col]):
             atr = float(prev.atr) if pd.notna(prev.atr) else float("nan")
             raw = float(bar.open)
-            entry = raw*(1+SLIPPAGE_RATE)
             stop_dist = ATR_STOP_MULTIPLE*atr
-            if pd.notna(stop_dist) and stop_dist > 0 and stop_dist < entry:
+            if pd.notna(stop_dist) and stop_dist > 0 and stop_dist < raw:
                 risk_cash = cash*RISK_PER_TRADE
-                notional = min(risk_cash/(stop_dist/entry), cash*MAX_NOTIONAL_FRACTION/(1+FEE_RATE))
-                qty = notional/entry
-                fee = notional*FEE_RATE
-                cost = notional+fee
-                if cost <= cash and qty > 0:
-                    cash -= cost
-                    pos = {"qty":qty,"entry":entry,"entry_fee":fee,"entry_cost":cost,"entry_i":i,
-                           "stop":entry-stop_dist,"target":entry+REWARD_RISK*stop_dist}
+                reference_dollar_volume = float(prev.close) * float(prev.volume)
+                liquidity_cap = reference_dollar_volume * MAX_PARTICIPATION
+                notional = min(
+                    risk_cash/(stop_dist/raw),
+                    cash*MAX_NOTIONAL_FRACTION/(1+FEE_RATE),
+                    liquidity_cap,
+                )
+                if notional > 0:
+                    entry = execution_fill(raw, "buy", prev, notional)
+                    notional = min(
+                        risk_cash/(stop_dist/entry),
+                        cash*MAX_NOTIONAL_FRACTION/(1+FEE_RATE),
+                        liquidity_cap,
+                    )
+                    entry = execution_fill(raw, "buy", prev, notional)
+                    qty = notional/entry
+                    fee = notional*FEE_RATE
+                    cost = notional+fee
+                    if cost <= cash and qty > 0:
+                        cash -= cost
+                        pos = {"qty":qty,"entry":entry,"entry_fee":fee,"entry_cost":cost,"entry_i":i,
+                               "stop":entry-stop_dist,"target":entry+REWARD_RISK*stop_dist}
+                        # Entry-bar barrier check: stop first if OHLC cannot reveal order.
+                        if float(bar.low) <= pos["stop"] or float(bar.high) >= pos["target"]:
+                            if float(bar.low) <= pos["stop"]:
+                                raw_exit, reason = pos["stop"], "ENTRY_BAR_STOP"
+                            else:
+                                raw_exit, reason = pos["target"], "ENTRY_BAR_TARGET"
+                            px = execution_fill(raw_exit, "sell", prev, qty * raw_exit)
+                            proceeds=qty*px
+                            exit_fee=proceeds*FEE_RATE
+                            cash += proceeds-exit_fee
+                            trades.append({"pnl":proceeds-exit_fee-cost,"fees":fee+exit_fee,"bars":1,"reason":reason})
+                            pos, exited = None, True
                     # Entry-bar barrier check, conservative if both barriers trade in same bar.
                     if float(bar.low) <= pos["stop"] or float(bar.high) >= pos["target"]:
                         if float(bar.low) <= pos["stop"]:
                             raw_exit, reason = pos["stop"], "ENTRY_BAR_STOP"
                         else:
                             raw_exit, reason = pos["target"], "ENTRY_BAR_TARGET"
-                        px = raw_exit*(1-SLIPPAGE_RATE)
+                        px = execution_fill(raw_exit, "sell", prev, qty * raw_exit)
                         proceeds=qty*px
                         exit_fee=proceeds*FEE_RATE
                         cash += proceeds-exit_fee
@@ -221,10 +270,15 @@ def simulate(x, strategy, start, end, annual_bars):
                         pos, exited = None, True
         equity = cash
         if pos:
-            equity += pos["qty"]*float(bar.close)*(1-SLIPPAGE_RATE)*(1-FEE_RATE)
+            mark_raw = float(bar.close)
+            mark_price = execution_fill(mark_raw, "sell", prev, pos["qty"] * mark_raw)
+            equity += pos["qty"] * mark_price * (1-FEE_RATE)
         curve.append(equity)
     if pos:
-        px=float(x.iloc[end-1].close)*(1-SLIPPAGE_RATE)
+        last_bar = x.iloc[end-1]
+        reference_bar = x.iloc[end-2] if end - 2 >= 0 else last_bar
+        raw_exit = float(last_bar.close)
+        px = execution_fill(raw_exit, "sell", reference_bar, pos["qty"] * raw_exit)
         proceeds=pos["qty"]*px
         fee=proceeds*FEE_RATE
         cash += proceeds-fee
@@ -257,9 +311,15 @@ def simulate(x, strategy, start, end, annual_bars):
 
 
 def buy_hold(x, start, end):
-    a=float(x.iloc[start].open)*(1+SLIPPAGE_RATE)
-    b=float(x.iloc[end-1].close)*(1-SLIPPAGE_RATE)
+    entry_bar = x.iloc[start]
+    entry_reference = x.iloc[start-1] if start > 0 else entry_bar
+    raw_entry = float(entry_bar.open)
+    a = execution_fill(raw_entry, "buy", entry_reference, INITIAL_EQUITY)
     qty=INITIAL_EQUITY/(a*(1+FEE_RATE))
+    last_bar = x.iloc[end-1]
+    exit_reference = x.iloc[end-2] if end-2 >= 0 else last_bar
+    raw_exit = float(last_bar.close)
+    b = execution_fill(raw_exit, "sell", exit_reference, qty * raw_exit)
     ending=qty*b*(1-FEE_RATE)
     return {"trades":1,"wins":int(ending>INITIAL_EQUITY),"win_rate_pct":100 if ending>INITIAL_EQUITY else 0,
             "net_pnl_usdt":round(ending-INITIAL_EQUITY,2),"return_pct":round((ending/INITIAL_EQUITY-1)*100,3),
@@ -271,7 +331,7 @@ def buy_hold(x, start, end):
 
 def main():
     rows=[]
-    print(f"ASHUR research v3 | {LOOKBACK_DAYS}d | 4 assets | 1h/4h/1d | fee {FEE_RATE:.2%}/side | slippage {SLIPPAGE_RATE:.2%}/side | risk {RISK_PER_TRADE:.2%}")
+    print(f"ASHUR research v3 | {LOOKBACK_DAYS}d | 4 assets | 1h/4h/1d | fee {FEE_RATE:.2%}/side | dynamic spread/impact model | risk {RISK_PER_TRADE:.2%}")
     for symbol in SYMBOLS:
         for tf, interval in TIMEFRAMES.items():
             raw=fetch_history(symbol,tf,interval)
@@ -297,7 +357,17 @@ def main():
     rows.sort(key=lambda r:(r["test"].get("return_pct",-999),r["test"].get("profit_factor") if isinstance(r["test"].get("profit_factor"),(int,float)) else -1),reverse=True)
     payload={"config":{"lookback_days":LOOKBACK_DAYS,"train_fraction":TRAIN_FRACTION,
         "validation_fraction":VALIDATION_FRACTION,"test_fraction":1-TRAIN_FRACTION-VALIDATION_FRACTION,
-        "fee_each_side":FEE_RATE,"slippage_each_side":SLIPPAGE_RATE,"risk_per_trade":RISK_PER_TRADE,
+        "fee_each_side":FEE_RATE,
+        "execution_cost_model":{
+            "spread_bps_full":SPREAD_BPS,
+            "base_slippage_bps_each_side":BASE_SLIPPAGE_BPS,
+            "volatility_impact_coefficient":VOLATILITY_IMPACT,
+            "max_impact_bps_each_side":MAX_IMPACT_BPS,
+            "max_order_participation_of_previous_candle_dollar_volume":MAX_PARTICIPATION,
+            "liquidity_reference":"previous completed candle only",
+            "limitation":"OHLCV proxy, not historical bid/ask quotes or order-book replay"
+        },
+        "risk_per_trade":RISK_PER_TRADE,
         "max_notional_fraction":MAX_NOTIONAL_FRACTION,"stop_atr_multiple":ATR_STOP_MULTIPLE,
         "target_r":REWARD_RISK,"symbols":SYMBOLS,"timeframes":list(TIMEFRAMES),
         "execution":"signal on closed candle, entry next open, gap-aware stop/target, fees and slippage both sides",
