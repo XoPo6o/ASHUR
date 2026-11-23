@@ -159,6 +159,7 @@ def main():
             "selection","train_return_pct","validation_return_pct","test_return_pct",
             "test_trades","test_profit_factor","test_max_drawdown_pct","test_fees_usdt",
             "test_spread_cost_usdt","test_base_slippage_cost_usdt","test_market_impact_cost_usdt",
+            "test_partial_fill_count","test_average_fill_ratio_pct","test_unfilled_notional_usdt",
             "stress_2x_return_pct","stress_2x_profit_factor",
             "stress_3x_return_pct","stress_3x_profit_factor"]
     with (ROOT/"strategy_research_v4.csv").open("w",newline="",encoding="utf-8") as f:
@@ -179,6 +180,9 @@ def main():
                 "test_spread_cost_usdt":t.get("spread_cost_usdt"),
                 "test_base_slippage_cost_usdt":t.get("base_slippage_cost_usdt"),
                 "test_market_impact_cost_usdt":t.get("market_impact_cost_usdt"),
+                "test_partial_fill_count":t.get("partial_fill_count"),
+                "test_average_fill_ratio_pct":t.get("average_fill_ratio_pct"),
+                "test_unfilled_notional_usdt":t.get("unfilled_notional_usdt"),
                 "stress_2x_return_pct":r.get("cost_stress",{}).get("stress_2x",{}).get("return_pct"),
                 "stress_2x_profit_factor":r.get("cost_stress",{}).get("stress_2x",{}).get("profit_factor"),
                 "stress_3x_return_pct":r.get("cost_stress",{}).get("stress_3x",{}).get("return_pct"),
