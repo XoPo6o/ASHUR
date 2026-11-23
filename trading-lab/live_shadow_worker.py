@@ -532,6 +532,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
               "worker_health": {"strategy_count": len(STRATEGIES),
                                 "successful_strategies": successful_strategies,
                                 "error_count": int(worker_errors),
+                                "intrabar_data_warnings_24h": int(intrabar_warnings_24h),
                                 "all_strategies_ok": int(worker_errors) == 0 and successful_strategies == len(STRATEGIES)},
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
