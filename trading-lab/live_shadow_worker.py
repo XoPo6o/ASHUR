@@ -101,7 +101,7 @@ def validate_ohlcv_frame(frame, interval):
         raise ValueError("OHLCV candle timestamp is not aligned to timeframe")
 
     values = frame[["open", "high", "low", "close", "volume"]].to_numpy(dtype="float64")
-    if not math.isfinite(values).all():
+    if not all(math.isfinite(float(value)) for value in values.ravel()):
         raise ValueError("OHLCV contains non-finite values")
     open_, high, low, close, volume = values.T
     if (values[:, :4] <= 0).any():
