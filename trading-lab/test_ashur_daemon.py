@@ -287,6 +287,10 @@ class TestAshurRuntime(unittest.TestCase):
             {"timestamp": 121_000, "open": 119.0, "high": 122.0, "low": 90.0, "close": 100.0, "volume": 1.0},
         ])
         self.assertEqual(worker.intrabar_exit_signal(position, candles), ("TARGET", 120.0, 61_000))
+        target_gap = pd.DataFrame([
+            {"timestamp": 301_000, "open": 125.0, "high": 128.0, "low": 121.0, "close": 126.0, "volume": 1.0},
+        ])
+        self.assertEqual(worker.intrabar_exit_signal(position, target_gap), ("TARGET", 120.0, 301_000))
 
         both_touched = pd.DataFrame([
             {"timestamp": 181_000, "open": 100.0, "high": 125.0, "low": 90.0, "close": 110.0, "volume": 1.0},
