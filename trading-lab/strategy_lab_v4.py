@@ -11,7 +11,7 @@ TIMEFRAMES = {"1h": 3_600_000, "4h": 14_400_000}
 ADX_LEVELS = [12, 15, 18, 21, 24, 27]
 KELTNER_MULTIPLIERS = [1.5, 1.75, 2.0, 2.25, 2.5]
 TREND_FILTERS = [(50, 200), (50, 100)]
-MIN_VALIDATION_TRADES = 8
+MIN_VALIDATION_TRADES = 12
 TOP_N_PER_MARKET = 5
 base.STRATEGIES["keltner_v4"] = ("v4_entry", "v4_exit")
 
@@ -25,7 +25,7 @@ def metric_row(symbol, tf, params, train, validation, test=None):
 def main():
     all_rows = []
     selected_rows = []
-    print("ASHUR research v4 | Keltner x ADX robustness | validation-led selection")
+    print("ASHUR research v4.1 | Keltner x ADX robustness | validation quality gate")
     for symbol in SYMBOLS:
         for tf, interval in TIMEFRAMES.items():
             raw = base.fetch_history(symbol, tf, interval)
@@ -51,8 +51,13 @@ def main():
                         validation = base.simulate(x, "keltner_v4", train_end, val_end, annual_bars)
                         candidates.append(metric_row(symbol, tf, params, train, validation))
             # Select ONLY on validation. Test data is not used to rank or tune candidates.
-            eligible = [r for r in candidates
-                        if r["validation"]["trades"] >= MIN_VALIDATION_TRADES]
+            eligible = [
+                r for r in candidates
+                if r["validation"]["trades"] >= MIN_VALIDATION_TRADES
+                and r["validation"]["return_pct"] > 0
+                and isinstance(r["validation"]["profit_factor"], (int, float))
+                and r["validation"]["profit_factor"] > 1.0
+            ]
             eligible.sort(key=lambda r: (
                 r["validation"]["return_pct"],
                 r["validation"]["profit_factor"] if isinstance(r["validation"]["profit_factor"], (int,float)) else -1
@@ -102,7 +107,8 @@ def main():
         "symbols":SYMBOLS,"timeframes":list(TIMEFRAMES),
         "adx_levels":ADX_LEVELS,"keltner_atr_multipliers":KELTNER_MULTIPLIERS,
         "trend_filter_pairs":TREND_FILTERS,
-        "selection":"Top 5 per market selected by validation return only; minimum 8 validation trades. Test is evaluated only after selection.",
+        "selection":"Top 5 among validation-qualified candidates only; test is evaluated only after selection.",
+        "validation_quality_gate":{"minimum_trades":MIN_VALIDATION_TRADES,"net_return_pct_gt":0,"profit_factor_gt":1.0},
         "split":"Chronological 60% train / 20% validation / 20% held-out test",
         "fees_each_side":base.FEE_RATE,"slippage_each_side":base.SLIPPAGE_RATE,
         "risk_per_trade":base.RISK_PER_TRADE,"leverage":0,
