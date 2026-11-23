@@ -415,7 +415,8 @@ def main():
         "risk_per_trade":RISK_PER_TRADE,
         "max_notional_fraction":MAX_NOTIONAL_FRACTION,"stop_atr_multiple":ATR_STOP_MULTIPLE,
         "target_r":REWARD_RISK,"symbols":SYMBOLS,"timeframes":list(TIMEFRAMES),
-        "execution":"signal on closed candle, entry next open, gap-aware stop/target, fees and slippage both sides",
+        "execution":"signal on closed candle, entry next open, gap-aware stop/target, fees and dynamic costs both sides",
+        "fill_model":"capacity-capped immediate fill using 2% of previous completed candle dollar volume; reports unfilled notional; no queue simulation",
         "warning":"Long-only spot historical simulation. No guarantee of future profitability. Fixed rules, chronological train/validation/test; test is held out, not future paper validation."},
         "results":rows}
     (ROOT/"strategy_research_v3.json").write_text(json.dumps(payload,indent=2,ensure_ascii=False),encoding="utf-8")
