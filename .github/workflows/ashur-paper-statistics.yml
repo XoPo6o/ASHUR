@@ -98,9 +98,26 @@ jobs:
           print("## News Intelligence — last 24 hours")
           print("Collector runs:",news_run[0],"| fetched:",news_run[1],"| inserted:",news_run[2],
                 "| feed errors:",news_run[3])
+          # Decode persisted per-symbol errors so transient RSS failures are actionable.
+          error_counts={}
+          error_samples=[]
+          for raw_errors, in c.execute("""SELECT errors_json FROM news_collection_runs
+              WHERE started_at>=? AND error_count>0 ORDER BY started_at DESC""",(cutoff,)):
+              try:
+                  for message in json.loads(raw_errors):
+                      symbol=message.split(":",1)[0]
+                      error_counts[symbol]=error_counts.get(symbol,0)+1
+                      if len(error_samples)<8:
+                          error_samples.append(message[:240])
+              except (TypeError,ValueError):
+                  error_counts["unparsed"]=error_counts.get("unparsed",0)+1
+          print("Feed errors by symbol:",error_counts)
+          print("Recent feed error samples:",error_samples)
           print("Last collector finish:",last_news,"| age seconds:",news_age)
           print("Stored headlines:",news_items[0],"| unique URLs:",news_items[1],"| high-risk:",news_items[2])
           print("Tracked vetoes:",veto[0],"| measured 1h/4h/24h:",veto[1],veto[2],veto[3])
+          if veto[0] < 30:
+              print("WARNING: NEWS_VETO sample is too small for strategy conclusions (target >=30).")
           print("Average net return after veto at 1h/4h/24h (%):",
                 *[round((float(veto[i] or 0))*100,4) for i in (4,5,6)])
           print("Avoided losses 1h/4h/24h:",*[int(veto[i] or 0) for i in (7,9,11)])
