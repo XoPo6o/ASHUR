@@ -297,6 +297,37 @@ class TestAshurRuntime(unittest.TestCase):
         ])
         self.assertEqual(worker.intrabar_exit_signal(position, both_touched), ("STOP", 95.0, 181_000))
 
+    def test_execution_candles_reject_missing_first_minute_and_internal_gaps(self):
+        import pandas as pd
+
+        now_ms = 2_000_000_000_000
+        since_ms = now_ms - 180_000
+        contiguous = pd.DataFrame([
+            {"timestamp": since_ms, "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.5, "volume": 1.0},
+            {"timestamp": since_ms + 60_000, "open": 100.5, "high": 102.0, "low": 100.0, "close": 101.0, "volume": 1.0},
+        ])
+        checked = worker.validate_execution_klines(contiguous, since_ms, now_ms)
+        self.assertEqual(len(checked), 2)
+
+        missing_first = contiguous.iloc[1:].reset_index(drop=True)
+        with self.assertRaisesRegex(RuntimeError, "gap before first candle"):
+            worker.validate_execution_klines(missing_first, since_ms, now_ms)
+
+        internal_gap = pd.concat([
+            contiguous.iloc[:1],
+            contiguous.iloc[1:].assign(timestamp=since_ms + 120_000),
+        ], ignore_index=True)
+        with self.assertRaisesRegex(RuntimeError, "missing-minute gap"):
+            worker.validate_execution_klines(internal_gap, since_ms, now_ms)
+
+    def test_empty_execution_candles_are_allowed_when_no_minute_closed_yet(self):
+        import pandas as pd
+
+        empty = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
+        checked = worker.validate_execution_klines(empty, 1_999_999_980_000, 2_000_000_000_000)
+        self.assertTrue(checked.empty)
+
+
     def test_intrabar_gap_stop_uses_candle_open(self):
         import pandas as pd
 
