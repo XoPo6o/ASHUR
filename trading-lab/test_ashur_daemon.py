@@ -293,6 +293,7 @@ class TestAshurRuntime(unittest.TestCase):
 
 
     def test_minute_feed_outage_does_not_disable_signal_exit(self):
+        import json
         import tempfile
         import pandas as pd
 
