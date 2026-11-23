@@ -257,6 +257,15 @@ def minute_cursor_for_now(now_ms=None):
     return (now_ms // 60000) * 60000
 
 
+def recover_intrabar_cursor(last_checked_open_ms, now_ms=None, max_gap_minutes=900):
+    """After a long outage, resume from the latest closed minute and record the blind window."""
+    now_ms = int(now_ms if now_ms is not None else time.time() * 1000)
+    last_checked_open_ms = int(last_checked_open_ms)
+    if now_ms - last_checked_open_ms <= int(max_gap_minutes) * 60000:
+        return last_checked_open_ms
+    return minute_cursor_for_now(now_ms) - 120000
+
+
 def validate_binance_ticker(payload, now_ms=None):
     """Require a recent Binance last-trade timestamp, not merely a fast HTTP response."""
     now_ms = int(now_ms if now_ms is not None else time.time() * 1000)
@@ -565,49 +574,60 @@ def run():
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             closed_this_cycle = False
             if pos:
-                cursor = conn.execute(
-                    "SELECT last_checked_open_ms FROM shadow_intrabar_state WHERE strategy_id=?",
-                    (s["id"],),
-                ).fetchone()
-                if cursor is None:
-                    # Existing positions predate the 1m watcher; start safely from now
-                    # and keep the live ticker stop/target check below as immediate protection.
-                    baseline = minute_cursor_for_now()
-                    conn.execute(
-                        "INSERT INTO shadow_intrabar_state VALUES(?,?)",
-                        (s["id"], baseline),
-                    )
-                    event(conn, s["id"], "INTRABAR_BASELINE",
-                          "1m protection initialized for pre-existing position; historical minutes unavailable")
+                # Always honor a currently breached stop/target even if the 1m feed is unavailable.
+                if price <= pos["stop"]:
+                    close_position(conn, s, price, stop_exit_reason(price, pos["stop"]), candle_id)
+                    closed_this_cycle = True
+                elif price >= pos["target"]:
+                    target_reference = target_exit_reference_price(price, pos["target"])
+                    close_position(conn, s, target_reference, "TARGET", candle_id)
+                    closed_this_cycle = True
                 else:
-                    since_ms = int(cursor["last_checked_open_ms"]) + 60000
-                    execution_candles = fetch_execution_klines(s["symbol"], since_ms)
-                    intrabar_exit = intrabar_exit_signal(pos, execution_candles)
-                    if not execution_candles.empty:
-                        last_checked = int(execution_candles.iloc[-1].timestamp)
+                    cursor = conn.execute(
+                        "SELECT last_checked_open_ms FROM shadow_intrabar_state WHERE strategy_id=?",
+                        (s["id"],),
+                    ).fetchone()
+                    if cursor is None:
+                        # Existing positions predate the 1m watcher; start safely from now.
+                        baseline = minute_cursor_for_now()
                         conn.execute(
-                            "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
-                            (last_checked, s["id"]),
+                            "INSERT INTO shadow_intrabar_state VALUES(?,?)",
+                            (s["id"], baseline),
                         )
-                    if intrabar_exit:
-                        reason, reference_price, exit_candle_ms = intrabar_exit
-                        close_position(conn, s, reference_price, reason, str(exit_candle_ms))
-                        event(conn, s["id"], "INTRABAR_EXIT",
-                              f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
-                        closed_this_cycle = True
+                        event(conn, s["id"], "INTRABAR_BASELINE",
+                              "1m protection initialized for pre-existing position; historical minutes unavailable")
+                    else:
+                        previous_cursor = int(cursor["last_checked_open_ms"])
+                        recovered_cursor = recover_intrabar_cursor(previous_cursor)
+                        if recovered_cursor != previous_cursor:
+                            gap_minutes = max(0, (int(time.time() * 1000) - previous_cursor) // 60000)
+                            conn.execute(
+                                "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
+                                (recovered_cursor, s["id"]),
+                            )
+                            event(conn, s["id"], "INTRABAR_GAP_RESET",
+                                  f"unobserved_minutes={gap_minutes}; resumed_from={recovered_cursor}")
+                        since_ms = recovered_cursor + 60000
+                        execution_candles = fetch_execution_klines(s["symbol"], since_ms)
+                        intrabar_exit = intrabar_exit_signal(pos, execution_candles)
+                        if not execution_candles.empty:
+                            last_checked = int(execution_candles.iloc[-1].timestamp)
+                            conn.execute(
+                                "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
+                                (last_checked, s["id"]),
+                            )
+                        if intrabar_exit:
+                            reason, reference_price, exit_candle_ms = intrabar_exit
+                            close_position(conn, s, reference_price, reason, str(exit_candle_ms))
+                            event(conn, s["id"], "INTRABAR_EXIT",
+                                  f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
+                            closed_this_cycle = True
                 if not closed_this_cycle:
-                    if price <= pos["stop"]:
-                        close_position(conn,s,price,stop_exit_reason(price, pos["stop"]),candle_id)
-                        closed_this_cycle = True
-                    elif price >= pos["target"]:
-                        target_reference = target_exit_reference_price(price, pos["target"])
-                        close_position(conn,s,target_reference,"TARGET",candle_id)
-                        closed_this_cycle = True
-                    elif daily_loss_limit_hit(conn, s["id"], pos, price):
-                        close_position(conn,s,price,"DAILY_STOP",candle_id)
+                    if daily_loss_limit_hit(conn, s["id"], pos, price):
+                        close_position(conn, s, price, "DAILY_STOP", candle_id)
                         closed_this_cycle = True
                     elif exit_signal:
-                        close_position(conn,s,price,"SIGNAL",candle_id)
+                        close_position(conn, s, price, "SIGNAL", candle_id)
                         closed_this_cycle = True
             guard = conn.execute("SELECT last_closed_candle FROM shadow_trade_guard WHERE strategy_id=?",(s["id"],)).fetchone()
             cooldown_active = bool(guard and guard["last_closed_candle"] == candle_id)
