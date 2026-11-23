@@ -199,6 +199,49 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES = original
 
 
+    def test_ohlcv_validation_rejects_malformed_market_data(self):
+        import pandas as pd
+
+        valid = pd.DataFrame([
+            {"timestamp": 1_800_000_000_000, "open": 100.0, "high": 105.0,
+             "low": 99.0, "close": 103.0, "volume": 10.0},
+            {"timestamp": 1_800_000_900_000, "open": 103.0, "high": 106.0,
+             "low": 101.0, "close": 104.0, "volume": 12.0},
+        ])
+        self.assertEqual(len(worker.validate_ohlcv_frame(valid, "15")), 2)
+
+        invalid_cases = []
+        duplicate = valid.copy()
+        duplicate.loc[1, "timestamp"] = duplicate.loc[0, "timestamp"]
+        invalid_cases.append(duplicate)
+
+        bad_range = valid.copy()
+        bad_range.loc[1, "high"] = 102.0
+        invalid_cases.append(bad_range)
+
+        negative_volume = valid.copy()
+        negative_volume.loc[1, "volume"] = -1.0
+        invalid_cases.append(negative_volume)
+
+        non_finite = valid.copy()
+        non_finite.loc[1, "close"] = float("nan")
+        invalid_cases.append(non_finite)
+
+        misaligned = valid.copy()
+        misaligned.loc[1, "timestamp"] += 1
+        invalid_cases.append(misaligned)
+
+        for frame in invalid_cases:
+            with self.subTest(frame=frame.to_dict()):
+                with self.assertRaises(ValueError):
+                    worker.validate_ohlcv_frame(frame, "15")
+
+    def test_target_gap_fill_is_capped_at_target_reference(self):
+        self.assertEqual(worker.target_exit_reference_price(125.0, 120.0), 120.0)
+        self.assertEqual(worker.target_exit_reference_price(120.0, 120.0), 120.0)
+        self.assertEqual(worker.target_exit_reference_price(118.0, 120.0), 118.0)
+
+
     def test_position_size_respects_risk_after_fees_and_slippage(self):
         cash, price, atr = 1000.0, 500.0, 2.0
         qty = worker.calculate_position_size(cash, price, atr)
