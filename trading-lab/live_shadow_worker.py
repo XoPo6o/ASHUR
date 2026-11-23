@@ -416,14 +416,20 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
         price = float(mark["price"]) if mark else None
         unrealized = 0.0
         position = None
+        liquidation_value = 0.0
         if pos:
             mark_price = price if price is not None else float(pos["entry"])
-            unrealized = float(pos["qty"]) * (mark_price-float(pos["entry"])) - float(pos["entry_fee"]) - float(pos["qty"])*mark_price*FEE
+            # Mark open positions at estimated net liquidation value, not gross market value.
+            liquidation_value = (
+                float(pos["qty"]) * mark_price * (1 - SLIPPAGE) * (1 - FEE)
+            )
+            entry_cost = float(pos["qty"]) * float(pos["entry"]) + float(pos["entry_fee"])
+            unrealized = liquidation_value - entry_cost
             position = {"symbol":pos["symbol"],"qty":float(pos["qty"]),"entry":float(pos["entry"]),
                         "mark":mark_price,"stop":float(pos["stop"]),"target":float(pos["target"]),
                         "unrealized_pnl":round(unrealized,4),"opened_at":pos["opened_at"]}
         cash = float(a["cash"])
-        equity = cash + (float(pos["qty"])*price if pos and price is not None else (float(pos["qty"])*float(pos["entry"]) if pos else 0.0))
+        equity = cash + liquidation_value
         output["accounts"].append({
             "strategy_id":a["strategy_id"],"label":a["label"],"symbol":a["symbol"],
             "timeframe":{"15":"15m","60":"1h","240":"4h","D":"1d"}.get(a["interval"],a["interval"]),
