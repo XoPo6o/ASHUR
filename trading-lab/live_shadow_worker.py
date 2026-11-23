@@ -84,6 +84,42 @@ def candle_is_fresh(last_candle_open_ms, interval, now_ms=None):
     return 0 <= age_ms <= 2 * interval_ms
 
 
+def validate_ohlcv_frame(frame, interval):
+    """Fail closed on malformed OHLCV before indicators or paper decisions use it."""
+    required = ["timestamp", "open", "high", "low", "close", "volume"]
+    missing = [column for column in required if column not in frame.columns]
+    if missing or frame.empty:
+        raise ValueError("OHLCV frame missing columns or empty: " + ",".join(missing))
+
+    interval_ms = {"15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
+    timestamps = frame["timestamp"].to_numpy(dtype="int64")
+    if len(set(timestamps.tolist())) != len(timestamps):
+        raise ValueError("OHLCV contains duplicate candle timestamps")
+    if len(timestamps) > 1 and (timestamps[1:] <= timestamps[:-1]).any():
+        raise ValueError("OHLCV candle timestamps are not strictly increasing")
+    if (timestamps % interval_ms != 0).any():
+        raise ValueError("OHLCV candle timestamp is not aligned to timeframe")
+
+    values = frame[["open", "high", "low", "close", "volume"]].to_numpy(dtype="float64")
+    if not math.isfinite(values).all():
+        raise ValueError("OHLCV contains non-finite values")
+    open_, high, low, close, volume = values.T
+    if (values[:, :4] <= 0).any():
+        raise ValueError("OHLCV contains non-positive prices")
+    if (volume < 0).any():
+        raise ValueError("OHLCV contains negative volume")
+    if (high < low).any() or (high < open_).any() or (high < close).any():
+        raise ValueError("OHLCV high is below candle range")
+    if (low > open_).any() or (low > close).any():
+        raise ValueError("OHLCV low is above candle range")
+    return frame
+
+
+def target_exit_reference_price(price, target):
+    """Cap favorable target fills at the target level to avoid optimistic gap fills."""
+    return min(float(price), float(target))
+
+
 def validate_ticker_price(price):
     price = float(price)
     if not math.isfinite(price) or price <= 0:
@@ -108,6 +144,7 @@ def fetch_bybit_klines(symbol, interval, limit=350):
                              columns=["timestamp", "open", "high", "low", "close", "volume"])
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
+        frame = validate_ohlcv_frame(frame, interval)
         if len(frame) >= 220:
             if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
                 raise RuntimeError("Bybit latest closed candle is stale")
@@ -127,6 +164,7 @@ def fetch_bybit_klines(symbol, interval, limit=350):
                              columns=["timestamp", "open", "high", "low", "close", "volume"])
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
+        frame = validate_ohlcv_frame(frame, interval)
         if len(frame) >= 220:
             if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
                 raise RuntimeError("Binance latest closed candle is stale")
@@ -433,7 +471,8 @@ def run():
                     close_position(conn,s,price,stop_exit_reason(price, pos["stop"]),candle_id)
                     closed_this_cycle = True
                 elif price >= pos["target"]:
-                    close_position(conn,s,price,"TARGET",candle_id)
+                    target_reference = target_exit_reference_price(price, pos["target"])
+                    close_position(conn,s,target_reference,"TARGET",candle_id)
                     closed_this_cycle = True
                 elif daily_loss_limit_hit(conn, s["id"], pos, price):
                     close_position(conn,s,price,"DAILY_STOP",candle_id)
