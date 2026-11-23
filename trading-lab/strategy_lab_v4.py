@@ -144,6 +144,7 @@ def main():
         },
         "risk_per_trade":base.RISK_PER_TRADE,"leverage":0,
         "execution":"closed-candle signal, next-open entry, gap-aware stops/targets; long-only spot",
+        "fill_model":"capacity-capped immediate fill using 2% of previous completed candle dollar volume; reports unfilled notional; no queue simulation",
         "cost_stress_scenarios":{
           "stress_2x":"2x spread, base slippage, volatility impact and impact cap",
           "stress_3x":"3x spread, base slippage, volatility impact and impact cap",
