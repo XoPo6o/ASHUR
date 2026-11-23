@@ -38,18 +38,41 @@ jobs:
           curl --fail --silent --show-error "$signed_url" -o /tmp/ashur.db
           python - <<'PY' | tee /tmp/ashur-report.md
           import json, sqlite3
-          from datetime import datetime, timezone
+          from datetime import datetime, timezone, timedelta
+
+          def age_seconds(value):
+              if not value:
+                  return None
+              return int((datetime.now(timezone.utc) - datetime.fromisoformat(value.replace("Z", "+00:00"))).total_seconds())
+
           s=json.load(open("/tmp/status.json"))
           r=json.load(open("/tmp/resources.json"))["attributes"]
           c=sqlite3.connect("/tmp/ashur.db")
+          c.row_factory=sqlite3.Row
           print("# ASHUR paper trading report")
           print()
           print("Generated UTC:",datetime.now(timezone.utc).isoformat())
           print("Server:",r.get("current_state"),"| memory bytes:",r.get("resources",{}).get("memory_bytes"))
-          print("Mode:",s.get("mode"),"| status updated:",s.get("updated_at"))
+          status_age=age_seconds(s.get("updated_at"))
+          print("Mode:",s.get("mode"),"| status updated:",s.get("updated_at"),"| age seconds:",status_age)
           health=s.get("worker_health",{})
           print("Worker health:",health)
           print()
+
+          integrity=c.execute("PRAGMA integrity_check").fetchone()[0]
+          print("SQLite integrity:",integrity)
+          required={"shadow_accounts","shadow_positions","shadow_trades","shadow_events","shadow_marks",
+                    "news_items","news_collection_runs","news_veto_outcomes"}
+          present={x[0] for x in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          missing=sorted(required-present)
+          if missing:
+              raise SystemExit("Missing required SQLite tables: "+", ".join(missing))
+
+          latest_mark=c.execute("SELECT MAX(updated_at) FROM shadow_marks").fetchone()[0]
+          mark_age=age_seconds(latest_mark)
+          print("Latest market mark:",latest_mark,"| age seconds:",mark_age)
+          print()
+
           print("| Strategy | Grade | Last price | Trades | Realized PnL | Unrealized PnL | Equity | Return |")
           print("|---|---|---:|---:|---:|---:|---:|---:|")
           for a in s.get("accounts",[]):
@@ -57,6 +80,31 @@ jobs:
           print()
           for t in ("shadow_accounts","shadow_positions","shadow_trades","shadow_events","shadow_marks"):
               print(f'{t}: {c.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]}')
+
+          cutoff=(datetime.now(timezone.utc)-timedelta(hours=24)).isoformat()
+          news_run=c.execute("""SELECT COUNT(*),COALESCE(SUM(fetched_count),0),
+              COALESCE(SUM(inserted_count),0),COALESCE(SUM(error_count),0)
+              FROM news_collection_runs WHERE started_at>=?""",(cutoff,)).fetchone()
+          last_news=c.execute("SELECT MAX(finished_at) FROM news_collection_runs").fetchone()[0]
+          news_age=age_seconds(last_news)
+          news_items=c.execute("""SELECT COUNT(*),COUNT(DISTINCT url),COALESCE(SUM(high_risk),0)
+              FROM news_items WHERE fetched_at>=?""",(cutoff,)).fetchone()
+          veto=c.execute("""SELECT COUNT(*),COUNT(return_1h),COUNT(return_4h),COUNT(return_24h),
+              AVG(return_1h),AVG(return_4h),AVG(return_24h),
+              SUM(return_1h<0),SUM(return_1h>0),SUM(return_4h<0),SUM(return_4h>0),
+              SUM(return_24h<0),SUM(return_24h>0)
+              FROM news_veto_outcomes""").fetchone()
+          print()
+          print("## News Intelligence — last 24 hours")
+          print("Collector runs:",news_run[0],"| fetched:",news_run[1],"| inserted:",news_run[2],
+                "| feed errors:",news_run[3])
+          print("Last collector finish:",last_news,"| age seconds:",news_age)
+          print("Stored headlines:",news_items[0],"| unique URLs:",news_items[1],"| high-risk:",news_items[2])
+          print("Tracked vetoes:",veto[0],"| measured 1h/4h/24h:",veto[1],veto[2],veto[3])
+          print("Average net return after veto at 1h/4h/24h (%):",
+                *[round((float(veto[i] or 0))*100,4) for i in (4,5,6)])
+          print("Avoided losses 1h/4h/24h:",*[int(veto[i] or 0) for i in (7,9,11)])
+          print("Missed gains 1h/4h/24h:",*[int(veto[i] or 0) for i in (8,10,12)])
           print()
           print("## Closed paper trades")
           rows=c.execute("SELECT strategy_id,symbol,entry,exit,qty,fees,pnl,reason,opened_at,closed_at FROM shadow_trades ORDER BY id").fetchall()
@@ -67,15 +115,16 @@ jobs:
           rows=c.execute("SELECT strategy_id,symbol,qty,entry,stop,target,opened_at FROM shadow_positions").fetchall()
           if not rows: print("No open positions.")
           for x in rows: print("-"," | ".join(map(str,x)))
-          age=(datetime.now(timezone.utc)-datetime.fromisoformat(s["updated_at"].replace("Z","+00:00"))).total_seconds()
-          print()
-          print("Heartbeat age seconds:",int(age))
+
+          if integrity!="ok": raise SystemExit("SQLite integrity check failed")
           if s.get("mode")!="PAPER_ONLY": raise SystemExit("Unexpected trading mode; refusing report")
           if len(s.get("accounts",[]))!=6: raise SystemExit("Unexpected strategy count")
-          if not s.get("worker_health",{}).get("all_strategies_ok",False):
+          if not health.get("all_strategies_ok",False):
               raise SystemExit("Worker health degraded or missing; report is not considered healthy")
           if r.get("current_state")!="running": raise SystemExit("SillyDev server is not running")
-          if age>900: raise SystemExit("ASHUR heartbeat stale")
+          if status_age is None or status_age>900: raise SystemExit("ASHUR heartbeat stale")
+          if mark_age is None or mark_age>900: raise SystemExit("SQLite market marks stale")
+          if news_age is None or news_age>900: raise SystemExit("News collector heartbeat stale")
           PY
       - name: Publish report artifact
         uses: actions/upload-artifact@v4
