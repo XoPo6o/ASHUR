@@ -98,6 +98,33 @@ def fill_price(
     raise ValueError("side must be 'buy' or 'sell'")
 
 
+
+def capacity_limited_fill(
+    requested_notional: float,
+    reference_dollar_volume: float,
+    max_participation: float = DEFAULT_MAX_PARTICIPATION,
+) -> dict[str, float]:
+    """Cap the immediately fillable notional using prior-candle dollar volume.
+
+    This is a participation-cap approximation, not queue-position simulation.
+    """
+    if not isfinite(requested_notional) or requested_notional < 0:
+        raise ValueError("requested_notional must be finite and non-negative")
+    if not isfinite(max_participation) or max_participation <= 0:
+        raise ValueError("max_participation must be finite and positive")
+    if not isfinite(reference_dollar_volume) or reference_dollar_volume <= 0:
+        capacity = 0.0
+    else:
+        capacity = reference_dollar_volume * max_participation
+    filled = min(requested_notional, capacity)
+    return {
+        "requested_notional": requested_notional,
+        "filled_notional": filled,
+        "unfilled_notional": requested_notional - filled,
+        "fill_ratio": filled / requested_notional if requested_notional > 0 else 1.0,
+    }
+
+
 def within_participation_limit(
     order_notional: float,
     reference_dollar_volume: float,
