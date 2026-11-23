@@ -22,6 +22,26 @@ def metric_row(symbol, tf, params, train, validation, test=None):
         row["test"] = test
     return row
 
+
+
+def cost_stress_metrics(x, strategy_name, start, end, annual_bars):
+    """Re-test a fixed candidate under harsher execution assumptions; never re-rank on test."""
+    names = ("SPREAD_BPS", "BASE_SLIPPAGE_BPS", "VOLATILITY_IMPACT", "MAX_IMPACT_BPS")
+    original = {name: getattr(base, name) for name in names}
+    results = {}
+    try:
+        for label, multiplier in (("stress_2x", 2.0), ("stress_3x", 3.0)):
+            base.SPREAD_BPS = original["SPREAD_BPS"] * multiplier
+            base.BASE_SLIPPAGE_BPS = original["BASE_SLIPPAGE_BPS"] * multiplier
+            base.VOLATILITY_IMPACT = original["VOLATILITY_IMPACT"] * multiplier
+            base.MAX_IMPACT_BPS = original["MAX_IMPACT_BPS"] * multiplier
+            results[label] = base.simulate(x, strategy_name, start, end, annual_bars)
+    finally:
+        for name, value in original.items():
+            setattr(base, name, value)
+    return results
+
+
 def main():
     all_rows = []
     selected_rows = []
@@ -72,6 +92,7 @@ def main():
                 x["v4_exit"] = ((x.close < x.ema20) |
                                 (x[f"ema{fast}"] < x[f"ema{slow}"]))
                 row["test"] = base.simulate(x, "keltner_v4", val_end, n, annual_bars)
+                row["cost_stress"] = cost_stress_metrics(x, "keltner_v4", val_end, n, annual_bars)
                 row["selection"] = "top_validation_only"
                 selected_rows.append(row)
             # Fixed baselines are controls, not tuned candidates.
@@ -83,8 +104,9 @@ def main():
                 tr = base.simulate(x, "v4_control", 205, train_end, annual_bars)
                 va = base.simulate(x, "v4_control", train_end, val_end, annual_bars)
                 te = base.simulate(x, "v4_control", val_end, n, annual_bars)
+                stress = cost_stress_metrics(x, "v4_control", val_end, n, annual_bars)
                 selected_rows.append({"symbol":symbol,"timeframe":tf,"strategy":name,
-                                      "train":tr,"validation":va,"test":te,
+                                      "train":tr,"validation":va,"test":te,"cost_stress":stress,
                                       "selection":"fixed_baseline_control"})
             bh = base.buy_hold(x, val_end, n)
             selected_rows.append({"symbol":symbol,"timeframe":tf,
@@ -122,6 +144,11 @@ def main():
         },
         "risk_per_trade":base.RISK_PER_TRADE,"leverage":0,
         "execution":"closed-candle signal, next-open entry, gap-aware stops/targets; long-only spot",
+        "cost_stress_scenarios":{
+          "stress_2x":"2x spread, base slippage, volatility impact and impact cap",
+          "stress_3x":"3x spread, base slippage, volatility impact and impact cap",
+          "purpose":"Sensitivity analysis only; held-out test results are not used to re-rank candidates."
+        },
         "warning":"Historical simulation, not forward paper results or a promise of future returns."
       },
       "validation_grid":all_rows,
@@ -130,7 +157,9 @@ def main():
     (ROOT/"strategy_research_v4.json").write_text(json.dumps(payload,indent=2,ensure_ascii=False),encoding="utf-8")
     fields=["symbol","timeframe","strategy","trend_fast","trend_slow","adx_min","atr_channel_mult",
             "selection","train_return_pct","validation_return_pct","test_return_pct",
-            "test_trades","test_profit_factor","test_max_drawdown_pct","test_fees_usdt"]
+            "test_trades","test_profit_factor","test_max_drawdown_pct","test_fees_usdt",
+            "stress_2x_return_pct","stress_2x_profit_factor",
+            "stress_3x_return_pct","stress_3x_profit_factor"]
     with (ROOT/"strategy_research_v4.csv").open("w",newline="",encoding="utf-8") as f:
         w=csv.DictWriter(f,fieldnames=fields); w.writeheader()
         for r in selected_rows:
@@ -145,7 +174,11 @@ def main():
                 "test_return_pct":t.get("return_pct"),"test_trades":t.get("trades"),
                 "test_profit_factor":t.get("profit_factor"),
                 "test_max_drawdown_pct":t.get("max_drawdown_pct"),
-                "test_fees_usdt":t.get("fees_usdt")})
+                "test_fees_usdt":t.get("fees_usdt"),
+                "stress_2x_return_pct":r.get("cost_stress",{}).get("stress_2x",{}).get("return_pct"),
+                "stress_2x_profit_factor":r.get("cost_stress",{}).get("stress_2x",{}).get("profit_factor"),
+                "stress_3x_return_pct":r.get("cost_stress",{}).get("stress_3x",{}).get("return_pct"),
+                "stress_3x_profit_factor":r.get("cost_stress",{}).get("stress_3x",{}).get("profit_factor")})
     print("Saved strategy_research_v4.json and strategy_research_v4.csv")
     print("=== HELD-OUT TEST: validation-selected candidates + fixed controls ===")
     print(json.dumps([{"symbol":r["symbol"],"timeframe":r["timeframe"],
@@ -155,6 +188,8 @@ def main():
         "test_return":r.get("test",{}).get("return_pct"),
         "test_trades":r.get("test",{}).get("trades"),
         "test_pf":r.get("test",{}).get("profit_factor"),
+        "stress_2x_return":r.get("cost_stress",{}).get("stress_2x",{}).get("return_pct"),
+        "stress_3x_return":r.get("cost_stress",{}).get("stress_3x",{}).get("return_pct"),
         "test_dd":r.get("test",{}).get("max_drawdown_pct")}
         for r in selected_rows],ensure_ascii=False))
 
