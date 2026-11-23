@@ -157,6 +157,48 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES = original
 
 
+    def test_signals_use_closed_candle_not_intrabar_ticker(self):
+        import tempfile
+        import pandas as pd
+
+        with tempfile.TemporaryDirectory() as temporary:
+            tmp_path = Path(temporary)
+            original = (worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES)
+            strategy = {
+                "id": "BNB_15M_EMA_TREND", "symbol": "BNB/USDT", "interval": "15",
+                "label": "closed candle test", "grade": "PAPER_VALIDATION",
+            }
+            observed_closes = []
+            try:
+                worker.ROOT = tmp_path
+                worker.DATA_DIR = tmp_path / "state"
+                worker.DB = worker.DATA_DIR / "ashur_shadow.db"
+                worker.STATUS_FILE = worker.DATA_DIR / "ashur_shadow_status.json"
+                worker.STRATEGIES = [strategy]
+                worker.prepare_data_dir()
+
+                closed_candle = pd.DataFrame([{
+                    "timestamp": 2_000_000_000_000,
+                    "close": 100.0,
+                    "atr": 1.0,
+                }])
+
+                def capture_signal_input(row, strategy_id):
+                    observed_closes.append(float(row.close))
+                    return False, False
+
+                with patch.object(worker, "fetch_bybit_klines", return_value=object()), \
+                     patch.object(worker, "indicators", return_value=closed_candle), \
+                     patch.object(worker, "fetch_ticker", return_value=90.0), \
+                     patch.object(worker, "signals", side_effect=capture_signal_input):
+                    worker.run()
+
+                self.assertEqual(observed_closes, [100.0])
+                self.assertNotEqual(observed_closes[0], 90.0)
+            finally:
+                worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES = original
+
+
     def test_position_size_respects_risk_after_fees_and_slippage(self):
         cash, price, atr = 1000.0, 500.0, 2.0
         qty = worker.calculate_position_size(cash, price, atr)
