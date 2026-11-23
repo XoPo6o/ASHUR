@@ -84,6 +84,22 @@ def candle_is_fresh(last_candle_open_ms, interval, now_ms=None):
     return 0 <= age_ms <= 2 * interval_ms
 
 
+def validate_ohlcv_continuity(frame, interval):
+    """Reject missing candles in continuous crypto spot OHLCV history."""
+    if frame.empty or len(frame) < 2:
+        return frame
+    interval_ms = {"1": 60000, "15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
+    timestamps = frame["timestamp"].astype("int64").to_numpy()
+    gaps = timestamps[1:] - timestamps[:-1]
+    if (gaps != interval_ms).any():
+        index = int(next(i for i, gap in enumerate(gaps, start=1) if gap != interval_ms))
+        raise ValueError(
+            f"OHLCV missing or irregular candle interval: expected={interval_ms}ms "
+            f"between rows {index-1} and {index}, got={int(gaps[index-1])}ms"
+        )
+    return frame
+
+
 def validate_ohlcv_frame(frame, interval):
     """Fail closed on malformed OHLCV before indicators or paper decisions use it."""
     required = ["timestamp", "open", "high", "low", "close", "volume"]
@@ -144,7 +160,7 @@ def fetch_bybit_klines(symbol, interval, limit=350):
                              columns=["timestamp", "open", "high", "low", "close", "volume"])
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
-        frame = validate_ohlcv_frame(frame, interval)
+        frame = validate_ohlcv_continuity(validate_ohlcv_frame(frame, interval), interval)
         if len(frame) >= 220:
             if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
                 raise RuntimeError("Bybit latest closed candle is stale")
@@ -164,7 +180,7 @@ def fetch_bybit_klines(symbol, interval, limit=350):
                              columns=["timestamp", "open", "high", "low", "close", "volume"])
         frame = frame.sort_values("timestamp").reset_index(drop=True)
         frame = frame[frame.timestamp + ms <= cutoff].reset_index(drop=True)
-        frame = validate_ohlcv_frame(frame, interval)
+        frame = validate_ohlcv_continuity(validate_ohlcv_frame(frame, interval), interval)
         if len(frame) >= 220:
             if not candle_is_fresh(frame.iloc[-1].timestamp, interval, cutoff):
                 raise RuntimeError("Binance latest closed candle is stale")
