@@ -48,6 +48,35 @@ def adverse_cost_bps(
     return spread_bps / 2 + base_slippage_bps + impact
 
 
+
+def adverse_cost_components_bps(
+    atr_pct: float,
+    reference_dollar_volume: float,
+    order_notional: float,
+    *,
+    spread_bps: float = DEFAULT_SPREAD_BPS,
+    base_slippage_bps: float = DEFAULT_BASE_SLIPPAGE_BPS,
+    volatility_impact: float = DEFAULT_VOLATILITY_IMPACT,
+    max_impact_bps: float = DEFAULT_MAX_IMPACT_BPS,
+) -> dict[str, float]:
+    """Return one-way spread, base-slippage and market-impact components in bps."""
+    total = adverse_cost_bps(
+        atr_pct, reference_dollar_volume, order_notional,
+        spread_bps=spread_bps,
+        base_slippage_bps=base_slippage_bps,
+        volatility_impact=volatility_impact,
+        max_impact_bps=max_impact_bps,
+    )
+    participation = participation_rate(order_notional, reference_dollar_volume)
+    impact = max(0.0, total - spread_bps / 2 - base_slippage_bps)
+    return {
+        "spread_bps": spread_bps / 2,
+        "base_slippage_bps": base_slippage_bps,
+        "market_impact_bps": impact,
+        "total_bps": total,
+    }
+
+
 def fill_price(
     reference_price: float,
     side: str,
