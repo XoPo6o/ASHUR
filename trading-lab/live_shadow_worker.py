@@ -91,7 +91,7 @@ def validate_ohlcv_frame(frame, interval):
     if missing or frame.empty:
         raise ValueError("OHLCV frame missing columns or empty: " + ",".join(missing))
 
-    interval_ms = {"15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
+    interval_ms = {"1": 60000, "15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
     timestamps = frame["timestamp"].to_numpy(dtype="int64")
     if len(set(timestamps.tolist())) != len(timestamps):
         raise ValueError("OHLCV contains duplicate candle timestamps")
@@ -248,7 +248,7 @@ def intrabar_exit_signal(position, candles):
             return reason, reference, int(candle.timestamp)
         if target_hit:
             # Do not grant a better-than-target fill on an opening gap.
-            return "TARGET", min(opened, target), int(candle.timestamp)
+            return "TARGET", target, int(candle.timestamp)
     return None
 
 
