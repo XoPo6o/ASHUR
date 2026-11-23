@@ -14,6 +14,7 @@ from execution_model import (
     DEFAULT_SPREAD_BPS,
     DEFAULT_VOLATILITY_IMPACT,
     adverse_cost_components_bps,
+    capacity_limited_fill,
     fill_price,
 )
 
@@ -235,6 +236,10 @@ def simulate(x, strategy, start, end, annual_bars):
                 cash += proceeds-fee
                 trades.append({"pnl": proceeds-fee-pos["entry_cost"], "fees":pos["entry_fee"]+fee,
                                **{k: pos["entry_costs"][k] + exit_costs[k] for k in exit_costs},
+                               "requested_notional":pos["requested_notional"],
+                               "filled_notional":pos["filled_notional"],
+                               "unfilled_notional":pos["unfilled_notional"],
+                               "fill_ratio":pos["fill_ratio"],
                                "bars":i-pos["entry_i"]+1, "reason":reason})
                 pos, exited = None, True
         if pos is None and not exited and bool(prev[entry_col]):
@@ -244,19 +249,24 @@ def simulate(x, strategy, start, end, annual_bars):
             if pd.notna(stop_dist) and stop_dist > 0 and stop_dist < raw:
                 risk_cash = cash*RISK_PER_TRADE
                 reference_dollar_volume = float(prev.close) * float(prev.volume)
-                liquidity_cap = reference_dollar_volume * MAX_PARTICIPATION
-                notional = min(
+                requested_notional = min(
                     risk_cash/(stop_dist/raw),
                     cash*MAX_NOTIONAL_FRACTION/(1+FEE_RATE),
-                    liquidity_cap,
                 )
+                fill_info = capacity_limited_fill(
+                    requested_notional, reference_dollar_volume, MAX_PARTICIPATION
+                )
+                notional = fill_info["filled_notional"]
                 if notional > 0:
                     entry = execution_fill(raw, "buy", prev, notional)
-                    notional = min(
+                    requested_notional = min(
                         risk_cash/(stop_dist/entry),
                         cash*MAX_NOTIONAL_FRACTION/(1+FEE_RATE),
-                        liquidity_cap,
                     )
+                    fill_info = capacity_limited_fill(
+                        requested_notional, reference_dollar_volume, MAX_PARTICIPATION
+                    )
+                    notional = fill_info["filled_notional"]
                     entry = execution_fill(raw, "buy", prev, notional)
                     qty = notional/entry
                     entry_costs = execution_cost_breakdown(prev, qty * raw)
@@ -266,6 +276,10 @@ def simulate(x, strategy, start, end, annual_bars):
                         cash -= cost
                         pos = {"qty":qty,"entry":entry,"entry_fee":fee,"entry_cost":cost,"entry_i":i,
                                "entry_costs":entry_costs,
+                               "requested_notional":fill_info["requested_notional"],
+                               "filled_notional":fill_info["filled_notional"],
+                               "unfilled_notional":fill_info["unfilled_notional"],
+                               "fill_ratio":fill_info["fill_ratio"],
                                "stop":entry-stop_dist,"target":entry+REWARD_RISK*stop_dist}
                         # Entry-bar barrier check: stop first if OHLC cannot reveal order.
                         if float(bar.low) <= pos["stop"] or float(bar.high) >= pos["target"]:
@@ -280,6 +294,10 @@ def simulate(x, strategy, start, end, annual_bars):
                             cash += proceeds-exit_fee
                             trades.append({"pnl":proceeds-exit_fee-cost,"fees":fee+exit_fee,
                                 **{k: entry_costs[k] + exit_costs[k] for k in entry_costs},
+                                "requested_notional":fill_info["requested_notional"],
+                                "filled_notional":fill_info["filled_notional"],
+                                "unfilled_notional":fill_info["unfilled_notional"],
+                                "fill_ratio":fill_info["fill_ratio"],
                                 "bars":1,"reason":reason})
                             pos, exited = None, True
 
@@ -300,6 +318,10 @@ def simulate(x, strategy, start, end, annual_bars):
         cash += proceeds-fee
         trades.append({"pnl":proceeds-fee-pos["entry_cost"],"fees":pos["entry_fee"]+fee,
                        **{k: pos["entry_costs"][k] + exit_costs[k] for k in exit_costs},
+                       "requested_notional":pos["requested_notional"],
+                       "filled_notional":pos["filled_notional"],
+                       "unfilled_notional":pos["unfilled_notional"],
+                       "fill_ratio":pos["fill_ratio"],
                        "bars":end-pos["entry_i"],"reason":"TEST_END"})
     # Include cash/equity correctly; drawdown includes initial equity and final liquidation.
     values=[INITIAL_EQUITY]+curve+[cash]
@@ -324,6 +346,9 @@ def simulate(x, strategy, start, end, annual_bars):
             "spread_cost_usdt":round(sum(t.get("spread_cost_usdt",0) for t in trades),2),
             "base_slippage_cost_usdt":round(sum(t.get("base_slippage_cost_usdt",0) for t in trades),2),
             "market_impact_cost_usdt":round(sum(t.get("market_impact_cost_usdt",0) for t in trades),2),
+            "partial_fill_count":sum(t.get("fill_ratio",1.0)<0.999999 for t in trades),
+            "average_fill_ratio_pct":round(100*sum(t.get("fill_ratio",1.0) for t in trades)/len(trades),2) if trades else 100.0,
+            "unfilled_notional_usdt":round(sum(t.get("unfilled_notional",0) for t in trades),2),
             "expectancy_usdt":round(sum(pnl)/len(pnl),2) if pnl else 0,
             "avg_bars_held":round(sum(t["bars"] for t in trades)/len(trades),2) if trades else 0,
             "ending_equity_usdt":round(cash,2),
