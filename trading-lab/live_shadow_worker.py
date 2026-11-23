@@ -78,7 +78,7 @@ def api_json(url):
 def candle_is_fresh(last_candle_open_ms, interval, now_ms=None):
     """A closed candle must not be more than two full intervals behind now."""
     now_ms = int(now_ms if now_ms is not None else time.time() * 1000)
-    interval_ms = {"15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
+    interval_ms = {"1": 60000, "15": 900000, "60": 3600000, "240": 14400000, "D": 86400000}[interval]
     candle_close_ms = int(last_candle_open_ms) + interval_ms
     age_ms = now_ms - candle_close_ms
     return 0 <= age_ms <= 2 * interval_ms
@@ -173,6 +173,89 @@ def fetch_bybit_klines(symbol, interval, limit=350):
     except Exception as exc:
         errors.append("Binance: " + str(exc))
     raise RuntimeError("No usable candle source: " + " | ".join(errors))
+
+def fetch_execution_klines(symbol, since_ms):
+    """Fetch closed 1m candles since the last processed minute for open-position protection."""
+    market_symbol = symbol.replace("/", "")
+    cutoff = int(time.time() * 1000)
+    errors = []
+    columns = ["timestamp", "open", "high", "low", "close", "volume"]
+
+    try:
+        query = urllib.parse.urlencode({
+            "category": "spot", "symbol": market_symbol, "interval": "1",
+            "start": int(since_ms), "end": cutoff, "limit": 1000,
+        })
+        payload = api_json("https://api.bybit.com/v5/market/kline?" + query)
+        if payload.get("retCode") != 0:
+            raise RuntimeError("Bybit execution klines: " + str(payload.get("retMsg")))
+        rows = payload["result"]["list"]
+        frame = pd.DataFrame(
+            [[int(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]), float(r[5])]
+             for r in rows], columns=columns
+        )
+        frame = frame.sort_values("timestamp").reset_index(drop=True)
+        frame = frame[(frame.timestamp >= int(since_ms)) & (frame.timestamp + 60000 <= cutoff)].reset_index(drop=True)
+        if not frame.empty:
+            frame = validate_ohlcv_frame(frame, "1")
+            if not candle_is_fresh(frame.iloc[-1].timestamp, "1", cutoff):
+                raise RuntimeError("Bybit execution candles are stale")
+            if len(frame) > 1 and (frame.timestamp.diff().dropna() != 60000).any():
+                raise RuntimeError("Bybit execution candles contain a missing-minute gap")
+        return frame
+    except Exception as exc:
+        errors.append("Bybit: " + str(exc))
+
+    try:
+        query = urllib.parse.urlencode({
+            "symbol": market_symbol, "interval": "1m",
+            "startTime": int(since_ms), "endTime": cutoff, "limit": 1000,
+        })
+        rows = api_json("https://data-api.binance.vision/api/v3/klines?" + query)
+        frame = pd.DataFrame(
+            [[int(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]), float(r[5])]
+             for r in rows], columns=columns
+        )
+        frame = frame.sort_values("timestamp").reset_index(drop=True)
+        frame = frame[(frame.timestamp >= int(since_ms)) & (frame.timestamp + 60000 <= cutoff)].reset_index(drop=True)
+        if not frame.empty:
+            frame = validate_ohlcv_frame(frame, "1")
+            if not candle_is_fresh(frame.iloc[-1].timestamp, "1", cutoff):
+                raise RuntimeError("Binance execution candles are stale")
+            if len(frame) > 1 and (frame.timestamp.diff().dropna() != 60000).any():
+                raise RuntimeError("Binance execution candles contain a missing-minute gap")
+        return frame
+    except Exception as exc:
+        errors.append("Binance: " + str(exc))
+
+    raise RuntimeError("No usable 1m execution candles: " + " | ".join(errors))
+
+
+def intrabar_exit_signal(position, candles):
+    """Return the earliest conservative stop/target touch from ordered 1m OHLC candles."""
+    stop = float(position["stop"])
+    target = float(position["target"])
+    for candle in candles.itertuples(index=False):
+        opened = float(candle.open)
+        high = float(candle.high)
+        low = float(candle.low)
+        stop_hit = low <= stop
+        target_hit = high >= target
+        if stop_hit:
+            # If both levels trade in one minute, assume the adverse stop happened first.
+            reference = min(opened, stop) if opened <= stop else stop
+            reason = "GAP_STOP" if opened < stop else "STOP"
+            return reason, reference, int(candle.timestamp)
+        if target_hit:
+            # Do not grant a better-than-target fill on an opening gap.
+            return "TARGET", min(opened, target), int(candle.timestamp)
+    return None
+
+
+def minute_cursor_for_now(now_ms=None):
+    now_ms = int(now_ms if now_ms is not None else time.time() * 1000)
+    return (now_ms // 60000) * 60000
+
 
 def validate_binance_ticker(payload, now_ms=None):
     """Require a recent Binance last-trade timestamp, not merely a fast HTTP response."""
@@ -283,6 +366,8 @@ def init_db(conn):
       strategy_id TEXT PRIMARY KEY, price REAL NOT NULL, updated_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_trade_guard(
       strategy_id TEXT PRIMARY KEY, last_closed_candle TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS shadow_intrabar_state(
+      strategy_id TEXT PRIMARY KEY, last_checked_open_ms INTEGER NOT NULL);
     """)
     for s in STRATEGIES:
         conn.execute("""INSERT OR IGNORE INTO shadow_accounts
@@ -311,6 +396,7 @@ def close_position(conn, s, price, reason, candle_id):
       (s["id"],s["symbol"],p["entry"],fill,p["qty"],p["entry_fee"]+exit_fee,
        pnl,reason,p["opened_at"],now()))
     conn.execute("DELETE FROM shadow_positions WHERE strategy_id=?", (s["id"],))
+    conn.execute("DELETE FROM shadow_intrabar_state WHERE strategy_id=?", (s["id"],))
     conn.execute("""INSERT INTO shadow_trade_guard(strategy_id,last_closed_candle)
       VALUES(?,?) ON CONFLICT(strategy_id) DO UPDATE SET last_closed_candle=excluded.last_closed_candle""",
       (s["id"], candle_id))
@@ -383,6 +469,12 @@ def open_position(conn, s, price, atr):
       (strategy_id,symbol,qty,entry,entry_fee,stop,target,opened_at)
       VALUES(?,?,?,?,?,?,?,?)""",
       (s["id"],s["symbol"],qty,fill,fee,stop,target,now()))
+    cursor_ms = minute_cursor_for_now()
+    conn.execute(
+        """INSERT OR REPLACE INTO shadow_intrabar_state(strategy_id,last_checked_open_ms)
+           VALUES(?,?)""",
+        (s["id"], cursor_ms),
+    )
     event(conn,s["id"],"OPEN",f"paper BUY; qty={qty:.8f}; entry={fill:.6f}; SL={stop:.6f}; TP={target:.6f}")
 
 def export_status(conn, worker_errors=0, successful_strategies=None):
@@ -473,19 +565,50 @@ def run():
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             closed_this_cycle = False
             if pos:
-                if price <= pos["stop"]:
-                    close_position(conn,s,price,stop_exit_reason(price, pos["stop"]),candle_id)
-                    closed_this_cycle = True
-                elif price >= pos["target"]:
-                    target_reference = target_exit_reference_price(price, pos["target"])
-                    close_position(conn,s,target_reference,"TARGET",candle_id)
-                    closed_this_cycle = True
-                elif daily_loss_limit_hit(conn, s["id"], pos, price):
-                    close_position(conn,s,price,"DAILY_STOP",candle_id)
-                    closed_this_cycle = True
-                elif exit_signal:
-                    close_position(conn,s,price,"SIGNAL",candle_id)
-                    closed_this_cycle = True
+                cursor = conn.execute(
+                    "SELECT last_checked_open_ms FROM shadow_intrabar_state WHERE strategy_id=?",
+                    (s["id"],),
+                ).fetchone()
+                if cursor is None:
+                    # Existing positions predate the 1m watcher; start safely from now
+                    # and keep the live ticker stop/target check below as immediate protection.
+                    baseline = minute_cursor_for_now()
+                    conn.execute(
+                        "INSERT INTO shadow_intrabar_state VALUES(?,?)",
+                        (s["id"], baseline),
+                    )
+                    event(conn, s["id"], "INTRABAR_BASELINE",
+                          "1m protection initialized for pre-existing position; historical minutes unavailable")
+                else:
+                    since_ms = int(cursor["last_checked_open_ms"]) + 60000
+                    execution_candles = fetch_execution_klines(s["symbol"], since_ms)
+                    intrabar_exit = intrabar_exit_signal(pos, execution_candles)
+                    if not execution_candles.empty:
+                        last_checked = int(execution_candles.iloc[-1].timestamp)
+                        conn.execute(
+                            "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
+                            (last_checked, s["id"]),
+                        )
+                    if intrabar_exit:
+                        reason, reference_price, exit_candle_ms = intrabar_exit
+                        close_position(conn, s, reference_price, reason, str(exit_candle_ms))
+                        event(conn, s["id"], "INTRABAR_EXIT",
+                              f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
+                        closed_this_cycle = True
+                if not closed_this_cycle:
+                    if price <= pos["stop"]:
+                        close_position(conn,s,price,stop_exit_reason(price, pos["stop"]),candle_id)
+                        closed_this_cycle = True
+                    elif price >= pos["target"]:
+                        target_reference = target_exit_reference_price(price, pos["target"])
+                        close_position(conn,s,target_reference,"TARGET",candle_id)
+                        closed_this_cycle = True
+                    elif daily_loss_limit_hit(conn, s["id"], pos, price):
+                        close_position(conn,s,price,"DAILY_STOP",candle_id)
+                        closed_this_cycle = True
+                    elif exit_signal:
+                        close_position(conn,s,price,"SIGNAL",candle_id)
+                        closed_this_cycle = True
             guard = conn.execute("SELECT last_closed_candle FROM shadow_trade_guard WHERE strategy_id=?",(s["id"],)).fetchone()
             cooldown_active = bool(guard and guard["last_closed_candle"] == candle_id)
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
