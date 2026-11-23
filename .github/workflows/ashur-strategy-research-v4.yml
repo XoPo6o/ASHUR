@@ -1,5 +1,5 @@
 name: ASHUR Strategy Research v4
-run-name: ASHUR research v4 · Keltner ADX robustness · validation-led · continuation
+run-name: ASHUR research v4 · Keltner ADX robustness · validation-led · full run
 
 on:
   workflow_dispatch:
@@ -33,6 +33,7 @@ jobs:
           python-version: "3.12"
       - name: Install research dependency
         run: python -m pip install --disable-pip-version-check pandas
+      # Triggered by the audited research-plan update; results remain validation-selected and OOS.
       - name: Run validation-led strategy research v4
         env:
           PYTHONUNBUFFERED: "1"
