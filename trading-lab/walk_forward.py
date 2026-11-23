@@ -124,6 +124,7 @@ def main():
             "selection_uses_test": False,
             "selection_gate": "train and validation must each have >=5 trades, positive net return and PF>1; rank by validation return",
             "execution_model": "OHLCV proxy with prior-candle liquidity/volatility inputs",
+            "fill_model": "capacity-capped immediate fill at 2% of prior-candle dollar volume; no queue simulation",
             "fee_each_side": base.FEE_RATE,
         },
         "summary": summary, "folds": all_folds,
