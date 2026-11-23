@@ -256,18 +256,7 @@ def simulate(x, strategy, start, end, annual_bars):
                             cash += proceeds-exit_fee
                             trades.append({"pnl":proceeds-exit_fee-cost,"fees":fee+exit_fee,"bars":1,"reason":reason})
                             pos, exited = None, True
-                    # Entry-bar barrier check, conservative if both barriers trade in same bar.
-                    if float(bar.low) <= pos["stop"] or float(bar.high) >= pos["target"]:
-                        if float(bar.low) <= pos["stop"]:
-                            raw_exit, reason = pos["stop"], "ENTRY_BAR_STOP"
-                        else:
-                            raw_exit, reason = pos["target"], "ENTRY_BAR_TARGET"
-                        px = execution_fill(raw_exit, "sell", prev, qty * raw_exit)
-                        proceeds=qty*px
-                        exit_fee=proceeds*FEE_RATE
-                        cash += proceeds-exit_fee
-                        trades.append({"pnl":proceeds-exit_fee-cost,"fees":fee+exit_fee,"bars":1,"reason":reason})
-                        pos, exited = None, True
+
         equity = cash
         if pos:
             mark_raw = float(bar.close)
