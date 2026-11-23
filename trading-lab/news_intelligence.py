@@ -140,6 +140,28 @@ def collect(conn, fetcher=fetch_feed):
     summary["stats_24h"] = collection_stats(conn, 24)
     return summary
 
+def collect_if_due(conn, fetcher=fetch_feed, min_interval_seconds=900, at=None):
+    """Limit RSS polling while keeping the trading worker on its independent 5m cadence."""
+    at = at or utc_now()
+    if isinstance(at, str):
+        at = datetime.fromisoformat(at)
+    if at.tzinfo is None:
+        at = at.replace(tzinfo=timezone.utc)
+    row = conn.execute("SELECT MAX(finished_at) FROM news_collection_runs").fetchone()
+    if row and row[0]:
+        try:
+            last_finished = datetime.fromisoformat(row[0])
+            if last_finished.tzinfo is None:
+                last_finished = last_finished.replace(tzinfo=timezone.utc)
+            elapsed = (at - last_finished).total_seconds()
+            if 0 <= elapsed < min_interval_seconds:
+                return {"enabled": True, "skipped": True, "reason": "minimum_interval",
+                        "seconds_until_next": int(min_interval_seconds - elapsed)}
+        except (TypeError, ValueError):
+            pass
+    return collect(conn, fetcher=fetcher)
+
+
 def record_veto(conn, strategy_id, symbol, headline, price):
     if not headline or not headline.get("id") or float(price) <= 0:
         return False
@@ -228,7 +250,7 @@ def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB, timeout=20)
     init_db(conn)
-    result = collect(conn)
+    result = collect_if_due(conn)
     print("ASHUR_NEWS_SUMMARY " + json.dumps(result, ensure_ascii=False), flush=True)
     conn.close()
 
