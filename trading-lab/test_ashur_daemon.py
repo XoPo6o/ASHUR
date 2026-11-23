@@ -300,8 +300,8 @@ class TestAshurRuntime(unittest.TestCase):
     def test_execution_candles_reject_missing_first_minute_and_internal_gaps(self):
         import pandas as pd
 
-        now_ms = 2_000_000_000_000
-        since_ms = now_ms - 180_000
+        now_ms = (2_000_000_000_000 // 60000) * 60000 + 30_000
+        since_ms = (now_ms // 60000) * 60000 - 180_000
         contiguous = pd.DataFrame([
             {"timestamp": since_ms, "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.5, "volume": 1.0},
             {"timestamp": since_ms + 60_000, "open": 100.5, "high": 102.0, "low": 100.0, "close": 101.0, "volume": 1.0},
@@ -324,10 +324,11 @@ class TestAshurRuntime(unittest.TestCase):
         import pandas as pd
 
         empty = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
-        checked = worker.validate_execution_klines(empty, 1_999_999_980_000, 2_000_000_000_000)
+        now_ms = (2_000_000_000_000 // 60000) * 60000 + 20_000
+        checked = worker.validate_execution_klines(empty, (now_ms // 60000) * 60000, now_ms)
         self.assertTrue(checked.empty)
         with self.assertRaisesRegex(RuntimeError, "missing"):
-            worker.validate_execution_klines(empty, 1_999_000_000_000, 2_000_000_000_000)
+            worker.validate_execution_klines(empty, (now_ms // 60000) * 60000 - 120_000, now_ms)
 
 
     def test_intrabar_gap_stop_uses_candle_open(self):
