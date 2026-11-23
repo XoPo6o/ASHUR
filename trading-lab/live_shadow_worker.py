@@ -419,11 +419,11 @@ def run():
             news.update_veto_outcomes(conn, s["symbol"], price)
             row = data.iloc[-1]  # latest fully closed candle; indicators never use a forming candle
             candle_id = str(int(row.timestamp))
-            # Evaluate the current live ticker against the last closed candle's indicators on
-            # EVERY five-minute worker cycle, rather than only once when a new candle appears.
-            signal_row = row.copy()
-            signal_row["close"] = price
-            entry_signal, exit_signal = signals(signal_row,s["id"])
+            # Strategy decisions must use the fully closed candle, matching the historical
+            # backtest. The live ticker is reserved for execution, stops/targets, and equity marks.
+            # Re-checking the same closed-candle signal each cycle allows execution after candle
+            # close without letting a still-forming candle rewrite the strategy rules.
+            entry_signal, exit_signal = signals(row, s["id"])
             news_veto = None
             conn.execute("INSERT OR REPLACE INTO shadow_marks VALUES(?,?,?)",(s["id"],price,now()))
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
