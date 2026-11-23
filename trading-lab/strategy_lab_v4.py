@@ -110,7 +110,16 @@ def main():
         "selection":"Top 5 among validation-qualified candidates only; test is evaluated only after selection.",
         "validation_quality_gate":{"minimum_trades":MIN_VALIDATION_TRADES,"net_return_pct_gt":0,"profit_factor_gt":1.0},
         "split":"Chronological 60% train / 20% validation / 20% held-out test",
-        "fees_each_side":base.FEE_RATE,"slippage_each_side":base.SLIPPAGE_RATE,
+        "fees_each_side":base.FEE_RATE,
+        "execution_cost_model":{
+          "spread_bps_full":base.SPREAD_BPS,
+          "base_slippage_bps_each_side":base.BASE_SLIPPAGE_BPS,
+          "volatility_impact_coefficient":base.VOLATILITY_IMPACT,
+          "max_impact_bps_each_side":base.MAX_IMPACT_BPS,
+          "max_order_participation_of_previous_candle_dollar_volume":base.MAX_PARTICIPATION,
+          "liquidity_reference":"previous completed candle only",
+          "limitation":"OHLCV proxy, not historical bid/ask quotes or order-book replay"
+        },
         "risk_per_trade":base.RISK_PER_TRADE,"leverage":0,
         "execution":"closed-candle signal, next-open entry, gap-aware stops/targets; long-only spot",
         "warning":"Historical simulation, not forward paper results or a promise of future returns."
