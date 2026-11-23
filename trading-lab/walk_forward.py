@@ -39,16 +39,28 @@ def walk_forward_market(frame, symbol, timeframe):
 
         validation_results = []
         for strategy in base.STRATEGIES:
-            metrics = base.simulate(x, strategy, validation_start, validation_end, annual_bars)
-            validation_results.append({"strategy": strategy, **metrics})
+            train_metrics = base.simulate(x, strategy, train_start, validation_start, annual_bars)
+            validation_metrics = base.simulate(x, strategy, validation_start, validation_end, annual_bars)
+            validation_results.append({
+                "strategy": strategy,
+                "train": train_metrics,
+                "validation": validation_metrics,
+            })
         eligible = [
             r for r in validation_results
-            if r["trades"] >= MIN_VALIDATION_TRADES
-            and r["return_pct"] > 0
-            and isinstance(r["profit_factor"], (int, float))
-            and r["profit_factor"] > 1.0
+            if r["train"]["trades"] >= MIN_VALIDATION_TRADES
+            and r["train"]["return_pct"] > 0
+            and isinstance(r["train"]["profit_factor"], (int, float))
+            and r["train"]["profit_factor"] > 1.0
+            and r["validation"]["trades"] >= MIN_VALIDATION_TRADES
+            and r["validation"]["return_pct"] > 0
+            and isinstance(r["validation"]["profit_factor"], (int, float))
+            and r["validation"]["profit_factor"] > 1.0
         ]
-        eligible.sort(key=lambda r: (r["return_pct"], r["profit_factor"]), reverse=True)
+        eligible.sort(
+            key=lambda r: (r["validation"]["return_pct"], r["validation"]["profit_factor"]),
+            reverse=True,
+        )
         selected = eligible[0] if eligible else None
         test_metrics = (
             base.simulate(x, selected["strategy"], test_start, test_end, annual_bars)
@@ -62,8 +74,10 @@ def walk_forward_market(frame, symbol, timeframe):
             "test_start": str(x.iloc[test_start]["timestamp"]),
             "test_end": str(x.iloc[test_end - 1]["timestamp"]),
             "selected_strategy": selected["strategy"] if selected else None,
-            "validation_return_pct": selected["return_pct"] if selected else None,
-            "validation_trades": selected["trades"] if selected else 0,
+            "train": selected["train"] if selected else None,
+            "validation": selected["validation"] if selected else None,
+            "validation_return_pct": selected["validation"]["return_pct"] if selected else None,
+            "validation_trades": selected["validation"]["trades"] if selected else 0,
             "test": test_metrics,
             "eligible_validation_strategies": len(eligible),
             "selection_rule": "best validation return among positive PF>1 and min-trade candidates",
@@ -85,6 +99,7 @@ def main():
                 print(json.dumps({
                     "symbol": symbol, "timeframe": timeframe,
                     "test_start": fold["test_start"], "selected": fold["selected_strategy"],
+                    "train_return_pct": (fold["train"] or {}).get("return_pct"),
                     "validation_return_pct": fold["validation_return_pct"],
                     "test_return_pct": test.get("return_pct"),
                     "test_trades": test.get("trades"), "test_pf": test.get("profit_factor"),
@@ -107,6 +122,7 @@ def main():
             "test_days": TEST_DAYS, "step_days": STEP_DAYS,
             "minimum_validation_trades": MIN_VALIDATION_TRADES,
             "selection_uses_test": False,
+            "selection_gate": "train and validation must each have >=5 trades, positive net return and PF>1; rank by validation return",
             "execution_model": "OHLCV proxy with prior-candle liquidity/volatility inputs",
             "fee_each_side": base.FEE_RATE,
         },
@@ -114,7 +130,7 @@ def main():
     }
     (ROOT / "walk_forward_results.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     fields = ["symbol", "timeframe", "test_start", "test_end", "selected_strategy",
-              "validation_return_pct", "validation_trades", "test_return_pct",
+              "train_return_pct", "validation_return_pct", "validation_trades", "test_return_pct",
               "test_trades", "test_profit_factor", "test_max_drawdown_pct", "test_fees_usdt"]
     with (ROOT / "walk_forward_results.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
@@ -125,6 +141,7 @@ def main():
                 "symbol": fold["symbol"], "timeframe": fold["timeframe"],
                 "test_start": fold["test_start"], "test_end": fold["test_end"],
                 "selected_strategy": fold["selected_strategy"],
+                "train_return_pct": (fold["train"] or {}).get("return_pct"),
                 "validation_return_pct": fold["validation_return_pct"],
                 "validation_trades": fold["validation_trades"],
                 "test_return_pct": test.get("return_pct"), "test_trades": test.get("trades"),
