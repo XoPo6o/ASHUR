@@ -236,6 +236,47 @@ class TestAshurRuntime(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     worker.validate_ohlcv_frame(frame, "15")
 
+    def test_open_position_equity_includes_exit_fee_and_slippage(self):
+        import json
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temporary:
+            original = (worker.DATA_DIR, worker.STATUS_FILE)
+            try:
+                worker.DATA_DIR = Path(temporary)
+                worker.STATUS_FILE = Path(temporary) / "status.json"
+                conn = sqlite3.connect(":memory:")
+                conn.row_factory = sqlite3.Row
+                worker.init_db(conn)
+                strategy_id = "BNB_15M_EMA_TREND"
+                conn.execute(
+                    "UPDATE shadow_accounts SET cash=? WHERE strategy_id=?",
+                    (899.9, strategy_id),
+                )
+                conn.execute(
+                    """INSERT INTO shadow_positions
+                       (strategy_id,symbol,qty,entry,entry_fee,stop,target,opened_at)
+                       VALUES(?,?,?,?,?,?,?,?)""",
+                    (strategy_id, "BNB/USDT", 1.0, 100.0, 0.1, 97.0, 112.0,
+                     "2026-11-23T10:00:00+00:00"),
+                )
+                conn.execute(
+                    "INSERT INTO shadow_marks VALUES(?,?,?)",
+                    (strategy_id, 110.0, "2026-11-23T10:05:00+00:00"),
+                )
+                worker.export_status(conn)
+                status = json.loads(worker.STATUS_FILE.read_text(encoding="utf-8"))
+                account = next(x for x in status["accounts"] if x["strategy_id"] == strategy_id)
+                net_liquidation = 110.0 * (1 - worker.SLIPPAGE) * (1 - worker.FEE)
+                expected_equity = 899.9 + net_liquidation
+                expected_unrealized = net_liquidation - (100.0 + 0.1)
+                self.assertAlmostEqual(account["equity"], expected_equity, places=4)
+                self.assertAlmostEqual(account["unrealized_pnl"], expected_unrealized, places=4)
+                conn.close()
+            finally:
+                worker.DATA_DIR, worker.STATUS_FILE = original
+
+
     def test_target_gap_fill_is_capped_at_target_reference(self):
         self.assertEqual(worker.target_exit_reference_price(125.0, 120.0), 120.0)
         self.assertEqual(worker.target_exit_reference_price(120.0, 120.0), 120.0)
