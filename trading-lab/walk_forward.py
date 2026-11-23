@@ -132,7 +132,8 @@ def main():
     fields = ["symbol", "timeframe", "test_start", "test_end", "selected_strategy",
               "train_return_pct", "validation_return_pct", "validation_trades", "test_return_pct",
               "test_trades", "test_profit_factor", "test_max_drawdown_pct", "test_fees_usdt",
-              "test_spread_cost_usdt", "test_base_slippage_cost_usdt", "test_market_impact_cost_usdt"]
+              "test_spread_cost_usdt", "test_base_slippage_cost_usdt", "test_market_impact_cost_usdt",
+              "test_partial_fill_count", "test_average_fill_ratio_pct", "test_unfilled_notional_usdt"]
     with (ROOT / "walk_forward_results.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
@@ -152,6 +153,9 @@ def main():
                 "test_spread_cost_usdt": test.get("spread_cost_usdt"),
                 "test_base_slippage_cost_usdt": test.get("base_slippage_cost_usdt"),
                 "test_market_impact_cost_usdt": test.get("market_impact_cost_usdt"),
+                "test_partial_fill_count": test.get("partial_fill_count"),
+                "test_average_fill_ratio_pct": test.get("average_fill_ratio_pct"),
+                "test_unfilled_notional_usdt": test.get("unfilled_notional_usdt"),
             })
     print(json.dumps({"summary": summary}, ensure_ascii=False))
     print("Saved walk_forward_results.json and walk_forward_results.csv")
