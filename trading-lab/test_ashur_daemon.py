@@ -277,6 +277,64 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.DATA_DIR, worker.STATUS_FILE = original
 
 
+    def test_minute_feed_outage_does_not_disable_signal_exit(self):
+        import tempfile
+        import pandas as pd
+
+        with tempfile.TemporaryDirectory() as temporary:
+            tmp_path = Path(temporary)
+            original = (worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES)
+            strategy = {
+                "id": "BNB_15M_EMA_TREND", "symbol": "BNB/USDT", "interval": "15",
+                "label": "minute feed outage test", "grade": "PAPER_VALIDATION",
+            }
+            try:
+                worker.ROOT = tmp_path
+                worker.DATA_DIR = tmp_path / "state"
+                worker.DB = worker.DATA_DIR / "ashur_shadow.db"
+                worker.STATUS_FILE = worker.DATA_DIR / "ashur_shadow_status.json"
+                worker.STRATEGIES = [strategy]
+                worker.prepare_data_dir()
+                conn = sqlite3.connect(worker.DB)
+                conn.row_factory = sqlite3.Row
+                worker.init_db(conn)
+                conn.execute(
+                    """INSERT INTO shadow_positions
+                       (strategy_id,symbol,qty,entry,entry_fee,stop,target,opened_at)
+                       VALUES(?,?,?,?,?,?,?,?)""",
+                    (strategy["id"], strategy["symbol"], 1.0, 100.0, 0.1,
+                     95.0, 120.0, "2026-11-23T10:00:00+00:00"),
+                )
+                conn.execute(
+                    "INSERT INTO shadow_intrabar_state VALUES(?,?)",
+                    (strategy["id"], worker.minute_cursor_for_now() - 60000),
+                )
+                conn.commit()
+                conn.close()
+
+                closed_candle = pd.DataFrame([{
+                    "timestamp": 2_000_000_000_000, "close": 100.0, "atr": 1.0,
+                }])
+                with patch.object(worker, "fetch_bybit_klines", return_value=object()), \\
+                     patch.object(worker, "indicators", return_value=closed_candle), \\
+                     patch.object(worker, "fetch_ticker", return_value=100.0), \\
+                     patch.object(worker, "signals", return_value=(False, True)), \\
+                     patch.object(worker, "fetch_execution_klines", side_effect=RuntimeError("minute API unavailable")):
+                    worker.run()
+
+                conn = sqlite3.connect(worker.DB)
+                trade = conn.execute(
+                    "SELECT reason FROM shadow_trades WHERE strategy_id=?",
+                    (strategy["id"],),
+                ).fetchone()
+                conn.close()
+                self.assertEqual(trade[0], "SIGNAL")
+                status = json.loads(worker.STATUS_FILE.read_text(encoding="utf-8"))
+                self.assertEqual(status["worker_health"]["intrabar_data_warnings_24h"], 1)
+            finally:
+                worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES = original
+
+
     def test_intrabar_exit_uses_earliest_minute_and_conservative_same_bar_order(self):
         import pandas as pd
 
