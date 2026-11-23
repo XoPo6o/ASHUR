@@ -80,7 +80,7 @@ def walk_forward_market(frame, symbol, timeframe):
             "validation_trades": selected["validation"]["trades"] if selected else 0,
             "test": test_metrics,
             "eligible_validation_strategies": len(eligible),
-            "selection_rule": "best validation return among positive PF>1 and min-trade candidates",
+            "selection_rule": "train and validation each require min trades, positive return and PF>1; rank by validation return",
         })
         test_start_time += pd.Timedelta(days=STEP_DAYS)
     return folds
@@ -131,7 +131,8 @@ def main():
     (ROOT / "walk_forward_results.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     fields = ["symbol", "timeframe", "test_start", "test_end", "selected_strategy",
               "train_return_pct", "validation_return_pct", "validation_trades", "test_return_pct",
-              "test_trades", "test_profit_factor", "test_max_drawdown_pct", "test_fees_usdt"]
+              "test_trades", "test_profit_factor", "test_max_drawdown_pct", "test_fees_usdt",
+              "test_spread_cost_usdt", "test_base_slippage_cost_usdt", "test_market_impact_cost_usdt"]
     with (ROOT / "walk_forward_results.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
@@ -148,6 +149,9 @@ def main():
                 "test_profit_factor": test.get("profit_factor"),
                 "test_max_drawdown_pct": test.get("max_drawdown_pct"),
                 "test_fees_usdt": test.get("fees_usdt"),
+                "test_spread_cost_usdt": test.get("spread_cost_usdt"),
+                "test_base_slippage_cost_usdt": test.get("base_slippage_cost_usdt"),
+                "test_market_impact_cost_usdt": test.get("market_impact_cost_usdt"),
             })
     print(json.dumps({"summary": summary}, ensure_ascii=False))
     print("Saved walk_forward_results.json and walk_forward_results.csv")
