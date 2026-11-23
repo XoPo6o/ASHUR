@@ -309,6 +309,16 @@ class TestAshurRuntime(unittest.TestCase):
     def test_minute_cursor_rounds_down_to_current_minute(self):
         self.assertEqual(worker.minute_cursor_for_now(125_999), 120_000)
 
+    def test_intrabar_cursor_recovers_after_long_worker_outage(self):
+        now_ms = 2_000_000_000_000
+        recent = now_ms - 10 * 60000
+        stale = now_ms - 1000 * 60000
+        self.assertEqual(worker.recover_intrabar_cursor(recent, now_ms), recent)
+        self.assertEqual(
+            worker.recover_intrabar_cursor(stale, now_ms),
+            worker.minute_cursor_for_now(now_ms) - 120000,
+        )
+
 
     def test_target_gap_fill_is_capped_at_target_reference(self):
         self.assertEqual(worker.target_exit_reference_price(125.0, 120.0), 120.0)
