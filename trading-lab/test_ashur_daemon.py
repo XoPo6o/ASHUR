@@ -199,6 +199,21 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES = original
 
 
+    def test_ohlcv_continuity_rejects_missing_strategy_candles(self):
+        import pandas as pd
+
+        start = 1_999_999_800_000
+        complete = pd.DataFrame([
+            {"timestamp": start, "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.5, "volume": 1.0},
+            {"timestamp": start + 900_000, "open": 100.5, "high": 102.0, "low": 100.0, "close": 101.0, "volume": 1.0},
+            {"timestamp": start + 1_800_000, "open": 101.0, "high": 103.0, "low": 100.5, "close": 102.0, "volume": 1.0},
+        ])
+        self.assertEqual(len(worker.validate_ohlcv_continuity(complete, "15")), 3)
+        missing = complete.drop(index=1).reset_index(drop=True)
+        with self.assertRaisesRegex(ValueError, "missing or irregular"):
+            worker.validate_ohlcv_continuity(missing, "15")
+
+
     def test_ohlcv_validation_rejects_malformed_market_data(self):
         import pandas as pd
 
