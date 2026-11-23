@@ -3,6 +3,7 @@ import unittest
 from execution_model import (
     adverse_cost_bps,
     adverse_cost_components_bps,
+    capacity_limited_fill,
     fill_price,
     participation_rate,
     within_participation_limit,
@@ -42,6 +43,18 @@ class ExecutionModelTests(unittest.TestCase):
         )
         self.assertAlmostEqual(parts["spread_bps"], 2.0)
         self.assertAlmostEqual(parts["base_slippage_bps"], 1.0)
+
+    def test_capacity_limited_partial_fill(self):
+        result = capacity_limited_fill(50_000, 1_000_000, 0.02)
+        self.assertEqual(result["requested_notional"], 50_000)
+        self.assertEqual(result["filled_notional"], 20_000)
+        self.assertEqual(result["unfilled_notional"], 30_000)
+        self.assertAlmostEqual(result["fill_ratio"], 0.4)
+
+    def test_no_liquidity_means_no_fill(self):
+        result = capacity_limited_fill(1_000, 0, 0.02)
+        self.assertEqual(result["filled_notional"], 0)
+        self.assertEqual(result["fill_ratio"], 0)
 
     def test_participation_limit(self):
         self.assertTrue(within_participation_limit(10_000, 1_000_000))
