@@ -82,9 +82,14 @@ const path = require('node:path');
     await mobile.screenshot({ path: path.join(out, '05-title-mobile.png'), fullPage: true });
 
     const landscape = await openScene(844, 390, 'mobile-landscape');
+    await landscape.waitForTimeout(16300);
     const landscapeBox = await landscape.locator('#world').boundingBox();
-    if (!landscapeBox || landscapeBox.x < -1 || landscapeBox.x + landscapeBox.width > 845) {
-      throw new Error('Landscape scene is horizontally clipped: ' + JSON.stringify(landscapeBox));
+    const landscapeTitle = await landscape.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
+    const landscapeTitleBox = await landscape.locator('#game-title').boundingBox();
+    if (!landscapeBox || landscapeBox.x < -1 || landscapeBox.x + landscapeBox.width > 845 ||
+        Number(landscapeTitle) < 0.9 || !landscapeTitleBox ||
+        landscapeTitleBox.y < 0 || landscapeTitleBox.y + landscapeTitleBox.height > 390) {
+      throw new Error('Landscape scene or title is clipped: ' + JSON.stringify({ landscapeBox, landscapeTitle, landscapeTitleBox }));
     }
     await landscape.screenshot({ path: path.join(out, '06-title-landscape.png') });
 
