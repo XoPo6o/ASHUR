@@ -23,8 +23,25 @@
     '#131923','#242936','#373545','#51434d','#70505a','#96636a','#bd7b70','#d99a80',
     '#edc091','#f5d9a5','#a9a06f','#7e8d68','#5d7658','#435849','#34443f','#252b32'
   ];
-  const paletteRgb = palette.filter((_,index)=>index%16!==0).map(hex => [1,3,5].map(i => Math.round(parseInt(hex.slice(i,i+2),16)*7/255)*255/7));
+  const paletteBanks = Array.from({length:4},(_,bank)=>palette
+    .slice(bank*16,(bank+1)*16).slice(1)
+    .map(hex=>[1,3,5].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*7/255)*255/7)));
+  const paletteRgb = paletteBanks.flat();
   const paletteCache = new Map();
+  function quantizeCanvasToBank(targetCtx,width,height,bankIndex){
+    const frame=targetCtx.getImageData(0,0,width,height),data=frame.data;
+    const bank=paletteBanks[bankIndex];
+    for(let i=0;i<data.length;i+=4){
+      let best=0,dist=Infinity;
+      for(let p=0;p<bank.length;p++){
+        const c=bank[p],dr=data[i]-c[0],dg=data[i+1]-c[1],db=data[i+2]-c[2];
+        const d=dr*dr+dg*dg+db*db;
+        if(d<dist){dist=d;best=p;}
+      }
+      const c=bank[best];data[i]=c[0];data[i+1]=c[1];data[i+2]=c[2];
+    }
+    targetCtx.putImageData(frame,0,0);
+  }
   function presentFrame() {
     const frame = ctx.getImageData(0,0,320,224);
     const data = frame.data;
@@ -85,6 +102,9 @@
       tileCtx.fillStyle=tileColors[key]||'#382930';
       tileCtx.fillRect(x,y,1,1);
     }));
+    // Each 8x8 tile is quantized into one dedicated 15-color hardware-style bank.
+    const tileBank=name.startsWith('floor')?0:1;
+    quantizeCanvasToBank(tileCtx,8,8,tileBank);
     tileAtlas[name]=tile;
   });
   function drawNativeTilemap(rows,nativeX,nativeY){
@@ -534,6 +554,8 @@
     travelerSheetCtx.fillRect(frame*16+4,22,4,1);
     travelerSheetCtx.fillRect(frame*16+11,22,4,1);
   }
+  // The traveler atlas has its own sprite palette bank, independent of background tiles.
+  quantizeCanvasToBank(travelerSheetCtx,64,24,2);
   function drawTravelerFrame(x,y,scale,gait){
     const frame=((Math.floor(gait/(Math.PI/2))%4)+4)%4;
     ctx.drawImage(travelerSheet,frame*16,0,16,24,x,y,16*scale,24*scale);
