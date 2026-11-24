@@ -1000,7 +1000,7 @@
     const travelerWorldX=e<8100 ? -42+Math.max(0,Math.min(1,e/8100))*250 : 208;
     const worldViewWidth=320/renderScale;
     const targetCamera=travelerWorldX+16-worldViewWidth/2;
-    cameraX=portrait?Math.max(0,Math.min(W-worldViewWidth,targetCamera)):0;
+    cameraX=portrait?Math.max(-worldViewWidth/2-32,Math.min(W-worldViewWidth,targetCamera)):0;
     cameraY=0;
     canvas.dataset.cameraX=String(Math.round(cameraX));
     canvas.dataset.observerReaction=String(e>=8500);
@@ -1074,6 +1074,7 @@
     }
     ctx=sourceCtx;
     quantizeCanvasToBank(spriteCtx,320,224,2);
+    sourceCtx.setTransform(1,0,0,1,0,0);
     sourceCtx.drawImage(spriteLayer,0,0);
     presentFrame();
     canvas.style.transform='translate('+Math.round(sx/1.5)+'px,'+Math.round(sy/1.5)+'px)';
@@ -1111,6 +1112,7 @@
     drawTravelerRecovery(194,218,2,1);
     ctx=sourceCtx;
     quantizeCanvasToBank(spriteCtx,320,224,2);
+    sourceCtx.setTransform(1,0,0,1,0,0);
     sourceCtx.drawImage(spriteLayer,0,0);
     presentFrame();
     opening.classList.add('visible');
