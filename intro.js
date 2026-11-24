@@ -851,6 +851,52 @@
       px(x+2*scale,y+15*scale,5*scale,2*scale,'#e3b77e');
     }
   }
+  function drawTravelerStopped(x,y,scale=2,t=0){
+    drawTraveler(x,y,scale,false,0);
+    // A deliberate planted stance: both boots level, one hand settles on the belt.
+    px(x+4*scale,y+19*scale,5*scale,1*scale,'#29232a');
+    px(x+10*scale,y+19*scale,5*scale,1*scale,'#29232a');
+    px(x+11*scale,y+10*scale,2*scale,3*scale,'#d69a68');
+    px(x+10*scale,y+12*scale,3*scale,1*scale,'#f0c58a');
+    px(x+6*scale,y+7*scale,1*scale,2*scale,'#30252c');
+    // Subtle breath: a single shoulder pixel changes on the native 12fps beat.
+    if(Math.floor(t/83)%2===0)px(x+4*scale,y+8*scale,2*scale,1*scale,'#e8bd80');
+  }
+
+  function drawTravelerRecovery(x,y,scale=2,progress=0){
+    const s=scale,p=Math.max(0,Math.min(1,progress));
+    // A low kneel that rises from one braced hand; proportions stay on the 16px grid.
+    const headY=Math.round(5-p*2),bodyY=Math.round(10-p*3),legY=Math.round(18-p*2);
+    // Grounded cloak and rear leg.
+    px(x+3*s,y+legY*s,9*s,3*s,'#29232a');
+    px(x+4*s,y+(legY-1)*s,6*s,2*s,'#684044');
+    px(x+10*s,y+(legY-2)*s,5*s,2*s,'#49353b');
+    // Torso, mantle and embroidered edge.
+    px(x+4*s,y+bodyY*s,9*s,7*s,'#a64e42');
+    px(x+5*s,y+(bodyY+1)*s,7*s,4*s,'#c66b4c');
+    px(x+4*s,y+(bodyY+5)*s,9*s,1*s,'#e8bd80');
+    px(x+6*s,y+(bodyY+2)*s,1*s,3*s,'#f0c58a');
+    px(x+10*s,y+(bodyY+2)*s,1*s,3*s,'#684044');
+    // Hood, face and beard, kept consistent with the walking sprite palette.
+    px(x+6*s,y+headY*s,7*s,4*s,'#29232a');
+    px(x+7*s,y+(headY+1)*s,5*s,2*s,'#e3b77e');
+    px(x+9*s,y+(headY+2)*s,3*s,1*s,'#49353b');
+    px(x+10*s,y+(headY+2)*s,1*s,1*s,'#f0c58a');
+    px(x+8*s,y+(headY+3)*s,4*s,1*s,'#684044');
+    // Bracing palm moves from the ground to the thigh as he gets upright.
+    const handX=Math.round(1+(p*3));
+    px(x+handX*s,y+(bodyY+5)*s,3*s,2*s,'#e3b77e');
+    px(x+(handX+1)*s,y+(bodyY+6)*s,2*s,1*s,'#f0c58a');
+    // Travel pack stays behind the shoulder, with its bronze clasp visible.
+    px(x+13*s,y+(bodyY-1)*s,4*s,6*s,'#52665a');
+    px(x+14*s,y+bodyY*s,2*s,2*s,'#829071');
+    px(x+15*s,y+(bodyY+3)*s,1*s,1*s,'#e8bd80');
+    // One bent knee and planted boot establish the recovery silhouette.
+    px(x+7*s,y+(legY-2)*s,5*s,2*s,'#d09376');
+    px(x+11*s,y+(legY-1)*s,5*s,2*s,'#29232a');
+    px(x+12*s,y+legY*s,4*s,1*s,'#e8bd80');
+  }
+
   function dust(x,y,amount,t){
     for(let i=0;i<36;i++){
       const a=i*2.399,d=(i*17%53)*amount;
@@ -866,18 +912,25 @@
     background(ts);
     let sx=0,sy=0;
     if(e<8500){
-      const p=Math.max(0,Math.min(1,e/7800));
+      const walkEnd=8100;
+      const p=Math.max(0,Math.min(1,e/walkEnd));
       const x=-42+p*250;
       const step=Math.floor(e/330)%2;
       const wobble=Math.sin(e*.035)*1.25;
       const limp=Math.abs(Math.sin(e*.018))*2.1;
       drawTravelerShadow(Math.round(x)+2,220,2,1);
-      drawTraveler(Math.round(x),178+Math.round(wobble+limp),2,false,e*.019);
+      if(e<walkEnd){
+        drawTraveler(Math.round(x),178+Math.round(wobble+limp),2,false,e*.019);
+      }else{
+        // He stops, catches his breath and braces a hand against the travel belt.
+        drawTravelerStopped(Math.round(x),178,2,e);
+        if(Math.floor(e/165)%3===0)px(x+34,168,2,1,'#e8bd80');
+      }
       // Scuffed footprints and dragging dust trail.
       if(step===0){px(x-6,207,13,1,'#805047');px(x-12,211,7,1,'#684044');}
       if(e>3000&&e<8500)px(x-24,204,18,1,'#805047');
-    }else if(e<10400){
-      const p=Math.min(1,(e-8500)/650);
+    }else if(e<9150){
+      const p=Math.max(0,Math.min(1,(e-8500)/650));
       const shake=Math.sin(e*.09)*(1-p)*2;
       drawTravelerShadow(201,250,2,1.25);
       ctx.save();
@@ -885,12 +938,25 @@
       ctx.rotate(p*1.48);
       drawTraveler(-14,-20,2,false);
       ctx.restore();
+      // A short dust burst marks the impact, then settles into a few pixels.
       dust(218,254,Math.min(1,p),ts);
-    }else{
-      const tremble=e<11600?Math.sin(e*.09)*1.3:0;
+    }else if(e<11600){
+      const tremble=Math.sin(e*.09)*.7;
       drawTravelerShadow(193,260,2,1.3);
       drawTraveler(194+tremble,226+Math.abs(tremble),2,true);
-      if(e<11600)dust(218,255,.55,ts);
+      if(e<10100)dust(218,255,.55,ts);
+      // One shoulder pixel and the fingers twitch before the traveler gathers strength.
+      if(Math.floor(e/250)%2===0)px(220,245,2,1,'#e8bd80');
+    }else if(e<12600){
+      const p=(e-11600)/1000;
+      drawTravelerShadow(193,260,2,1.15);
+      drawTravelerRecovery(194,218,2,p);
+      if(p<.55)px(190,258,5,1,'#d09376');
+    }else{
+      // He reaches a low, exhausted kneel rather than snapping back to a full idle pose.
+      drawTravelerShadow(193,260,2,1.05);
+      drawTravelerRecovery(194,218,2,1);
+      if(Math.floor(e/500)%2===0)px(218,235,1,1,'#f0c58a');
     }
     // Sand gust carries the cuneiform away.
     if(e>14800&&e<16600){
