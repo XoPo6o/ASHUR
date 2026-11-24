@@ -3,10 +3,10 @@
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--dark)}
 body{color:#e9d8bb;font-family:"Pixelify Sans",monospace}
 .intro{position:relative;width:100%;height:100svh;min-height:320px;overflow:hidden;background:#100d12;isolation:isolate;cursor:default}
-#world{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;image-rendering:crisp-edges}
+#world{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;image-rendering:crisp-edges;transition:transform .06s linear}
 .vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 34%,#08070bd9 100%),linear-gradient(0deg,#08070b99,transparent 38%,#08070b44)}
 .grain{position:absolute;inset:0;pointer-events:none;opacity:.13;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");mix-blend-mode:soft-light}
-.story-copy{position:absolute;z-index:3;left:50%;top:66%;width:min(90%,900px);transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.story-copy{position:absolute;z-index:3;left:50%;top:51%;width:min(90%,900px);transform:translate(-50%,-50%);text-align:center;pointer-events:none}
 .opening{margin:0;color:#e5d3b5;font:clamp(16px,2.5vw,27px)/1.5 "Pixelify Sans",monospace;letter-spacing:.025em;opacity:0;transform:translateY(9px);text-shadow:2px 3px #09070a;transition:opacity 1.1s ease,transform 1.1s ease}
 .opening.visible{opacity:1;transform:translateY(0)}
 .cuneiform{display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,30px);margin:25px auto 0;color:#d9bd8c;font-family:serif;font-size:clamp(54px,10vw,105px);line-height:1;opacity:0;transform:translateY(16px) scale(.94);filter:drop-shadow(0 4px 0 #211510);transition:opacity .7s ease,transform .7s ease}
@@ -17,5 +17,5 @@ body{color:#e9d8bb;font-family:"Pixelify Sans",monospace}
 .sound-caption,.skip-hint{position:absolute;z-index:4;bottom:18px;color:#8b7661;font:7px/1.8 "Press Start 2P",monospace;letter-spacing:.08em}
 .sound-caption{left:22px}.skip-hint{right:22px;opacity:0;transition:opacity .5s;cursor:pointer}
 .skip-hint.visible{opacity:.65}
-@media(max-width:600px){.story-copy{top:69%}.opening{font-size:17px}.cuneiform{margin-top:19px}.game-title{font-size:clamp(29px,8vw,48px);margin-top:17px}.sound-caption,.skip-hint{font-size:5px;bottom:12px}.sound-caption{left:12px}.skip-hint{right:12px}}
+@media(max-width:600px){.story-copy{top:49%}.opening{font-size:17px}.cuneiform{margin-top:19px}.game-title{font-size:clamp(29px,8vw,48px);margin-top:17px}.sound-caption,.skip-hint{font-size:5px;bottom:12px}.sound-caption{left:12px}.skip-hint{right:12px}}
 @media(prefers-reduced-motion:reduce){.opening,.cuneiform,.game-title{transition:none}}
