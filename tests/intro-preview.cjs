@@ -23,7 +23,7 @@ const path = require('node:path');
       }
       return { width: el.width, height: el.height, different };
     });
-    if (canvas.width !== 480 || canvas.height !== 270 || canvas.different < 500) {
+    if (canvas.width !== 320 || canvas.height !== 224 || canvas.different < 500) {
       throw new Error(label + ': canvas is blank or has unexpected dimensions: ' + JSON.stringify(canvas));
     }
     return page;
