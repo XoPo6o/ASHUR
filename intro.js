@@ -234,11 +234,13 @@
       [405,145,26,36],[0,151,35,32]
     ];
     houses.forEach(([x,y,w,h],i)=>{
-      px(x,y,w,h,i%2?'#57373a':'#493139');
-      px(x-3,y-4,w+6,5,'#93604a');
+      // City facades share the same reusable masonry atlas as the ziggurat.
+      brickWall(x,y,w,h,Math.max(2,Math.ceil(h/12)),i+6);
+      px(x-3,y-4,w+6,4,'#93604a');
       px(x+4,y+7,w-8,2,'#bd8057');
       for(let xx=x+7;xx<x+w-6;xx+=14){
         px(xx,y+14,6,12,'#211d27');px(xx+1,y+15,3,10,'#7a4c42');
+        px(xx+1,y+14,4,1,'#d09376');
       }
       px(x+2,y+h-4,w-4,4,'#30252c');
     });
