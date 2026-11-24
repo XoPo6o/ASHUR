@@ -39,6 +39,13 @@
 7. Skip по тапу/клику, Escape, Space, Enter; reduced-motion показывает финальный экран.
 8. Следующий production-этап: полноценное разделение palette banks при финальной композиции слоёв, отдельные tilemaps арок/домов, а затем детальная анимация второстепенных персонажей и микродвижения окружения.
 
+## Camera, observers and title sequence
+
+- Portrait camera follows the traveler in world coordinates while preserving the 320×224 framebuffer and nearest-neighbor pixel rendering.
+- Four separate observer silhouettes stand around the central market lane. On the fall beat they stop, turn toward the traveler and raise/point an arm.
+- Opening text appears first, fades out completely, cuneiform appears alone, then fades before the KI.LAM mark.
+- GitHub Pages deploy workflow is triggered by pushes to `game-dev`; `main` remains untouched.
+
 ## Bazaar character animation
 
 - Spice seller: 12fps scoop, lift, pour and scale-settle loop.
