@@ -24,6 +24,7 @@ header{position:sticky;top:0;z-index:40;background:rgba(13,9,18,.96);border-bott
 .brand{display:flex;align-items:center;gap:10px;white-space:nowrap;color:var(--gold)}
 .brand svg{width:34px;height:34px;flex:none;filter:drop-shadow(2px 2px 0 var(--red))}
 .brand span{font:30px/1 var(--display);letter-spacing:.04em;text-shadow:3px 0 var(--cyan),-3px 0 var(--red),3px 4px #050509}
+.brand .brand-section{font:6px/1.6 var(--pixel);letter-spacing:0;color:var(--cyan);text-shadow:none}
 .links,.navlinks{display:flex;align-items:center;gap:9px}
 .links a,.navlinks a{display:inline-flex;align-items:center;justify-content:center;padding:12px 11px;border:1px solid #513449;border-bottom:3px solid var(--cyan);background:#1b1422;color:#f5e8d0;font:7px/1.5 var(--pixel);white-space:nowrap;transition:transform .15s,background .15s}
 .links a:hover,.navlinks a:hover{transform:translateY(-2px);background:#382039;color:#fff}
@@ -187,7 +188,11 @@ code{padding:2px 5px;background:#0c1119;color:#f0d28a;border:1px solid #4a3948}
 @media(max-width:680px){
  .wrap{width:calc(100% - 24px)}
  .nav{padding:9px 0;min-height:0;flex-wrap:wrap;justify-content:space-between;gap:9px}
- .brand span{font-size:24px}.brand svg{width:29px;height:29px}
+ .brand span.brand-name{font-size:24px}.brand .brand-section{font-size:5px}.brand svg{width:29px;height:29px}
+ .wall-page .navlinks{order:3;width:100%;justify-content:center;flex-wrap:wrap;gap:5px}
+ .wall-page .navlinks a{font-size:5px;padding:8px 6px}
+ .wall-page .nav .actions{gap:5px}
+ .wall-page .nav .actions .btn{font-size:5px;padding:8px 7px}
  .links{order:3;width:100%;justify-content:space-between;gap:4px}
  .links a{font-size:5px;padding:10px 5px}
  .start-small{width:60px;height:60px;font-size:8px;border-width:3px}
