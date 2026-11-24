@@ -23,7 +23,7 @@
     '#131923','#242936','#373545','#51434d','#70505a','#96636a','#bd7b70','#d99a80',
     '#edc091','#f5d9a5','#a9a06f','#7e8d68','#5d7658','#435849','#34443f','#252b32'
   ];
-  const paletteRgb = palette.map(hex => [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)));
+  const paletteRgb = palette.filter((_,index)=>index%16!==0).map(hex => [1,3,5].map(i => Math.round(parseInt(hex.slice(i,i+2),16)*7/255)*255/7));
   const paletteCache = new Map();
   function presentFrame() {
     reducedCtx.clearRect(0,0,320,180);
