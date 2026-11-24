@@ -236,6 +236,15 @@
       px(xx+2,y+12,2,2,'#e4b77c');
     }
     px(x-7,y,w+14,2,'#f0c58a');
+    // Canopy underside, stitched seams and side drapes add depth to the awning.
+    px(x-5,y+11,w+10,2,'#4a3030');
+    for(let xx=x+7;xx<x+w-5;xx+=24){
+      px(xx,y+5,1,6,'#f1c58a');
+      px(xx+2,y+6,2,4,'#6d3c38');
+    }
+    px(x-3,y+12,4,18,'#6f3c37');
+    px(x+w-1,y+12,4,18,'#6f3c37');
+    px(x+2,y+29,w-4,2,'#e0ac70');
     // Goods: jars, baskets, cloth rolls, produce, pottery.
     for(let i=0;i<6;i++){
       const gx=x+7+i* Math.max(10,(w-18)/6),gy=y+19+(i%2)*3;
@@ -246,8 +255,21 @@
     // Hanging textiles and price tags.
     px(x+Math.floor(w*.28),y+12,13,3,'#e5bd83');px(x+Math.floor(w*.28),y+15,2,7,'#a84f43');
     px(x+Math.floor(w*.7),y+12,12,3,'#8ba08a');px(x+Math.floor(w*.7),y+15,2,7,'#d2a56c');
-    // Warm interior.
+    // Warm interior and layered counter edge.
     px(x+8,y+15,w-16,2,'#e0a46c');
+    px(x+3,y+34,w-6,2,'#e2b477');
+    px(x+5,y+36,w-10,2,'#5b3935');
+    for(let xx=x+8;xx<x+w-8;xx+=18){
+      px(xx,y+38,2,4,'#3a292d');
+      px(xx+1,y+38,1,3,'#b47a50');
+    }
+    // Hanging little lanterns at the stall corners.
+    [x+10,x+w-13].forEach((lx,i)=>{
+      px(lx,y+10,1,5,'#33252b');
+      px(lx-2,y+14,5,5,'#a75a3f');
+      px(lx-1,y+15,3,3,'#ffd28a');
+      px(lx,y+16,1,2,'#fff0bf');
+    });
   }
   function drawMarket(t){
     // Main market street and foreground stalls.
@@ -299,6 +321,12 @@
       px(x-4,y+3,9,8,'#a95d43');px(x-2,y+4,5,5,'#ffd28a');
       px(x-1,y+5,2,3,'#fff0bf');px(x,y+9,2,4,'#e6a45e');
       ctx.globalAlpha=.10;px(x-17,y+10,34,24,'#ffc16b');ctx.globalAlpha=1;
+      // A stepped pool of warm light falls onto the paving beneath each lamp.
+      ctx.globalAlpha=.10*flicker;
+      px(x-10,194,20,2,'#ffc77b');
+      px(x-16,197,32,2,'#d99a61');
+      px(x-8,200,16,1,'#e8b879');
+      ctx.globalAlpha=1;
     });
     // Market signs in simple painted pictograms.
     px(17,166,18,9,'#d8b178');px(19,168,14,2,'#6c3d37');px(24,171,4,3,'#a84f43');
