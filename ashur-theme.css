@@ -309,3 +309,15 @@ code{padding:2px 5px;background:#0c1119;color:#f0d28a;border:1px solid #4a3948}
 /* Wall Russian copy: explicit high-specificity pixel font coverage */
 .wall-page .hero p,.wall-page .section-head p{font-family:var(--font-tiny);font-size:18px;line-height:1.25}
 @media(max-width:680px){.wall-page .hero p,.wall-page .section-head p{font-size:16px}}
+
+/* Keep Press Start glyphs aligned to its 8px bitmap grid */
+.eyebrow,.logo-sub,.font-sample-label,.brand .brand-section,.links a,.navlinks a,.start-small,.hud-label,.mode-stamp,.map-caption,.level-no,.level .status,.panel-title,.guardian-seal small,footer small,.wall-page .tag,.wall-page .statusline,.wall-page .runhead,.wall-page .run a,.wall-page .smalllabel,.wall-page .pill{font-size:8px}
+.home-page .section-head h2{font-size:16px;line-height:2}
+.home-page .level h3{font-size:8px;line-height:2}
+.font-press h3{font-size:8px;line-height:2.5}
+@media(max-width:680px){
+ .links a,.navlinks a{font-size:8px}
+ .home-page .section-head h2{font-size:16px}
+ .home-page .level h3{font-size:8px}
+ .wall-page .navlinks a{font-size:8px}
+}
