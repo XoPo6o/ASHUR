@@ -60,7 +60,7 @@ const path = require('node:path');
     const skippedTitle = await desktop.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     if (Number(skippedTitle) < 0.9) throw new Error('Skip action did not reveal title');
     if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ canvas, openingVisible, cuneiformVisible, titleVisible, mobileTitle, titleBox, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, mobileTitle, titleBox, errors }));
   } finally {
     await browser.close();
   }
