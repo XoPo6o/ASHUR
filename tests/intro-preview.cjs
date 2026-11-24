@@ -87,10 +87,10 @@ const path = require('node:path');
     const mobileReaction = await mobile.locator('#world').evaluate(el => el.dataset.observerReaction);
     const mobileFrame = await mobile.locator('#world').evaluate(el => {
       const r = el.getBoundingClientRect();
-      return { objectFit: getComputedStyle(el).objectFit, imageRendering: getComputedStyle(el).imageRendering, width: r.width, height: r.height };
+      return { objectFit: getComputedStyle(el).objectFit, imageRendering: getComputedStyle(el).imageRendering, cameraPixelX: Number(el.dataset.cameraPixelX), cameraPixelY: Number(el.dataset.cameraPixelY), width: r.width, height: r.height };
     });
     if (!(mobileCamera > 0) || !(mobileCameraY > 60) || mobileReaction !== 'true' ||
-        mobileFrame.objectFit !== 'cover' || !['pixelated', 'crisp-edges'].includes(mobileFrame.imageRendering) || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
+        mobileFrame.objectFit !== 'cover' || !['pixelated', 'crisp-edges'].includes(mobileFrame.imageRendering) || !Number.isInteger(mobileFrame.cameraPixelX) || !Number.isInteger(mobileFrame.cameraPixelY) || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
       throw new Error('Portrait camera, fall reaction or full-screen framing failed: ' +
         JSON.stringify({ mobileCamera, mobileCameraY, mobileReaction, mobileFrame }));
     }
@@ -110,8 +110,8 @@ const path = require('node:path');
     const landscape = await openScene(844, 390, 'mobile-landscape', 3);
     await landscape.waitForTimeout(16800);
     const landscapeBox = await landscape.locator('#world').boundingBox();
-    const landscapeCamera = await landscape.locator('#world').evaluate(el => ({ x: Number(el.dataset.cameraX), y: Number(el.dataset.cameraY) }));
-    if (!(landscapeCamera.x > 0) || !(landscapeCamera.y > 0)) throw new Error('Landscape camera did not follow the traveler: ' + JSON.stringify(landscapeCamera));
+    const landscapeCamera = await landscape.locator('#world').evaluate(el => ({ x: Number(el.dataset.cameraX), y: Number(el.dataset.cameraY), px: Number(el.dataset.cameraPixelX), py: Number(el.dataset.cameraPixelY) }));
+    if (!(landscapeCamera.x > 0) || !(landscapeCamera.y > 0) || !Number.isInteger(landscapeCamera.px) || !Number.isInteger(landscapeCamera.py)) throw new Error('Landscape camera did not follow the traveler: ' + JSON.stringify(landscapeCamera));
     const landscapeTitle = await landscape.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     const landscapeTitleBox = await landscape.locator('#game-title').boundingBox();
     if (!landscapeBox || landscapeBox.x < -1 || landscapeBox.x + landscapeBox.width > 845 ||
