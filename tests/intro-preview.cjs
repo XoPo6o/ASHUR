@@ -56,11 +56,16 @@ const path = require('node:path');
     }
     await mobile.screenshot({ path: path.join(out, '05-title-mobile.png'), fullPage: true });
 
-    await desktop.keyboard.press('Escape');
-    const skippedTitle = await desktop.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
-    if (Number(skippedTitle) < 0.9) throw new Error('Skip action did not reveal title');
+    const skipPage = await openScene(1280, 720, 'skip');
+    await skipPage.keyboard.press('Escape');
+    await skipPage.waitForTimeout(900);
+    const skippedTitle = await skipPage.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
+    const skippedHint = await skipPage.locator('#skip-hint').evaluate(el => getComputedStyle(el).opacity);
+    if (Number(skippedTitle) < 0.9 || Number(skippedHint) > 0.1) {
+      throw new Error('Skip action did not reveal title and hide the hint');
+    }
     if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, mobileTitle, titleBox, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, mobileTitle, titleBox, skippedTitle, skippedHint, errors }));
   } finally {
     await browser.close();
   }
