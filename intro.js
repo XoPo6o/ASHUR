@@ -481,6 +481,124 @@
       px(x,y,2,1,i%2?'#d7a96e':'#e8c18a');
     }
   }
+  // Hand-placed architectural pixel details: relief bands, glazed inlays and carved trim.
+  function drawArchitectureDetails(t){
+    // Ziggurat: recessed courses and repeated sun-disk reliefs break up broad brick faces.
+    const courses=[[12,143,128],[22,125,112],[33,107,92],[45,90,70],[56,75,49],[67,62,28]];
+    courses.forEach(([x,y,w],row)=>{
+      px(x+3,y+5,w-6,1,'#5b3b3d');
+      px(x+5,y+7,w-10,1,row%2?'#d09376':'#bd8057');
+      for(let xx=x+13+(row%2?8:0);xx<x+w-9;xx+=24){
+        px(xx,y+9,5,1,'#e2b477');
+        px(xx+1,y+8,3,3,'#805047');
+        px(xx+2,y+9,1,1,'#f0c58a');
+      }
+    });
+    // Summit shrine: stepped lintel, inset doorway and tiny ceremonial flame.
+    px(69,46,19,1,'#f0c58a');px(71,44,15,1,'#e0a06a');
+    px(75,49,7,8,'#241e27');px(77,50,3,6,'#d09376');
+    px(78,47,1,2,'#ffd58a');px(76,57,5,1,'#e8b477');
+    // Hanging Gardens: terracotta planter lips, leaf clusters and stone drain mouths.
+    for(let i=0;i<6;i++){
+      const x=355+i*19,y=104+(i%3)*7;
+      px(x,y,8,2,'#d69a68');px(x+1,y+2,6,2,'#684044');
+      px(x+2,y-3,2,3,'#8da36a');px(x+4,y-5,3,3,'#a2a66e');
+      px(x+7,y-2,2,2,'#5e8052');
+    }
+    for(let i=0;i<4;i++){
+      const x=365+i*23,y=123+(i%2)*8;
+      px(x,y,5,3,'#2d3434');px(x+1,y+1,3,1,'#91b0a0');
+      px(x+1,y+3,3,1,'#d0a06a');
+    }
+    // Temple facade: column capitals, dark joints and a stepped frieze.
+    for(let x=436;x<470;x+=10){
+      px(x-1,59,6,2,'#edbd83');px(x,64,1,10,'#e0b477');
+      px(x+3,64,1,10,'#6b4140');px(x-1,76,6,2,'#e7b28a');
+    }
+    px(431,49,45,1,'#f0c58a');px(438,40,29,1,'#f0c58a');
+    // Distant houses: roof coping, timber lintels and alternating warm/cool window depth.
+    const windows=[[145,161],[169,160],[204,168],[251,156],[271,168],[414,162]];
+    windows.forEach(([x,y],i)=>{
+      px(x-1,y-1,6,1,'#d99a69');
+      px(x+1,y+1,1,4,i%2?'#fff0bf':'#f2c17b');
+      px(x+3,y+2,1,3,'#805047');
+      px(x-1,y+6,6,1,'#493139');
+    });
+    // Small roof finials and parapet notches give the skyline a hand-built silhouette.
+    [[136,139],[184,147],[232,134],[283,146],[405,141],[12,147]].forEach(([x,y],i)=>{
+      px(x,y,2,5,'#d09376');px(x-2,y+3,6,1,'#e0b477');
+      if(i%2===0)px(x,y-2,2,2,'#edbd83');
+    });
+    // Lamassu relief: feather divisions, harness studs and a carved plinth inscription.
+    for(let i=0;i<6;i++){
+      px(281+i*3,142-i*2,2,1,'#f0d19a');
+      px(284+i*3,149-i,2,1,'#705047');
+    }
+    for(let i=0;i<5;i++){
+      px(298+i*6,158,2,2,'#e9c17b');
+      px(299+i*6,160,1,2,'#49353b');
+    }
+    px(292,179,48,1,'#e8bd80');
+    for(let i=0;i<8;i++)px(296+i*5,181,2,1,i%2?'#bd8057':'#d69a68');
+  }
+
+  // Foreground craft pass: embroidery, pottery marks, basket weave and stall joinery.
+  function drawMarketDetails(t){
+    // Left rug: stepped border and a repeating diamond pattern.
+    px(20,230,50,1,'#f0c58a');px(20,237,50,1,'#493139');
+    for(let i=0;i<6;i++){
+      const x=24+i*8;
+      px(x,232,2,2,'#e8bd80');px(x+2,234,2,2,'#6c3938');
+      px(x+1,236,2,1,'#f0c58a');
+    }
+    // Right folded carpet: contrasting woven stripes and fringe.
+    for(let i=0;i<5;i++){
+      const y=231+i*2;
+      px(392,y,31,1,i%2?'#e0b477':'#8c4c43');
+    }
+    for(let x=394;x<425;x+=5)px(x,240,2,2,'#e8bd80');
+    // Pottery: painted chevrons, neck rings and dark mouths.
+    const marks=[[79,238,12],[94,244,10],[66,248,9]];
+    marks.forEach(([x,y,w],i)=>{
+      px(x+Math.floor(w/2)-1,y+1,3,1,'#493139');
+      px(x+2,y+6,w-4,1,'#f0c58a');
+      px(x+2,y+8,2,2,'#6c3938');px(x+w-4,y+8,2,2,'#6c3938');
+      px(x+Math.floor(w/2)-1,y+10,2,2,'#e8bd80');
+    });
+    // Basket weave on the right: alternating over-under rows and reinforced rim.
+    for(let row=0;row<4;row++){
+      for(let col=0;col<6;col++){
+        px(438+col*4,242+row*3,2,1,(row+col)%2?'#e0b477':'#a66a47');
+      }
+    }
+    px(436,240,27,1,'#e8bd80');px(438,255,23,1,'#30252c');
+    // Stall canopy seams and tiny tassels; their one-pixel sway stays on the 12fps grid.
+    [8,128,359].forEach((x,i)=>{
+      const y=[177,181,176][i],w=[94,92,112][i];
+      for(let k=0;k<Math.floor(w/24);k++){
+        const tx=x+12+k*24;
+        px(tx,y+11,1,4,'#f0c58a');
+        px(tx-1,y+14,3,1,'#6c3938');
+      }
+      const sway=Math.round(Math.sin(t*.006+i)*1);
+      px(x+Math.floor(w/2)+sway,y+12,2,3,'#e8bd80');
+    });
+    // Tiny spice bowls on the central counter: rims, contents and shadow pixels.
+    const spice=['#c66b4c','#d8b578','#7f9670','#a95d43','#6f8584'];
+    for(let i=0;i<5;i++){
+      const x=230+i*9,y=199+(i%2)*2;
+      px(x-1,y,8,1,'#e8bd80');
+      px(x+1,y+2,4,2,spice[i]);
+      px(x+2,y+1,2,1,'#f0c58a');
+      px(x,y+6,7,1,'#30252c');
+    }
+    // Scattered date pits and grain form deliberate clusters instead of random noise.
+    [[148,252],[153,255],[160,251],[174,258],[181,254],[188,260],[204,253],[211,257]].forEach(([x,y],i)=>{
+      px(x,y,2,1,i%3===0?'#f0c58a':'#c08a55');
+      if(i%2===0)px(x+2,y+1,1,1,'#684044');
+    });
+  }
+
   function drawAtmosphere(t){
     // Low amber haze softens the far end of the street without washing out pixels.
     for(let i=0;i<7;i++){
@@ -521,7 +639,8 @@
     }
   }
   function background(t){
-    drawSky(t);drawZiggurat();drawGardens();drawCity();drawBazaarLife(t);drawLamassu();drawMarket(t);drawAtmosphere(t);
+    drawSky(t);drawZiggurat();drawGardens();drawCity();drawArchitectureDetails(t);
+    drawBazaarLife(t);drawLamassu();drawMarket(t);drawMarketDetails(t);drawAtmosphere(t);
   }
 
   // A compact, hand-drawn traveler sprite with readable silhouette and layered cloth.
