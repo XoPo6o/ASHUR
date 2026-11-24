@@ -110,6 +110,8 @@ const path = require('node:path');
     const landscape = await openScene(844, 390, 'mobile-landscape', 3);
     await landscape.waitForTimeout(16800);
     const landscapeBox = await landscape.locator('#world').boundingBox();
+    const landscapeCamera = await landscape.locator('#world').evaluate(el => ({ x: Number(el.dataset.cameraX), y: Number(el.dataset.cameraY) }));
+    if (!(landscapeCamera.x > 0) || !(landscapeCamera.y > 0)) throw new Error('Landscape camera did not follow the traveler: ' + JSON.stringify(landscapeCamera));
     const landscapeTitle = await landscape.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     const landscapeTitleBox = await landscape.locator('#game-title').boundingBox();
     if (!landscapeBox || landscapeBox.x < -1 || landscapeBox.x + landscapeBox.width > 845 ||
@@ -133,7 +135,7 @@ const path = require('node:path');
     });
     if (palette > 60) throw new Error('Frame exceeds the 4x15 visible-color budget: ' + palette);
         if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, skippedOpening, mobileCamera, mobileCameraY, mobileReaction, mobileFrame, palette, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, skippedOpening, mobileCamera, mobileCameraY, mobileReaction, mobileFrame, landscapeCamera, palette, errors }));
   } finally {
     await browser.close();
   }
