@@ -1,9 +1,7 @@
-name: Deploy ASHUR site with KI.LAM preview
+name: Publish KI.LAM preview alongside ASHUR
 
 on:
-  push:
-    branches: ["game-dev"]
-  workflow_dispatch:
+  # Manual only until repository Pages source is switched from main to GitHub Actions.
 
 permissions:
   contents: read
