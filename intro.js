@@ -306,18 +306,23 @@
   ];
   function drawTraveler(x,y,scale=2,fallen=false){
     if(fallen){
-      // Dedicated horizontal pose: hood, face, travel cloak, pack and exhausted legs.
-      px(x+2*scale,y+7*scale,9*scale,7*scale,'#29232a');
-      px(x+4*scale,y+10*scale,6*scale,3*scale,'#e3b77e');
-      px(x+8*scale,y+10*scale,2*scale,2*scale,'#34252a');
-      px(x+10*scale,y+8*scale,18*scale,10*scale,'#a64e42');
-      px(x+12*scale,y+7*scale,13*scale,2*scale,'#e0a06a');
+      // Side-on exhausted merchant: readable hood, face, beard, robe, arm, pack and boots.
+      px(x+1*scale,y+6*scale,11*scale,10*scale,'#29232a');
+      px(x+3*scale,y+7*scale,8*scale,7*scale,'#e3b77e');
+      px(x+8*scale,y+9*scale,2*scale,2*scale,'#34252a');
+      px(x+8*scale,y+12*scale,4*scale,2*scale,'#875044');
+      px(x+2*scale,y+5*scale,8*scale,2*scale,'#f0c58a');
+      px(x+11*scale,y+8*scale,18*scale,10*scale,'#a64e42');
+      px(x+14*scale,y+7*scale,12*scale,2*scale,'#e0a06a');
+      px(x+16*scale,y+10*scale,9*scale,1*scale,'#cf7650');
+      px(x+18*scale,y+14*scale,8*scale,2*scale,'#6c3938');
       px(x+13*scale,y+17*scale,14*scale,3*scale,'#6d785d');
       px(x+17*scale,y+18*scale,9*scale,2*scale,'#b4a078');
-      px(x+26*scale,y+12*scale,7*scale,3*scale,'#25232b');
-      px(x+31*scale,y+14*scale,7*scale,3*scale,'#d2a16d');
-      px(x+13*scale,y+16*scale,7*scale,2*scale,'#e3b77e');
-      px(x+3*scale,y+6*scale,7*scale,1,'#f2d19a');
+      px(x+15*scale,y+14*scale,10*scale,2*scale,'#e3b77e');
+      px(x+23*scale,y+14*scale,3*scale,2*scale,'#f0c58a');
+      px(x+28*scale,y+10*scale,8*scale,4*scale,'#25232b');
+      px(x+34*scale,y+13*scale,6*scale,3*scale,'#d2a16d');
+      px(x+3*scale,y+15*scale,7*scale,2*scale,'#25232b');
       return;
     }
     const colors={H:'#29232a',S:'#e3b77e',R:'#a64e42',L:'#25232b'};
