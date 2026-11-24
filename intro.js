@@ -529,6 +529,9 @@
       px(x,y,2,5,'#d09376');px(x-2,y+3,6,1,'#e0b477');
       if(i%2===0)px(x,y-2,2,2,'#edbd83');
     });
+  }
+
+  function drawMonumentDetails(){
     // Lamassu relief: feather divisions, harness studs and a carved plinth inscription.
     for(let i=0;i<6;i++){
       px(281+i*3,142-i*2,2,1,'#f0d19a');
@@ -640,7 +643,7 @@
   }
   function background(t){
     drawSky(t);drawZiggurat();drawGardens();drawCity();drawArchitectureDetails(t);
-    drawBazaarLife(t);drawLamassu();drawMarket(t);drawMarketDetails(t);drawAtmosphere(t);
+    drawBazaarLife(t);drawLamassu();drawMonumentDetails();drawMarket(t);drawMarketDetails(t);drawAtmosphere(t);
   }
 
   // A compact, hand-drawn traveler sprite with readable silhouette and layered cloth.
