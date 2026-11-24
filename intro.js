@@ -439,9 +439,17 @@
     title.classList.add('visible');
   }
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'||e.key===' '){e.preventDefault();skip();}
+    if(e.key==='Escape'||e.key===' '||e.key==='Enter'){e.preventDefault();skip();}
   });
   // Invisible tap/click target keeps the cinematic free of UI controls.
   document.getElementById('intro').addEventListener('pointerdown',skip,{passive:true});
-  requestAnimationFrame(ts=>{start=ts;draw(ts);});
+
+  // Respect reduced-motion preferences: show the finished title card immediately.
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    background(0);
+    opening.classList.add('visible');
+    title.classList.add('visible');
+  }else{
+    requestAnimationFrame(ts=>{start=ts;draw(ts);});
+  }
 })();
