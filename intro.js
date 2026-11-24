@@ -156,10 +156,9 @@
     px(379,29,4,3,'#b85b4d');px(399,37,3,3,'#b85b4d');px(389,49,5,2,'#b85b4d');
   }
   function drawSky(t){
-    const g=ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,C.sky0);g.addColorStop(.43,C.sky1);g.addColorStop(.72,C.sky2);g.addColorStop(1,'#3b2930');
-    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    // Distant haze bands.
+    // Four hard-edged sky bands: no gradients or alpha blending.
+    px(0,0,W,58,C.sky0);px(0,58,W,38,C.sky1);
+    px(0,96,W,35,C.sky2);px(0,131,W,H-131,'#3b2930');
     px(0,90,480,18,'#4a3540');px(0,108,480,9,'#684047');
     for(let i=0;i<66;i++){
       const x=(i*73+17)%480,y=(i*37+11)%100;
@@ -169,7 +168,7 @@
     // Wispy cloud silhouettes.
     for(let i=0;i<5;i++){
       const x=(i*113+((t*.003)%520))-35,y=62+(i%3)*13;
-      ctx.globalAlpha=.12;px(x,y,42,2,'#d58b70');px(x+8,y-3,20,2,'#d58b70');ctx.globalAlpha=1;
+      if(i%2===0){px(x,y,42,1,'#684047');px(x+8,y-3,20,1,'#6b4140');}
     }
   }
   function drawZiggurat(){
@@ -411,21 +410,20 @@
     lamps.forEach((x,i)=>{
       const y=157+(i%2)*8;
       const flicker=.82+.18*Math.sin(t*.009+i*2.1);
-      const glow=ctx.createRadialGradient(x,y+7,1,x,y+7,34);
-      glow.addColorStop(0,'rgba(255,190,105,.30)');
-      glow.addColorStop(.35,'rgba(255,160,85,.12)');
-      glow.addColorStop(1,'rgba(255,145,70,0)');
-      ctx.globalAlpha=flicker;ctx.fillStyle=glow;ctx.fillRect(x-34,y-27,68,68);ctx.globalAlpha=1;
+      // Stepped lantern light pool uses solid palette colors, never alpha gradients.
+      if(flicker>.88){
+        px(x-4,y+12,8,3,'#a8614b');px(x-8,y+15,16,2,'#805047');
+        px(x-12,y+17,24,1,'#5b3b42');
+      }else{
+        px(x-3,y+12,6,2,'#805047');px(x-7,y+14,14,2,'#5b3b42');
+      }
       px(x,y-9,1,13,'#31242a');px(x-4,y+1,9,2,'#d6a16b');
       px(x-4,y+3,9,8,'#a95d43');px(x-2,y+4,5,5,'#ffd28a');
       px(x-1,y+5,2,3,'#fff0bf');px(x,y+9,2,4,'#e6a45e');
-      ctx.globalAlpha=.10;px(x-17,y+10,34,24,'#ffc16b');ctx.globalAlpha=1;
-      // A stepped pool of warm light falls onto the paving beneath each lamp.
-      ctx.globalAlpha=.10*flicker;
-      px(x-10,194,20,2,'#ffc77b');
-      px(x-16,197,32,2,'#d99a61');
-      px(x-8,200,16,1,'#e8b879');
-      ctx.globalAlpha=1;
+      // Hard-edged reflected light on the stone floor.
+      px(x-10,194,20,2,'#d09376');
+      px(x-16,197,32,2,'#805047');
+      px(x-8,200,16,1,'#a8614b');
     });
     // Market signs in simple painted pictograms.
     px(17,166,18,9,'#d8b178');px(19,168,14,2,'#6c3d37');px(24,171,4,3,'#a84f43');
@@ -466,7 +464,7 @@
     // Low amber haze softens the far end of the street without washing out pixels.
     for(let i=0;i<7;i++){
       const x=(i*91+(t*.006)%540)-30,y=184+(i%3)*13;
-      ctx.globalAlpha=.055;px(x,y,65,3,'#e5b17d');ctx.globalAlpha=1;
+      if(i%2===0)px(x,y,65,1,'#805047');
     }
     // Thin cooking-smoke ribbons drift sideways from the market roofs.
     const chimneys=[{x:76,y:174},{x:181,y:178},{x:397,y:171}];
@@ -475,32 +473,31 @@
         const drift=(t*.008+i*19+k*13)%30;
         const rise=(t*.012+k*8+i*5)%34;
         const width=5+(k%3)*3;
-        ctx.globalAlpha=.10+(k%2)*.035;
-        px(p.x+Math.round(drift*.45)-Math.round(rise*.12),p.y-rise,width,2,'#d6a17d');
-        if(k%2===0)px(p.x+Math.round(drift*.45)+3,p.y-rise-2,width-2,1,'#b98370');
+        if(k%2===0){
+          px(p.x+Math.round(drift*.45)-Math.round(rise*.12),p.y-rise,width,1,'#805047');
+          px(p.x+Math.round(drift*.45)+3,p.y-rise-2,width-2,1,'#684044');
+        }
       }
     });
     // A slow ribbon of warm air moves above the paving, broken into pixel bands.
     for(let i=0;i<4;i++){
       const x=(i*137+t*.018)%540-40;
       const y=204+i*7+Math.sin(t*.0015+i)*2;
-      ctx.globalAlpha=.045;
-      px(x,y,38,1,'#f0bd83');px(x+9,y+2,21,1,'#e0a16e');
+      if(i%2===0){px(x,y,38,1,'#a8614b');px(x+9,y+2,21,1,'#805047');}
     }
     // Floating dust motes catch the lantern light; some brighten as they cross it.
     for(let i=0;i<38;i++){
       const x=(i*83+(t*.012*(i%3+1)))%480;
       const y=(i*47+Math.sin(t*.001+i)*5)%205;
       const pulse=.18+seeded(i)*.35+Math.max(0,Math.sin(t*.002+i))*.12;
-      ctx.globalAlpha=Math.min(.62,pulse);px(x,y,1+(i%9===0?1:0),1,'#f4ca8b');
+      if(pulse>.42)px(x,y,1+(i%9===0?1:0),1,i%3===0?'#e7b28a':'#d09376');
     }
-    // Soft edge vignette keeps the eye on the traveler and illuminated stalls.
-    const vignette=ctx.createRadialGradient(240,142,62,240,142,255);
-    vignette.addColorStop(0,'rgba(18,15,24,0)');
-    vignette.addColorStop(.72,'rgba(18,15,24,.08)');
-    vignette.addColorStop(1,'rgba(12,12,20,.34)');
-    ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
-    ctx.globalAlpha=1;
+    // Stepped corner shadows replace the modern radial vignette.
+    for(let i=0;i<8;i++){
+      const inset=i*3;
+      px(inset,inset,34-i*3,2,'#17131c');px(W-34+ i*3,inset,34-i*3,2,'#17131c');
+      px(inset,H-inset-2,34-i*3,2,'#17131c');px(W-34+i*3,H-inset-2,34-i*3,2,'#17131c');
+    }
   }
   function background(t){
     drawSky(t);drawZiggurat();drawGardens();drawCity();drawBazaarLife(t);drawLamassu();drawMarket(t);drawAtmosphere(t);
@@ -563,12 +560,9 @@
 
   function drawTravelerShadow(x,y,scale=2,weight=1){
     // Three stepped layers keep the ground contact crisp at the canvas pixel scale.
-    const alpha=Math.max(.12,Math.min(.34,weight*.24));
-    ctx.globalAlpha=alpha;
-    px(x+4*scale,y,10*scale,2,'#17151d');
-    px(x+2*scale,y+2,14*scale,2,'#17151d');
-    px(x,y+4,18*scale,1,'#17151d');
-    ctx.globalAlpha=1;
+    px(x+4*scale,y,10*scale,2,'#17131c');
+    px(x+2*scale,y+2,14*scale,2,'#17131c');
+    px(x,y+4,18*scale,1,'#202536');
   }
 
   function drawTraveler(x,y,scale=2,fallen=false,gait=0){
@@ -646,10 +640,8 @@
       const a=i*2.399,d=(i*17%53)*amount;
       const xx=x+Math.cos(a)*d+Math.sin(t*.004+i)*2;
       const yy=y+Math.sin(a)*d*.32+Math.cos(t*.006+i)*2;
-      ctx.globalAlpha=Math.max(0,.72-amount*.35);
-      px(xx,yy,1+(i%3===0?1:0),1,'#e8c18a');
+      if(amount>.2)px(xx,yy,1+(i%3===0?1:0),1,i%2?'#e7b28a':'#d09376');
     }
-    ctx.globalAlpha=1;
   }
   function draw(ts){
     if(ts-lastFrame < 1000/12){requestAnimationFrame(draw);return;}
@@ -666,8 +658,8 @@
       drawTravelerShadow(Math.round(x)+2,220,2,1);
       drawTraveler(Math.round(x),178+Math.round(wobble+limp),2,false,e*.019);
       // Scuffed footprints and dragging dust trail.
-      if(step===0){ctx.globalAlpha=.4;px(x-6,207,13,2,'#d5a477');px(x-12,211,7,1,'#b98a65');ctx.globalAlpha=1;}
-      if(e>3000&&e<8500){ctx.globalAlpha=.18;px(x-24,204,18,2,'#e5bc83');ctx.globalAlpha=1;}
+      if(step===0){px(x-6,207,13,1,'#805047');px(x-12,211,7,1,'#684044');}
+      if(e>3000&&e<8500)px(x-24,204,18,1,'#805047');
     }else if(e<10400){
       const p=Math.min(1,(e-8500)/650);
       const shake=Math.sin(e*.09)*(1-p)*2;
@@ -688,12 +680,11 @@
     if(e>14800&&e<16600){
       const amount=Math.min(1,(e-14800)/400);
       dust(240,132,amount,ts);
-      ctx.globalAlpha=.55;
       for(let i=0;i<65;i++){
         const x=(i*23+e*.052)%480,y=92+(i*17)%91;
         px(x,y,1+(i%3===0?1:0),1,'#e8c18a');
       }
-      ctx.globalAlpha=1;sx=Math.sin(ts*.11)*2.2;sy=Math.cos(ts*.09)*1.3;
+      sx=Math.sin(ts*.11)*2.2;sy=Math.cos(ts*.09)*1.3;
     }
     presentFrame();
     canvas.style.transform='translate('+Math.round(sx/1.5)+'px,'+Math.round(sy/1.5)+'px)';
