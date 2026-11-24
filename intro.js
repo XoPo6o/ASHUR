@@ -441,5 +441,7 @@
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'||e.key===' '){e.preventDefault();skip();}
   });
+  // Invisible tap/click target keeps the cinematic free of UI controls.
+  document.getElementById('intro').addEventListener('pointerdown',skip,{passive:true});
   requestAnimationFrame(ts=>{start=ts;draw(ts);});
 })();
