@@ -117,9 +117,11 @@
     Array.from({length:40},(_,col)=>['floor0','floor1','floor2','floor3'][(row*3+col*5+Math.floor(col/4))%4]).join('')
   );
 
-  // Legacy scene coordinates are 3:2 relative to the native 320x224 framebuffer.
-  // Snap every primitive to native pixel boundaries before the 2/3 transform is applied.
-  const snapNative = value => Math.round(value * 2 / 3) * 1.5;
+  // The camera changes the world-to-framebuffer scale per orientation. Every primitive
+  // snaps against that active scale, preserving the native pixel grid while zooming.
+  let renderScale = 2/3;
+  let cameraX = 0, cameraY = 0;
+  const snapNative = value => Math.round(value * renderScale) / renderScale;
   const px = (x,y,w,h,c) => {
     const sx=snapNative(x),sy=snapNative(y);
     const sw=Math.max(1.5,snapNative(w)),sh=Math.max(1.5,snapNative(h));
@@ -127,9 +129,9 @@
     ctx.fillRect(sx,sy,sw,sh);
   };
   const line = (x1,y1,x2,y2,c) => {
-    ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.beginPath();
-    ctx.moveTo(snapNative(x1)+.75,snapNative(y1)+.75);
-    ctx.lineTo(snapNative(x2)+.75,snapNative(y2)+.75);
+    ctx.strokeStyle=c;ctx.lineWidth=1/renderScale;ctx.beginPath();
+    ctx.moveTo(snapNative(x1)+.5/renderScale,snapNative(y1)+.5/renderScale);
+    ctx.lineTo(snapNative(x2)+.5/renderScale,snapNative(y2)+.5/renderScale);
     ctx.stroke();
   };
   function seeded(n){const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v);}
@@ -708,6 +710,42 @@
       px(inset,H-inset-2,34-i*3,2,'#17131c');px(W-34+i*3,H-inset-2,34-i*3,2,'#17131c');
     }
   }
+  function drawObservers(elapsed){
+    // Four separate onlookers stand clear of the stalls. At the impact they stop
+    // their routines, turn toward the traveler and raise a hand in alarm.
+    const reacting = elapsed >= 8500;
+    const observers = [
+      {x:154,y:181,robe:'#263039',trim:'#718078',skin:'#d6a675',side:-1},
+      {x:181,y:184,robe:'#30252e',trim:'#a66a55',skin:'#e0b477',side:1},
+      {x:257,y:180,robe:'#263239',trim:'#8c987d',skin:'#d6a675',side:-1},
+      {x:285,y:184,robe:'#35272d',trim:'#b17a59',skin:'#e0b477',side:1}
+    ];
+    observers.forEach((p,i)=>{
+      const look=reacting ? (i%2===0?1:0) : 0;
+      const arm=reacting ? 1 : 0;
+      const bob=reacting?0:Math.floor(Math.sin(elapsed*.004+i)*1);
+      const x=p.x,y=p.y+bob;
+      // Hood and face remain a dark, readable silhouette with a narrow lit edge.
+      px(x+4,y,8,4,'#171820');px(x+3,y+2,9,5,p.robe);
+      px(x+5+look,y+3,5,3,p.skin);px(x+5+look,y+5,4,2,'#49353b');
+      px(x+2,y+7,12,4,p.trim);px(x+1,y+10,14,12,p.robe);
+      px(x+3,y+11,2,9,'#171820');px(x+10,y+11,2,9,'#171820');
+      px(x+2,y+21,5,2,'#17131c');px(x+9,y+21,5,2,'#17131c');
+      px(x+4,y+8,7,1,'#d69a68');
+      if(arm){
+        // One arm points toward the fallen traveler; the other silhouette recoils.
+        const armX=p.side<0?x-3:x+13;
+        px(armX,y+8,3,3,p.skin);
+        px(armX+(p.side<0?-2:2),y+5,2,4,p.skin);
+        px(armX+(p.side<0?-3:3),y+4,2,2,'#e8bd80');
+        if(i===1||i===3)px(x+5,y-3,3,2,'#e8bd80');
+      }else{
+        px(x+(p.side<0?0:12),y+9,2,6,p.skin);
+      }
+      // A small gap between cloak and feet keeps each onlooker individually legible.
+      px(x+4,y+20,2,3,'#d09376');px(x+9,y+20,2,3,'#d09376');
+    });
+  }
   function background(t){
     drawSky(t);drawZiggurat();drawGardens();drawCity();drawArchitectureDetails(t);
     drawBazaarLife(t);drawLamassu();drawMonumentDetails();drawMarket(t);drawMarketDetails(t);drawAtmosphere(t);
@@ -949,7 +987,21 @@
     if(ts-lastFrame < 1000/12){requestAnimationFrame(draw);return;}
     lastFrame=ts;
     const e=ts-start;
+    const portrait=window.matchMedia('(orientation: portrait)').matches;
+    // Portrait gets a closer, vertically composed market view. The canvas itself
+    // remains 320x224; CSS cover reveals its central strip while this camera follows
+    // the traveler in world coordinates instead of shrinking the whole panorama.
+    renderScale=(2/3)*(portrait?1.25:1);
+    const travelerWorldX=e<8100 ? -42+Math.max(0,Math.min(1,e/8100))*250 : 208;
+    const worldViewWidth=320/renderScale;
+    const targetCamera=travelerWorldX+16-worldViewWidth/2;
+    cameraX=portrait?Math.max(0,Math.min(W-worldViewWidth,targetCamera)):0;
+    cameraY=0;
+    ctx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
+    ctx.fillStyle='#17151c';
+    ctx.fillRect(0,0,480,336);
     background(ts);
+    drawObservers(e);
     let sx=0,sy=0;
     if(e<8500){
       const walkEnd=8100;
@@ -1011,7 +1063,10 @@
     presentFrame();
     canvas.style.transform='translate('+Math.round(sx/1.5)+'px,'+Math.round(sy/1.5)+'px)';
     if(!skipped){
-      if(e>10400)opening.classList.add('visible');
+      // Deliberate four-beat title transition: sentence -> clear frame ->
+      // cuneiform -> KI.LAM. The opening sentence never overlaps the glyphs.
+      if(e>10000)opening.classList.add('visible');
+      if(e>11900)opening.classList.remove('visible');
       if(e>12800)cuneiform.classList.add('visible');
       if(e>15100)cuneiform.classList.remove('visible');
       if(e>16300)title.classList.add('visible');
