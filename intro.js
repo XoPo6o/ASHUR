@@ -716,39 +716,49 @@
     }
   }
   function drawObservers(elapsed){
-    // Four separate onlookers stand clear of the stalls. At the impact they stop
-    // their routines, turn toward the traveler and raise a hand in alarm.
+    // Four distinct onlookers stand in the open street, not behind the counters.
+    // Their raised arms and bright cloak edges make the reaction readable at phone size.
     const reacting = elapsed >= 8500;
     const observers = [
-      {x:145,y:206,robe:'#263039',trim:'#91a18a',skin:'#e3b77e',side:-1},
-      {x:172,y:204,robe:'#30252e',trim:'#d09376',skin:'#f0c58a',side:1},
-      {x:260,y:207,robe:'#263239',trim:'#a2a66e',skin:'#e3b77e',side:-1},
-      {x:287,y:205,robe:'#35272d',trim:'#d09376',skin:'#f0c58a',side:1}
+      {x:145,y:201,robe:'#29202a',trim:'#e29a69',accent:'#805047',skin:'#f2d69a'},
+      {x:172,y:199,robe:'#302b35',trim:'#edbd83',accent:'#a8614b',skin:'#f2d69a'},
+      {x:260,y:202,robe:'#29202a',trim:'#d7a66d',accent:'#805047',skin:'#edbd83'},
+      {x:287,y:200,robe:'#302b35',trim:'#e29a69',accent:'#a8614b',skin:'#f2d69a'}
     ];
     observers.forEach((p,i)=>{
-      const look=reacting ? (i%2===0?1:0) : 0;
-      const arm=reacting ? 1 : 0;
+      const look=reacting ? (i<2?1:-1) : 0;
       const bob=reacting?0:Math.floor(Math.sin(elapsed*.004+i)*1);
-      const x=p.x,y=p.y+bob;
-      // Hood and face remain a dark, readable silhouette with a narrow lit edge.
-      px(x+4,y,8,4,'#171820');px(x+3,y+2,9,5,p.robe);
-      px(x+5+look,y+3,5,3,p.skin);px(x+5+look,y+5,4,2,'#49353b');
-      px(x+2,y+7,12,4,p.trim);px(x+1,y+10,14,12,p.robe);
-      px(x+3,y+11,2,9,'#171820');px(x+10,y+11,2,9,'#171820');
-      px(x+2,y+21,5,2,'#17131c');px(x+9,y+21,5,2,'#17131c');
-      px(x+4,y+8,7,1,'#d69a68');
-      if(arm){
-        // One arm points toward the fallen traveler; the other silhouette recoils.
-        const armX=p.side<0?x-3:x+13;
-        px(armX,y+8,3,3,p.skin);
-        px(armX+(p.side<0?-2:2),y+5,2,4,p.skin);
-        px(armX+(p.side<0?-3:3),y+4,2,2,'#e8bd80');
-        if(i===1||i===3)px(x+5,y-3,3,2,'#e8bd80');
+      const x=p.x,y=p.y+bob,toward=x<212?1:-1;
+      // Ground shadow, separated boots and a long, dark cloak.
+      px(x+2,y+29,13,2,'#17131c');
+      px(x+3,y+25,4,5,'#171820');px(x+10,y+25,4,5,'#171820');
+      px(x+1,y+9,16,17,p.robe);
+      px(x+3,y+11,2,13,p.accent);px(x+12,y+11,2,13,p.accent);
+      px(x+4,y+20,10,2,p.trim);
+      px(x+5,y+25,3,2,'#17131c');px(x+10,y+25,3,2,'#17131c');
+      // Hood, lit face plane, beard and a crisp gold rim.
+      px(x+3,y+1,11,7,'#171820');
+      px(x+4,y,9,2,p.trim);px(x+4,y+3,8,4,p.skin);
+      px(x+5+look,y+4,2,1,'#171820');
+      px(x+9+look,y+4,2,1,'#171820');
+      px(x+6,y+6,5,2,p.accent);
+      px(x+2,y+8,14,2,p.trim);
+      // One arm rises in alarm; the other points toward the fallen traveler.
+      if(reacting){
+        px(x+1,y+10,3,5,p.skin);
+        px(x-1,y+6,3,6,p.accent);
+        px(x-2,y+4,3,3,p.skin);
+        if(toward>0){
+          px(x+14,y+10,4,3,p.skin);px(x+17,y+7,3,4,p.skin);px(x+19,y+6,3,2,p.trim);
+        }else{
+          px(x-2,y+10,4,3,p.skin);px(x-5,y+7,3,4,p.skin);px(x-7,y+6,3,2,p.trim);
+        }
       }else{
-        px(x+(p.side<0?0:12),y+9,2,6,p.skin);
+        px(x+1,y+11,3,7,p.accent);px(x+13,y+11,3,7,p.accent);
       }
-      // A small gap between cloak and feet keeps each onlooker individually legible.
-      px(x+4,y+20,2,3,'#d09376');px(x+9,y+20,2,3,'#d09376');
+      // Bright hem and a shoulder stripe keep the four silhouettes individually legible.
+      px(x+3,y+27,12,1,p.trim);
+      px(x+4,y+9,2,2,'#f2d69a');px(x+12,y+9,2,2,'#f2d69a');
     });
   }
   function background(t){
