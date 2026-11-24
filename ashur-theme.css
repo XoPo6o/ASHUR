@@ -5,43 +5,32 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
 
 
-/* PIXEL TYPOGRAPHY AUDIT — one consistent 8-bit type system */
-body, body * {
-  font-family: "Press Start 2P", monospace !important;
-  font-synthesis: none;
-  -webkit-font-smoothing: none;
-  text-rendering: optimizeSpeed;
+/* Unified 8-bit type hierarchy: pixel sans for reading, arcade pixel for UI */
+body, body * { font-family:"Pixelify Sans",sans-serif !important; font-synthesis:none; }
+h1,h2,h3,.brand,.brand-section,.kicker,.eyebrow,.world-label,
+.btn,nav a,.nav-cta,.status,.stage-top,.stage small,.map small,
+.principles,.treasury>div:not(.seal),.foot p,.foot>a:last-child,
+.wall-card h2,.wall-card .kicker {
+  font-family:"Press Start 2P",monospace !important;
 }
-body { font-size: 12px; line-height: 2.15; }
-p, li, blockquote, .note, .hero-copy, .intro-grid>div:nth-child(2)>p,
-.section-head>p, .stage p, .scroll ul, .scroll blockquote,
-.motto, .wall-card p:not(.kicker), .disclaimer {
-  font-size: 11px !important;
-  line-height: 2.15 !important;
-  letter-spacing: -0.035em;
+body { font-size:18px; line-height:1.6; }
+p,li,blockquote,.note,.hero-copy,.intro-grid>div:nth-child(2)>p,
+.section-head>p,.stage p,.scroll ul,.scroll blockquote,
+.motto,.wall-card p:not(.kicker),.disclaimer {
+  font-size:18px !important; line-height:1.65 !important;
 }
-.brand, .foot>a:first-child { font-size: 24px; }
-.hero h1 { font-size: clamp(64px, 10vw, 112px); line-height: 1.35; }
-.slogan { font-size: clamp(22px, 3vw, 32px); line-height: 1.8; }
-.intro h2, .section-head h2, .scroll h2 { font-size: clamp(20px, 2.7vw, 30px); line-height: 1.8; }
-.wall-card h2 { font-size: 18px; line-height: 1.8; }
-.stage h3 { font-size: 8px; line-height: 2; }
-.btn, nav a, .nav-cta, .kicker, .eyebrow, .world-label,
-.status, .stage-top, .stage small, .map small, .foot p,
-.foot>a:last-child, .principles, .treasury>div:not(.seal) {
-  font-size: 8px;
-  line-height: 2;
+h1 { line-height:1.35; }
+h2,h3 { line-height:1.8; }
+.btn,nav a,.nav-cta,.kicker,.eyebrow,.world-label,.status,
+.stage-top,.stage small,.map small,.foot>a:last-child {
+  font-size:8px; line-height:2;
 }
 @media(max-width:700px) {
-  body { font-size: 11px; }
-  p, li, blockquote, .note, .hero-copy, .intro-grid>div:nth-child(2)>p,
-  .section-head>p, .stage p, .scroll ul, .scroll blockquote,
-  .motto, .wall-card p:not(.kicker), .disclaimer {
-    font-size: 10px !important;
-    line-height: 2.1 !important;
+  body { font-size:16px; }
+  p,li,blockquote,.note,.hero-copy,.intro-grid>div:nth-child(2)>p,
+  .section-head>p,.stage p,.scroll ul,.scroll blockquote,
+  .motto,.wall-card p:not(.kicker),.disclaimer {
+    font-size:16px !important; line-height:1.65 !important;
   }
-  .hero h1 { font-size: clamp(52px, 14vw, 88px); }
-  .slogan { font-size: 22px; }
-  .intro h2, .section-head h2, .scroll h2 { font-size: 20px; }
-  .wall-card h2 { font-size: 16px; }
+  .btn,nav a,.nav-cta { font-size:7px; }
 }
