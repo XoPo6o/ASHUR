@@ -35,6 +35,88 @@ header{position:static;height:auto;background:#fff!important;border-bottom:1px s
 section{padding:16px 0;break-inside:avoid}.metric,.panel,.compare-card,.run,.table-wrap{background:#fff!important;border-color:#bbc4c9!important;box-shadow:none!important}.metric .value,td,.pair,.panel h3,.section-head h2{color:#182128!important}.metric .label,.metric .hint,.sub,th,.smalllabel,.minirow,.run p,.footer{color:#52616a!important}
 .grid4{grid-template-columns:repeat(4,1fr)}.split,.twocol{grid-template-columns:1fr 1fr}.table-wrap{overflow:visible}table{min-width:0;font-size:8pt}th,td{padding:6px 7px;white-space:normal}.toolbar{display:none}.runlist{grid-template-columns:repeat(2,1fr)}a{color:inherit}.note{background:#f5f2eb;color:#39454c}.footer{padding:12px 0}
 }
+
+/* ASHUR PIXEL ARCHIVE — halftone / pixel-collage visual system */
+:root{
+ --px-bg:#10131d;--px-surface:#1b2a4e;--px-surface2:#26365c;--px-ink:#f4eee0;--px-muted:#c8c3ba;
+ --px-accent:#9a2a2a;--px-accent2:#d9a6a0;--px-line:#d9a6a066;--px-shadow:#05070dcc;
+ --pixel:4px
+}
+html,body{background:var(--px-bg)!important;color:var(--px-ink)!important}
+body{font-family:'Courier New',monospace!important;letter-spacing:.015em;background-color:var(--px-bg)!important;
+ background-image:radial-gradient(ellipse at 78% 6%,color-mix(in srgb,var(--px-accent) 23%,transparent),transparent 42%),
+ repeating-linear-gradient(0deg,transparent 0 3px,#0002 4px),linear-gradient(135deg,var(--px-bg),var(--px-surface))!important}
+body:before{content:"";position:fixed;inset:0;z-index:30;pointer-events:none;opacity:.14;
+ background-image:radial-gradient(var(--px-ink) .65px,transparent .8px);background-size:4px 4px;mix-blend-mode:screen}
+h1,h2,h3,.brand,.quote,.serif{font-family:'Courier New',monospace!important;font-weight:900!important;text-transform:uppercase;letter-spacing:-.045em!important}
+header{background:color-mix(in srgb,var(--px-bg) 94%,transparent)!important;border-bottom:2px solid var(--px-accent2)!important;box-shadow:0 5px 0 #0008!important;backdrop-filter:blur(8px)}
+.brand,.links a,.navbtn{color:var(--px-ink)!important}.brand span{color:var(--px-accent2)!important}
+.navbtn,.btn{border:2px solid var(--px-ink)!important;border-radius:0!important;background:var(--px-surface)!important;color:var(--px-ink)!important;
+ box-shadow:4px 4px 0 var(--px-accent)!important;font:700 11px 'Courier New',monospace!important;letter-spacing:.06em!important}
+.btn.primary{background:var(--px-accent)!important;border-color:var(--px-ink)!important;color:#fff!important;box-shadow:4px 4px 0 var(--px-accent2)!important}
+.navbtn:hover,.btn:hover{transform:translate(3px,3px)!important;box-shadow:1px 1px 0 var(--px-accent2)!important}
+.hero{background-color:var(--px-bg)!important;background-image:linear-gradient(90deg,var(--px-bg) 0%,color-mix(in srgb,var(--px-bg) 88%,transparent) 45%,#0002 100%),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg')!important;
+ background-position:center right!important;background-size:cover!important}
+.hero:before{background:repeating-linear-gradient(0deg,transparent 0 5px,#0005 6px),repeating-linear-gradient(90deg,transparent 0 5px,#0002 6px)!important;opacity:.35}
+.hero:after{inset:16px!important;border:2px solid var(--px-accent2)!important;box-shadow:inset 0 0 0 5px #0005}
+.hero h1{color:var(--px-ink)!important;text-shadow:4px 4px 0 var(--px-accent),8px 8px 0 #000!important;font-size:clamp(64px,11vw,130px)!important}
+.hero h1 small,.hero-meta b,.eyebrow,.stamp{color:var(--px-accent2)!important}
+.hero p,.hero-meta,.hero .muted{color:var(--px-ink)!important;text-shadow:2px 2px 0 #000!important}
+.stamp{border:2px solid var(--px-accent2)!important;background:var(--px-bg)!important;border-radius:0!important}
+section,.intro,.archive,.people,.pantheon,.blueprint,.markets,.guardian,.future{background:transparent!important;color:var(--px-ink)!important;border-color:var(--px-line)!important}
+section{isolation:isolate}
+section:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.18;
+ background:repeating-linear-gradient(0deg,transparent 0 39px,var(--px-accent2) 40px 41px),repeating-linear-gradient(90deg,transparent 0 79px,var(--px-accent2) 80px 81px)}
+.section-head h2,.quote,.guardian h2,.futurebox h2,.portrait h3,.card h3,.step h3{color:var(--px-ink)!important}
+.section-head p,.muted,.portrait p,.card p,.step p{color:var(--px-muted)!important}
+.quote em,.role,.num,.portrait .tag{color:var(--px-accent2)!important}
+.paper-note,.portrait,.card,.futurebox{background:var(--px-surface)!important;border:2px solid var(--px-ink)!important;border-radius:0!important;
+ box-shadow:5px 5px 0 var(--px-accent)!important;color:var(--px-ink)!important}
+.paper-note p,.card p,.portrait p,.futurebox p{color:var(--px-muted)!important}
+.photo,.map-art,.guardian-image,.market{border:3px solid var(--px-ink)!important;border-radius:0!important;box-shadow:6px 6px 0 var(--px-accent)!important;overflow:hidden}
+.photo img,.portrait-art img,.map-art img,.guardian-image img{filter:grayscale(1) contrast(1.55) brightness(1.08)!important}
+.photo:after,.portrait-art:after,.market:after,.guardian-image:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.32;
+ background:repeating-linear-gradient(0deg,transparent 0 3px,#000 4px),radial-gradient(var(--px-bg) .7px,transparent 1px);background-size:auto,4px 4px;mix-blend-mode:multiply}
+.photo figcaption{background:linear-gradient(transparent,#000e)!important;color:#fff!important;font-family:'Courier New',monospace!important;text-transform:uppercase;font-style:normal!important}
+.photo figcaption small{color:var(--px-accent2)!important}
+.portrait-art{background:var(--px-bg)!important;border:2px solid var(--px-accent2)!important;position:relative}
+.card:before{border:1px dashed var(--px-accent2)!important}
+.map-art figcaption{background:linear-gradient(transparent,#000e)!important}
+.steps{border-color:var(--px-accent2)!important}.step:before{background:var(--px-accent)!important;box-shadow:0 0 0 4px var(--px-bg),0 0 0 6px var(--px-accent2)!important}
+.market{background-blend-mode:normal!important}
+.market h3,.market p{color:#fff!important;text-shadow:2px 2px #000!important}
+.guardian{background:transparent!important}.guardian-copy{color:var(--px-ink)!important}
+.future{background:transparent!important}.futurebox{background:var(--px-surface)!important}
+footer{background:var(--px-bg)!important;color:var(--px-muted)!important;border-top:2px solid var(--px-accent2)!important}
+footer strong{color:var(--px-ink)!important}
+.sources summary{color:var(--px-accent2)!important;border:2px solid var(--px-accent2)!important}
+.source-list{background:var(--px-surface)!important;border:2px solid var(--px-accent2)!important}
+.source-list a{color:var(--px-ink)!important}
+::selection{background:var(--px-accent2);color:var(--px-bg)}
+/* Research terminal */
+main .wrap{position:relative}
+.hero .statusline,.tag,.pill{border:1px solid var(--px-accent2)!important;border-radius:0!important;background:var(--px-surface)!important;color:var(--px-ink)!important}
+.panel,.metric,.compare-card,.note,.run,.table-wrap{background:var(--px-surface)!important;border:2px solid var(--px-ink)!important;border-radius:0!important;box-shadow:4px 4px 0 var(--px-accent)!important;color:var(--px-ink)!important}
+.panel h3,.metric .label,.compare-card h3{color:var(--px-accent2)!important;font-family:'Courier New',monospace!important;text-transform:uppercase}
+.sub,.hint,.note,.listitem p,.minirow,.disclaimer{color:var(--px-muted)!important}
+.metric .value,.big{color:var(--px-ink)!important}.positive{color:#9ed6a6!important}.negative{color:#f09a9a!important}
+.track{background:var(--px-bg)!important;border:1px solid var(--px-accent2)!important;border-radius:0!important}.fill{background:var(--px-accent2)!important}.fill.neg{background:var(--px-accent)!important}
+table{border-collapse:collapse!important;color:var(--px-ink)!important}th{background:var(--px-accent)!important;color:#fff!important;text-transform:uppercase;font-family:'Courier New',monospace!important}
+td,th{border:1px solid var(--px-accent2)!important}tbody tr:nth-child(odd){background:color-mix(in srgb,var(--px-surface2) 80%,transparent)!important}tbody tr:hover{background:color-mix(in srgb,var(--px-accent) 45%,var(--px-surface))!important}
+input.search{background:var(--px-surface)!important;color:var(--px-ink)!important;border:2px solid var(--px-accent2)!important;border-radius:0!important}
+.footer{border-top:2px solid var(--px-accent2)!important;color:var(--px-muted)!important}
+.pixel-canvas{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;filter:contrast(1.12) saturate(.72)}
+.palette-dock{position:relative;z-index:60;display:inline-flex;align-items:center;gap:6px;font:700 10px 'Courier New',monospace}
+.palette-trigger{border:2px solid var(--px-accent2);background:var(--px-surface);color:var(--px-ink);padding:9px 11px;box-shadow:3px 3px 0 var(--px-accent);cursor:pointer;font:700 10px 'Courier New',monospace;letter-spacing:.05em}
+.palette-menu{position:absolute;right:0;top:calc(100% + 9px);width:255px;padding:10px;background:var(--px-bg);border:2px solid var(--px-accent2);box-shadow:5px 5px 0 #000b;display:none;gap:6px}
+.palette-menu.open{display:grid}
+.palette-choice{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:9px;border:1px solid var(--px-line);background:var(--px-surface);color:var(--px-ink);cursor:pointer;font:700 10px 'Courier New',monospace}
+.palette-choice[aria-pressed=true]{outline:2px solid var(--px-accent2);outline-offset:-3px}
+.swatches{display:flex;gap:2px;margin-left:auto}.swatches i{width:12px;height:20px;border:1px solid #fff5;display:block}
+.palette-caption{font:9px/1.4 'Courier New',monospace;color:var(--px-muted);padding:4px}
+@media(max-width:700px){.palette-dock{position:absolute;right:0;top:72px}.palette-trigger{padding:7px 8px}.hero h1{font-size:clamp(58px,17vw,88px)!important}.hero{background-position:62% center!important}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -183,5 +265,43 @@ section{padding:16px 0;break-inside:avoid}.metric,.panel,.compare-card,.run,.tab
 function filterRows(){const q=document.getElementById('filter').value.toLowerCase();document.querySelectorAll('#candidateTable tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
 function sortTable(col){const table=document.getElementById('candidateTable'),body=table.tBodies[0],rows=[...body.rows];const asc=table.dataset.sortCol==col?table.dataset.sortDir!=='asc':true;rows.sort((a,b)=>{let x=a.cells[col].innerText.replace(/[+%−]/g,'').trim(),y=b.cells[col].innerText.replace(/[+%−]/g,'').trim();let nx=Number(x),ny=Number(y);return Number.isNaN(nx)||Number.isNaN(ny)?x.localeCompare(y)*(asc?1:-1):(nx-ny)*(asc?1:-1)});rows.forEach(r=>body.appendChild(r));table.dataset.sortCol=col;table.dataset.sortDir=asc?'asc':'desc'}
 function downloadCSV(){const rows=[['Pair','TF','ADX','ATR','Test trades','Test return','Signal'],...([...document.querySelectorAll('#candidateTable tbody tr')].map(r=>[...r.cells].map(c=>c.innerText)))];const csv=rows.map(r=>r.map(v=>'"'+v.replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='ASHUR_v4.1_candidates.csv';a.click();URL.revokeObjectURL(a.href)}
+</script>
+<script>
+
+(function(){
+ const palettes=[
+  {id:'kurenai-kon',name:'Kurenai · Kon · Gofun',label:'Heian / Crimson & Navy',bg:'#101827',surface:'#1B2A4E',surface2:'#26395F',ink:'#F4EEE0',muted:'#D2C9B8',accent:'#9A2A2A',accent2:'#D8A5A0'},
+  {id:'sakura-wakatake',name:'Sakura · Wakatake',label:'Heian / Cherry Blossom & Bamboo',bg:'#26382D',surface:'#4C5D3F',surface2:'#647653',ink:'#F8F4E9',muted:'#D7D8C6',accent:'#F9D5E0',accent2:'#A3C293'},
+  {id:'fuji-ai',name:'Fuji · Ai · Gofun',label:'Heian / Wisteria & Indigo',bg:'#101E2B',surface:'#1C3D5A',surface2:'#315775',ink:'#F4EEE0',muted:'#C7C6D0',accent:'#B5A6C9',accent2:'#8E7DAA'},
+  {id:'sumi-sakura',name:'Sumi · Sakura',label:'Pixel Shop / ink & blossom',bg:'#151113',surface:'#2A1C20',surface2:'#3A252B',ink:'#F2DCD7',muted:'#CDB9B4',accent:'#E7AFA7',accent2:'#F4D7D1'}
+ ];
+ const root=document.documentElement;
+ function apply(p,save){root.style.setProperty('--px-bg',p.bg);root.style.setProperty('--px-surface',p.surface);root.style.setProperty('--px-surface2',p.surface2);root.style.setProperty('--px-ink',p.ink);root.style.setProperty('--px-muted',p.muted);root.style.setProperty('--px-accent',p.accent);root.style.setProperty('--px-accent2',p.accent2);document.querySelectorAll('.palette-choice').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.palette===p.id)));if(save){try{localStorage.setItem('ashur-pixel-palette',p.id)}catch(e){}}}
+ function mount(){
+  const host=document.querySelector('header .wrap')||document.querySelector('header');
+  if(host&&!document.querySelector('.palette-dock')){
+   const dock=document.createElement('div');dock.className='palette-dock';
+   const trigger=document.createElement('button');trigger.className='palette-trigger';trigger.type='button';trigger.textContent='◐ COLOR / PALETTE';trigger.setAttribute('aria-expanded','false');
+   const menu=document.createElement('div');menu.className='palette-menu';
+   palettes.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='palette-choice';b.dataset.palette=p.id;b.setAttribute('aria-pressed','false');b.innerHTML='<span>'+p.name+'<br><small>'+p.label+'</small></span><span class="swatches"><i style="background:'+p.bg+'"></i><i style="background:'+p.surface+'"></i><i style="background:'+p.accent+'"></i><i style="background:'+p.ink+'"></i></span>';b.addEventListener('click',()=>{apply(p,true);menu.classList.remove('open');trigger.setAttribute('aria-expanded','false')});menu.appendChild(b)});
+   const cap=document.createElement('div');cap.className='palette-caption';cap.textContent='Палитры по мотивам японских цветовых сочетаний. Выбор сохраняется на этом устройстве.';menu.appendChild(cap);
+   trigger.addEventListener('click',()=>{menu.classList.toggle('open');trigger.setAttribute('aria-expanded',String(menu.classList.contains('open')))});
+   dock.append(trigger,menu);host.appendChild(dock);
+   document.addEventListener('click',e=>{if(!dock.contains(e.target)){menu.classList.remove('open');trigger.setAttribute('aria-expanded','false')}});
+  }
+  let saved='kurenai-kon';try{saved=localStorage.getItem('ashur-pixel-palette')||saved}catch(e){}
+  apply(palettes.find(p=>p.id===saved)||palettes[0],false);
+ }
+ function pixelateImages(){
+  document.querySelectorAll('img:not([data-pixel-done])').forEach(img=>{
+   img.dataset.pixelDone='1';const src=img.currentSrc||img.src;if(!src)return;
+   const alt=img.alt||'Pixelated historical image';const replacement=document.createElement('canvas');replacement.className='pixel-canvas';replacement.setAttribute('role','img');replacement.setAttribute('aria-label',alt);
+   const render=()=>{try{const w=96,h=Math.max(48,Math.round(96*(img.naturalHeight/img.naturalWidth)));replacement.width=w;replacement.height=h;const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.drawImage(img,0,0,w,h);const out=replacement.getContext('2d');out.imageSmoothingEnabled=false;out.drawImage(c,0,0,w,h);img.replaceWith(replacement)}catch(e){img.classList.add('pixel-fallback')}};
+   if(img.complete&&img.naturalWidth){render()}else{img.addEventListener('load',render,{once:true})}
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{mount();pixelateImages()});else{mount();pixelateImages()}
+})();
+
 </script>
 </body></html>
