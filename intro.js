@@ -308,6 +308,32 @@
     for(let i=0;i<5;i++){px(22+i*10,231,2,5,'#e7bd80');}
     px(389,229,43,10,'#624033');px(393,226,34,4,'#b97a4e');
     for(let i=0;i<4;i++){px(397+i*8,227,4,4,'#d7a45f');}
+    // Foreground pottery on the left: layered rims, shoulders and painted bands.
+    const pots=[
+      {x:79,y:238,w:12,h:20,c:'#a85d45'},
+      {x:94,y:244,w:10,h:14,c:'#6c7d70'},
+      {x:66,y:248,w:9,h:11,c:'#c28b56'}
+    ];
+    pots.forEach((p,i)=>{
+      px(p.x+2,p.y,p.w-4,3,'#e0b47b');
+      px(p.x,p.y+3,p.w,p.h-7,p.c);
+      px(p.x+1,p.y+p.h-5,p.w-2,3,i===1?'#435b56':'#70443b');
+      px(p.x+2,p.y+4,p.w-4,2,'#e5b77b');
+      px(p.x+2,p.y+9,p.w-4,2,i===1?'#b5b18a':'#d28a59');
+      px(p.x+3,p.y+2,2,p.h-7,'#f0c68b');
+    });
+    // Right foreground woven baskets and folded rugs, with strong pixel silhouettes.
+    px(435,238,31,20,'#49312f');px(432,235,36,5,'#b77a4d');
+    for(let y=241;y<256;y+=4){
+      px(437,y,27,2,'#c08a55');px(439,y+2,23,1,'#e0b77a');
+    }
+    px(438,233,25,3,'#6c4a3b');px(441,230,20,3,'#d0a06a');
+    px(443,227,16,3,'#8c4c43');px(445,225,12,2,'#e2b77c');
+    // A few bright grains and tiny stone chips catch the foreground light.
+    for(let i=0;i<12;i++){
+      const x=145+i*17,y=250+(i%3)*4;
+      px(x,y,2,1,i%2?'#d7a96e':'#e8c18a');
+    }
   }
   function drawAtmosphere(t){
     // Distant smoke and low amber haze.
