@@ -9,9 +9,9 @@ body{color:#fff;font-family:"Pixelify Sans",monospace}
 .story-copy{position:absolute;z-index:3;left:50%;top:48%;width:min(90%,900px);transform:translate(-50%,-50%);text-align:center;pointer-events:none}
 .opening{margin:0;color:#fff0d7;font:700 clamp(19px,3.2vw,31px)/1.35 "Pixelify Sans",monospace;letter-spacing:.01em;opacity:0;transform:translateY(9px);-webkit-text-stroke:.35px #302018;text-shadow:3px 3px 0 #160f12,0 0 12px #08070b;transition:opacity .8s ease,transform .8s ease}
 .opening.visible{opacity:1;transform:translateY(0)}
-.cuneiform{display:flex;align-items:center;justify-content:center;gap:clamp(12px,3vw,30px);margin:23px auto 0;color:#fff0c9;font-family:'Noto Sans Cuneiform',serif;font-size:clamp(60px,11vw,112px);line-height:1;opacity:0;transform:translateY(12px) scale(.94);filter:drop-shadow(0 4px 0 #2b1b14) drop-shadow(0 0 12px #08070b);transition:opacity .65s ease,transform .65s ease}
+.cuneiform{display:flex;align-items:center;justify-content:center;gap:clamp(22px,5vw,48px);margin:23px auto 0;color:#fff0c9;font-family:'Noto Sans Cuneiform',serif;font-size:clamp(60px,11vw,112px);line-height:1;opacity:0;transform:translateY(12px) scale(.94);filter:drop-shadow(0 4px 0 #2b1b14) drop-shadow(0 0 12px #08070b);transition:opacity .65s ease,transform .65s ease}
+.cuneiform span{display:block;line-height:1;filter:drop-shadow(2px 3px 0 #2b1b14)}
 .cuneiform.visible{opacity:1;transform:translateY(0) scale(1)}
-.cuneiform i{font:700 clamp(24px,4vw,42px) "Pixelify Sans",monospace;color:#f0c77d}
 .game-title{width:var(--mark-size);height:var(--mark-size);aspect-ratio:1;margin:17px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));place-items:stretch;color:#ffe1a1;font-family:"Pixelify Sans",monospace;font-size:calc(var(--mark-size)*.34);font-weight:700;line-height:1;letter-spacing:0;opacity:0;transform:translateY(10px) scale(.96);-webkit-text-stroke:1.5px #4b2a1c;text-shadow:3px 3px 0 #2c1918,5px 6px 0 #100d12,0 0 16px #08070b;transition:opacity .85s ease,transform .85s cubic-bezier(.2,.8,.2,1)}
 .game-title .glyph{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-width:0;min-height:0}
 .game-title .punctuation{font-size:0;transform:none;-webkit-text-stroke:0;text-shadow:none}
