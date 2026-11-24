@@ -472,7 +472,8 @@
     }
     const colors={H:'#29232a',S:'#e3b77e',R:'#a64e42',L:'#25232b'};
     traveler.forEach((row,ry)=>[...row].forEach((ch,rx)=>{
-      if(ch!=='.')px(x+rx*scale,y+ry*scale,scale,scale,colors[ch]);
+      // Legs are drawn separately below so the whole stride, not just the sandals, moves.
+      if(ry<16&&ch!=='.')px(x+rx*scale,y+ry*scale,scale,scale,colors[ch]);
     }));
     // Face, hood highlights and traveler's scarf.
     px(x+7*scale,y+2*scale,5*scale,scale,'#f1cc91');
@@ -507,14 +508,14 @@
     px(x+4*scale,y+6*scale,1,8*scale,'#f0c68a');
     px(x+13*scale,y+11*scale,1,5*scale,'#f0c68a');
     if(!fallen){
-      // Legs, sandals and one dragging foot.
-      px(x+5*scale,y+15*scale,3*scale,5*scale,'#31272b');
-      px(x+10*scale,y+15*scale,3*scale,5*scale,'#31272b');
+      // Animate both lower legs and sandals in opposite phases for a complete stride.
       const swing=Math.round(Math.sin(gait)*scale);
-      // Alternating sandals and heel highlights make each step read at 2x scale.
-      px(x+4*scale+swing,y+20*scale,4*scale,2,'#d2a16d');
+      const lift=Math.max(0,Math.round(Math.cos(gait)*scale));
+      px(x+5*scale+swing,y+15*scale,3*scale,5*scale-lift,'#31272b');
+      px(x+10*scale-swing,y+15*scale,3*scale,5*scale,'#31272b');
+      px(x+4*scale+swing,y+(20-lift)*scale,4*scale,2,'#d2a16d');
       px(x+11*scale-swing,y+20*scale,5*scale,2,'#d2a16d');
-      px(x+3*scale+swing,y+21*scale,5*scale,1,'#f0c58a');
+      px(x+3*scale+swing,y+(21-lift)*scale,5*scale,1,'#f0c58a');
       px(x+11*scale-swing,y+21*scale,5*scale,1,'#f0c58a');
     }else{
       // Horizontal pose: body, bent knees and one exhausted arm.
