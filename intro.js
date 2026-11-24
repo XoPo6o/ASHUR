@@ -63,6 +63,17 @@
       px(x,y,1+(i%3),1+(i%2),'#d1ad79');
     }ctx.globalAlpha=1;
   }
+  function hammer(ts,e){
+    if(e<14200||e>15350)return;
+    const p=Math.max(0,Math.min(1,(e-14200)/850));
+    const y=-28+p*146;
+    ctx.save();ctx.translate(244,y);ctx.rotate(p*.08);
+    // One compact pixel-art stoneworking hammer silhouette.
+    px(-2,0,5,39,'#211719');px(-1,4,3,31,'#9b704b');
+    px(-13,28,27,9,'#171116');px(-16,25,32,5,'#76513a');
+    px(-13,21,26,4,'#b08a5b');px(-11,18,22,3,'#4b3028');
+    ctx.restore();
+  }
   function draw(ts){
     ctx.imageSmoothingEnabled=false;background(ts);const e=ts-start;
     if(e<8600){
@@ -73,6 +84,7 @@
       const p=Math.min(1,(e-8600)/650);ctx.save();ctx.translate(210,202);ctx.rotate(p*.08);sprite(fallen,-8,0,2);ctx.restore();
       if(p>.6){ctx.globalAlpha=(p-.6)*.45;px(190,221,34,2,'#b99878');px(183,224,14,1,'#b99878');ctx.globalAlpha=1}
     }else sprite(fallen,194,202,2);
+    hammer(ts,e);
     if(e>14700&&e<16900)sandBurst(ts,Math.min(1,(e-14700)/450));
     if(e>=16900&&e<18400)sandBurst(ts,Math.max(0,1-(e-16900)/1500));
     for(let i=0;i<12;i++){const xx=(i*59+(ts*.006*(i%3+1)))%W,yy=205+(i*17)%55;ctx.globalAlpha=.10;px(xx,yy,1,1,'#d7b38c')}ctx.globalAlpha=1;
