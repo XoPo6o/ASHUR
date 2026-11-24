@@ -382,7 +382,8 @@
     }else if(e<10400){
       const p=Math.min(1,(e-8500)/600);
       const shake=Math.sin(e*.09)*(1-p)*3;
-      ctx.save();ctx.translate(207+shake,164+Math.abs(shake));ctx.rotate(p*.11);
+      px(201,231,46,4,'#29232b');
+      ctx.save();ctx.translate(207+shake,194+Math.abs(shake));ctx.rotate(p*.11);
       drawTraveler(-12,0,2,true);ctx.restore();
       dust(218,226,Math.min(1,p),ts);
     }else{
