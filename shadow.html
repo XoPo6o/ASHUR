@@ -2,7 +2,25 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ASHUR · Live Shadow Lab</title>
 <style>
 :root{color-scheme:dark;--bg:#090a0c;--panel:#131519;--line:#34302a;--gold:#c89b55;--muted:#9b9a96;--text:#eee9df;--green:#8dbb91;--red:#d88979}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#2b2115 0%,#090a0c 52%);color:var(--text);font:15px Inter,system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 18px 60px}.eyebrow{color:var(--gold);font:600 11px ui-monospace,monospace;letter-spacing:.18em}h1{font:700 clamp(30px,6vw,48px) ui-monospace,monospace;letter-spacing:.12em;margin:8px 0 4px}.sub{color:var(--muted);font:11px ui-monospace,monospace;letter-spacing:.13em}.top{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}.status{color:var(--muted);font-size:12px;text-align:right}.notice{margin:24px 0;padding:14px 16px;border:1px solid var(--line);background:#121316;border-radius:9px;color:#c9c3b8;font-size:13px;line-height:1.5}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}.card{background:linear-gradient(145deg,#17191d,#101114);border:1px solid var(--line);border-radius:10px;padding:18px;min-height:210px}.card h2{font-size:16px;margin:0 0 5px}.meta{color:var(--muted);font:11px ui-monospace,monospace;margin-bottom:16px}.pnl{font:700 28px ui-monospace,monospace;margin:5px 0}.positive{color:var(--green)}.negative{color:var(--red)}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.metric small{display:block;color:var(--muted);font-size:10px;letter-spacing:.08em;text-transform:uppercase}.metric strong{display:block;font:600 14px ui-monospace,monospace;margin-top:4px}.tag{display:inline-block;padding:4px 7px;border:1px solid #494238;border-radius:4px;color:#d4b47f;font:10px ui-monospace,monospace;letter-spacing:.04em}.position{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:#c7c1b7;line-height:1.55}footer{color:var(--muted);font-size:11px;margin-top:24px;line-height:1.6}a{color:var(--gold)}button{background:#b88949;border:0;border-radius:5px;color:#090a0c;padding:8px 12px;font-weight:700;cursor:pointer}@media(max-width:540px){main{padding:24px 13px}.status{text-align:left}}
-</style></head><body><main>
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* Unified ASHUR 8-bit typography across every research screen */
+body, body * { font-family: "Press Start 2P", monospace !important; font-synthesis:none; -webkit-font-smoothing:none; text-rendering:optimizeSpeed; }
+body { font-size:10px !important; line-height:2 !important; }
+p, li, td, th, label, input, button, select, textarea, .notice, .hint, .position, footer {
+  font-size:9px !important; line-height:2 !important;
+}
+h1 { font-size:clamp(18px,3vw,28px) !important; line-height:1.8 !important; }
+h2 { font-size:clamp(13px,2vw,19px) !important; line-height:1.8 !important; }
+h3 { font-size:10px !important; line-height:2 !important; }
+@media(max-width:700px) {
+  body { font-size:8px !important; }
+  p, li, td, th, label, input, button, select, textarea, .notice, .hint, .position, footer {
+    font-size:8px !important; line-height:2 !important;
+  }
+}
+</style>
+</head><body><main>
 <div class="top"><div><div class="eyebrow">ALGORITHMIC TRADING LABORATORY</div><h1>ASHUR</h1><div class="sub">LIVE SHADOW PAPER · FIVE INDEPENDENT ACCOUNTS</div></div><div class="status"><div id="updated">Connecting…</div><button onclick="load()">Refresh</button></div></div>
 <div class="notice"><b>Paper only.</b> Все пять стратегий получают публичные рыночные данные, но не отправляют ордера на биржу. Старт каждого виртуального счёта — 1 000 USDT. Комиссия 0,1% за сторону, проскальзывание 0,05%, риск 0,5% на сделку. Два экспериментальных кандидата имеют мало исторических сделок и не считаются подтверждёнными.</div>
 <div id="cards" class="grid"><div class="card">Загружаю первый снимок…</div></div>
