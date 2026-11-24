@@ -306,12 +306,18 @@
   ];
   function drawTraveler(x,y,scale=2,fallen=false){
     if(fallen){
-      // Rotate around the sprite's actual center; keep the exhausted body on the street.
-      ctx.save();
-      ctx.translate(x+8*scale,y+15*scale);
-      ctx.rotate(Math.PI/2);
-      drawTraveler(-8*scale,-10.5*scale,scale,false);
-      ctx.restore();
+      // Dedicated horizontal pose: hood, face, travel cloak, pack and exhausted legs.
+      px(x+2*scale,y+7*scale,9*scale,7*scale,'#29232a');
+      px(x+4*scale,y+10*scale,6*scale,3*scale,'#e3b77e');
+      px(x+8*scale,y+10*scale,2*scale,2*scale,'#34252a');
+      px(x+10*scale,y+8*scale,18*scale,10*scale,'#a64e42');
+      px(x+12*scale,y+7*scale,13*scale,2*scale,'#e0a06a');
+      px(x+13*scale,y+17*scale,14*scale,3*scale,'#6d785d');
+      px(x+17*scale,y+18*scale,9*scale,2*scale,'#b4a078');
+      px(x+26*scale,y+12*scale,7*scale,3*scale,'#25232b');
+      px(x+31*scale,y+14*scale,7*scale,3*scale,'#d2a16d');
+      px(x+13*scale,y+16*scale,7*scale,2*scale,'#e3b77e');
+      px(x+3*scale,y+6*scale,7*scale,1,'#f2d19a');
       return;
     }
     const colors={H:'#29232a',S:'#e3b77e',R:'#a64e42',L:'#25232b'};
@@ -368,7 +374,8 @@
       const step=Math.floor(e/330)%2;
       const wobble=Math.sin(e*.035)*1.25;
       const limp=Math.abs(Math.sin(e*.018))*2.1;
-      drawTraveler(Math.round(x),151+Math.round(wobble+limp),2,false);
+      px(x+5,220,25,3,'#29232b');
+      drawTraveler(Math.round(x),178+Math.round(wobble+limp),2,false);
       // Scuffed footprints and dragging dust trail.
       if(step===0){ctx.globalAlpha=.4;px(x-6,207,13,2,'#d5a477');px(x-12,211,7,1,'#b98a65');ctx.globalAlpha=1;}
       if(e>3000&&e<8500){ctx.globalAlpha=.18;px(x-24,204,18,2,'#e5bc83');ctx.globalAlpha=1;}
@@ -377,11 +384,12 @@
       const shake=Math.sin(e*.09)*(1-p)*3;
       ctx.save();ctx.translate(207+shake,164+Math.abs(shake));ctx.rotate(p*.11);
       drawTraveler(-12,0,2,true);ctx.restore();
-      dust(211,211,Math.min(1,p),ts);
+      dust(218,226,Math.min(1,p),ts);
     }else{
       const tremble=e<11600?Math.sin(e*.09)*1.3:0;
-      drawTraveler(194+tremble,163+Math.abs(tremble),2,true);
-      if(e<11600)dust(213,211,.55,ts);
+      px(201,231,46,4,'#29232b');
+      drawTraveler(194+tremble,194+Math.abs(tremble),2,true);
+      if(e<11600)dust(218,226,.55,ts);
     }
     // Sand gust carries the cuneiform away.
     if(e>14800&&e<16600){
