@@ -3,172 +3,181 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101820">
-<meta name="description" content="ASHUR — биржевая игра: сначала бумажная торговля, затем реальные деньги под контролем риска.">
-<title>ASHUR — Биржевая игра</title>
+<meta name="theme-color" content="#111827">
+<meta name="description" content="ASHUR — пиксельный мир торговли, знаний и испытаний. Сначала paper trading, затем осторожный выход на реальный рынок.">
+<title>ASHUR — Хроники рынка</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#101820;--panel:#1b2b38;--panel2:#263b49;--ink:#f4edcf;--muted:#b5c0ad;--gold:#f4c95d;--orange:#e98245;--green:#9bbc0f;--red:#d95763;--line:#647d78;--shadow:#080d12}
+:root{--night:#111827;--deep:#19283a;--blue:#29465a;--sand:#d8b875;--gold:#f4d17a;--cream:#f8edcf;--rust:#bd6946;--teal:#75a99a;--green:#a8bd75;--muted:#b6c1bd;--edge:#5e7880}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:76px;background:var(--bg)}
-body{margin:0;background-color:var(--bg);background-image:linear-gradient(90deg,transparent 95%,#243442 95%),linear-gradient(0deg,transparent 95%,#243442 95%);background-size:32px 32px;color:var(--ink);font-family:'VT323',monospace;font-size:23px;line-height:1.25;image-rendering:pixelated}
+html{scroll-behavior:smooth;scroll-padding-top:78px}
+body{margin:0;color:var(--cream);background:var(--night);font:16px/1.7 'Silkscreen',monospace;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-button{font:inherit;color:inherit}
-.wrap{width:min(1120px,calc(100% - 36px));margin:auto}
-.pixel,.brand,.nav a,.eyebrow,.btn,.hud-label,.panel-title,.level-no,.tag,.tiny,.footer-mark{font-family:'Press Start 2P',monospace}
-header{height:68px;position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:4px solid var(--gold);box-shadow:0 5px 0 var(--shadow)}
-.nav{height:100%;display:flex;align-items:center;justify-content:space-between;gap:18px}
-.brand{font-size:15px;letter-spacing:1px;color:var(--gold);white-space:nowrap}
-.brand span{color:var(--ink)}
-.links{display:flex;gap:20px;align-items:center}
-.links a{font-size:9px;color:var(--muted)}
+button{font:inherit}
+.wrap{width:min(1160px,calc(100% - 38px));margin:auto}
+.pixel-title,.brand,.nav a,.eyebrow,.btn,.hud-label,.panel-title,.level-no,.tag,.footer-mark,.tiny{font-family:'Press Start 2P',monospace}
+header{height:76px;position:sticky;top:0;z-index:30;background:rgba(17,24,39,.97);border-bottom:3px solid var(--gold);box-shadow:0 5px 0 #090e17}
+.nav{height:100%;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:12px;font-size:14px;letter-spacing:1px;color:var(--gold)}
+.brand-mark{width:42px;height:32px;display:block;shape-rendering:crispEdges}
+.links{display:flex;align-items:center;gap:22px}
+.links a{font-size:8px;color:var(--muted);transition:color .15s steps(2)}
 .links a:hover{color:var(--gold)}
-.nav-start{font:9px 'Press Start 2P';padding:11px 12px;border:3px solid var(--gold);background:var(--orange);color:#17212a;box-shadow:4px 4px 0 #080d12}
-.hero{padding:38px 0 30px;min-height:590px;position:relative;overflow:hidden;background:#142330;border-bottom:5px solid var(--gold)}
-.hero:before{content:"";position:absolute;inset:0;opacity:.24;background:repeating-linear-gradient(0deg,transparent 0 7px,#a9c1b0 8px 9px),repeating-linear-gradient(90deg,transparent 0 7px,#a9c1b0 8px 9px);background-size:16px 16px;pointer-events:none}
-.hero-grid{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:center}
-.hero-copy{padding:26px 0}
-.eyebrow{font-size:9px;line-height:1.8;color:var(--gold);letter-spacing:1px}
-h1,h2,h3,p{margin-top:0}
-h1{font:clamp(28px,5vw,54px)/1.35 'Press Start 2P';color:var(--gold);margin:22px 0;text-shadow:4px 4px 0 #8b482e}
-h1 span{display:block;color:var(--ink);font-size:.38em;line-height:2.4;margin-top:12px;text-shadow:none}
-.hero-copy p{max-width:570px;color:var(--muted);font-size:29px;line-height:1.2}
-.actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px}
-.btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 16px;font-size:10px;line-height:1.6;border:3px solid var(--gold);background:var(--gold);color:#17212a;box-shadow:5px 5px 0 var(--shadow);cursor:pointer;transition:transform .08s steps(2)}
-.btn:hover{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--shadow)}
-.btn.secondary{background:var(--panel);color:var(--ink);border-color:var(--line)}
-.scene{min-height:340px;border:5px solid var(--gold);background:#182a35;box-shadow:8px 8px 0 var(--shadow);position:relative;overflow:hidden;display:flex;align-items:end}
-.scene svg{width:100%;height:auto;display:block;image-rendering:pixelated;shape-rendering:crispEdges}
-.scene-label{position:absolute;top:12px;left:12px;padding:8px 10px;background:#101820;border:2px solid var(--gold);font:8px 'Press Start 2P';color:var(--gold)}
-.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:24px;position:relative}
-.hud-box{padding:13px 14px;background:var(--panel);border:3px solid var(--line);box-shadow:4px 4px 0 var(--shadow);min-height:75px}
-.hud-label{font-size:8px;color:var(--muted);display:block;margin-bottom:10px}
-.hud-value{font:25px 'VT323';color:var(--gold)}
-section{padding:76px 0;border-bottom:4px solid #40565b}
-.section-head{max-width:760px;margin-bottom:30px}
+.nav-start{font:8px 'Press Start 2P';padding:12px 14px;border:2px solid var(--gold);background:var(--rust);color:#fff2d1;box-shadow:4px 4px 0 #080d12}
+.hero{position:relative;isolation:isolate;overflow:hidden;min-height:670px;padding:54px 0 30px;background:linear-gradient(180deg,#1a3045 0%,#294b60 53%,#8b674c 100%);border-bottom:4px solid var(--gold)}
+.hero:before{content:"";position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 78% 22%,rgba(244,209,122,.22),transparent 30%),linear-gradient(180deg,transparent 65%,rgba(14,23,33,.45));}
+.hero:after{content:"";position:absolute;z-index:-1;bottom:0;left:0;width:100%;height:180px;background:linear-gradient(180deg,transparent 0%,#263d3d 60%,#172a2e 61%);clip-path:polygon(0 44%,12% 29%,24% 48%,36% 16%,49% 43%,62% 20%,76% 46%,88% 22%,100% 38%,100% 100%,0 100%)}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;position:relative}
+.hero-copy{padding:18px 0 28px;position:relative;z-index:3}
+.eyebrow{font-size:8px;line-height:2;color:var(--gold);letter-spacing:1px}
+h1{font:clamp(28px,4.5vw,51px)/1.45 'Press Start 2P';color:var(--gold);margin:24px 0;text-shadow:4px 4px 0 #713e36}
+h1 span{display:block;font-size:clamp(10px,1.5vw,15px);line-height:2.2;color:var(--cream);margin-top:15px;text-shadow:none}
+.hero-copy p{max-width:590px;color:#f6e8c8;font-size:17px;line-height:1.9;text-shadow:2px 2px #172635}
+.actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:27px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 17px;font-size:8px;line-height:1.8;border:3px solid var(--gold);background:var(--gold);color:#1a2531;box-shadow:5px 5px 0 #090f16;cursor:pointer;transition:transform .08s steps(2)}
+.btn:hover{transform:translate(3px,3px);box-shadow:2px 2px 0 #090f16}
+.btn.secondary{background:#21394a;color:var(--cream);border-color:#9cb2aa}
+.landscape{position:relative;min-height:380px;align-self:stretch;display:flex;align-items:end;justify-content:center}
+.landscape svg{width:100%;height:auto;max-height:430px;display:block;shape-rendering:crispEdges;overflow:visible}
+.sun-disc{animation:sunPulse 4s steps(4,end) infinite;transform-origin:270px 86px}
+.guardian{animation:guardianFloat 3.4s steps(5,end) infinite;transform-origin:center}
+.bird{animation:birdFlight 13s linear infinite}
+.bird.b2{animation-delay:-6s;animation-duration:17s}
+.dust{animation:dustRise 5s steps(5,end) infinite}
+@keyframes sunPulse{50%{opacity:.72;transform:scale(.96)}}
+@keyframes guardianFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes birdFlight{0%{transform:translateX(-90px)}100%{transform:translateX(430px)}}
+@keyframes dustRise{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-9px);opacity:.85}}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;position:relative;z-index:4;margin-top:22px}
+.hud-box{padding:13px 14px;background:#172737;border:2px solid #6e8a8b;box-shadow:4px 4px 0 #0b111a;min-height:74px}
+.hud-label{font-size:7px;color:#b8c8c0;display:block;margin-bottom:10px}
+.hud-value{font:18px 'Silkscreen';color:var(--gold)}
+section{padding:72px 0;border-bottom:2px solid #344c55;position:relative}
+.section-head{max-width:790px;margin-bottom:30px}
 .section-head .eyebrow{margin-bottom:15px}
-h2{font:clamp(18px,3vw,27px)/1.65 'Press Start 2P';color:var(--gold);margin-bottom:18px}
-.section-head p{font-size:27px;color:var(--muted);max-width:690px}
-.panel{background:var(--panel);border:4px solid var(--line);box-shadow:7px 7px 0 var(--shadow);padding:22px;position:relative}
-.panel:before{content:"";position:absolute;inset:6px;border:1px dashed #6f8880;pointer-events:none}
-.panel-title{font-size:10px;color:var(--gold);margin-bottom:18px;position:relative}
+h2{font:clamp(16px,2.5vw,24px)/1.8 'Press Start 2P';color:var(--gold);margin:0 0 18px}
+.section-head p{font-size:16px;line-height:1.9;color:var(--muted);max-width:740px}
+.panel{background:linear-gradient(145deg,#203448,#192b3a);border:2px solid #698287;box-shadow:6px 6px 0 #0a111b;padding:22px;position:relative}
+.panel:after{content:"";position:absolute;inset:5px;border:1px solid rgba(216,184,117,.18);pointer-events:none}
+.panel-title{font-size:8px;color:var(--gold);margin-bottom:18px;position:relative;line-height:2}
 .intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.dialogue{font-size:29px;color:var(--ink);line-height:1.28;position:relative}
-.dialogue strong{color:var(--gold);font-weight:normal}
+.dialogue{font-size:17px;color:var(--cream);line-height:1.9;position:relative}
+.dialogue strong{color:var(--gold);font-weight:700}
 .pixel-list{list-style:none;margin:18px 0 0;padding:0;position:relative}
-.pixel-list li{padding:8px 0 8px 24px;color:var(--muted);font-size:24px;position:relative}
-.pixel-list li:before{content:"▶";position:absolute;left:0;color:var(--orange);font-size:14px;top:12px}
+.pixel-list li{padding:7px 0 7px 23px;color:var(--muted);font-size:14px;line-height:1.9;position:relative}
+.pixel-list li:before{content:"◆";position:absolute;left:0;color:var(--rust);font-size:12px;top:9px}
 .levels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.level{min-height:255px;display:flex;flex-direction:column;gap:12px}
-.level-no{font-size:9px;color:var(--orange)}
-.level h3{font:13px/1.8 'Press Start 2P';color:var(--ink);margin:4px 0}
-.level p{font-size:24px;color:var(--muted);margin:0}
-.level .status{margin-top:auto;padding-top:12px;border-top:2px dashed var(--line);font:8px 'Press Start 2P';color:var(--green);line-height:1.8}
-.level.locked{opacity:.62}
-.level.locked .status{color:var(--muted)}
-.level.active{border-color:var(--gold);background:#283b42}
-.level.active:after{content:"";position:absolute;right:18px;top:18px;width:10px;height:10px;background:var(--green);box-shadow:0 0 0 4px #9bbc0f33}
+.level{min-height:250px;display:flex;flex-direction:column;gap:12px}
+.level-no{font-size:7px;color:#e7a16c;line-height:2}
+.level h3{font:10px/2 'Press Start 2P';color:var(--cream);margin:4px 0}
+.level p{font-size:14px;line-height:1.9;color:var(--muted);margin:0}
+.level .status{margin-top:auto;padding-top:12px;border-top:1px dashed #617d80;font:7px/2 'Press Start 2P';color:var(--green)}
+.level.locked{opacity:.72}
+.level.locked .status{color:#a8b6b1}
+.level.active{border-color:var(--gold);background:linear-gradient(145deg,#334c50,#203448)}
+.level.active:after{content:"";position:absolute;right:17px;top:17px;width:9px;height:9px;background:var(--green);box-shadow:0 0 0 4px #a8bd7533}
 .paper-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
-.stat-line{display:flex;justify-content:space-between;gap:10px;border-bottom:2px dashed var(--line);padding:10px 0;color:var(--muted);font-size:23px}
-.stat-line b{color:var(--gold);font-weight:normal}
-.warning{border-color:var(--orange)}
-.warning .panel-title{color:var(--orange)}
-.progress{height:18px;border:3px solid var(--line);background:#101820;margin:18px 0 8px;padding:2px}
+.stat-line{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #617d80;padding:10px 0;color:var(--muted);font-size:13px}
+.stat-line b{color:var(--gold);font-weight:400}
+.warning{border-color:var(--rust)}
+.warning .panel-title{color:#efaa79}
+.progress{height:15px;border:2px solid #698287;background:#111b28;margin:18px 0 8px;padding:2px}
 .progress span{display:block;width:18%;height:100%;background:var(--green)}
-.controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
-.controls .btn{font-size:8px}
+.tiny{font-size:7px;color:var(--muted);line-height:2}
 .wall-link{display:flex;align-items:center;justify-content:space-between;gap:20px;text-decoration:none}
 .wall-link:hover h3{color:var(--gold)}
-.wall-link h3{font:12px/1.8 'Press Start 2P';margin:0 0 10px}
-.wall-link p{color:var(--muted);font-size:23px;margin:0}
-.arrow{font:28px 'Press Start 2P';color:var(--gold)}
-footer{padding:25px 0;background:#0b1118;border-top:4px solid var(--gold);color:var(--muted)}
+.wall-link h3{font:10px/2 'Press Start 2P';margin:0 0 10px}
+.wall-link p{color:var(--muted);font-size:14px;line-height:1.9;margin:0}
+.arrow{font:22px 'Press Start 2P';color:var(--gold)}
+footer{padding:25px 0;background:#0b121c;border-top:3px solid var(--gold);color:var(--muted)}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
-.footer-mark{color:var(--gold);font-size:10px}
-footer small{font:8px 'Press Start 2P';line-height:1.8}
-.blink{animation:blink 1s steps(2,start) infinite}
+.footer-mark{color:var(--gold);font-size:9px;display:flex;align-items:center;gap:8px}
+footer small{font:7px/2 'Press Start 2P'}
+.blink{font:8px 'Press Start 2P';color:var(--gold);animation:blink 1s steps(2,start) infinite}
 @keyframes blink{to{visibility:hidden}}
-@media(max-width:850px){.hero-grid{grid-template-columns:1fr}.scene{max-width:650px;min-height:0}.levels{grid-template-columns:1fr 1fr}.links{gap:10px}.links a{font-size:7px}.nav-start{display:none}}
-@media(max-width:600px){.wrap{width:calc(100% - 24px)}header{height:auto;min-height:62px}.nav{padding:12px 0;flex-wrap:wrap}.brand{font-size:12px}.links{order:3;width:100%;justify-content:space-between;gap:5px;padding:8px 0 2px}.links a{font-size:6px}.hero{padding:26px 0}.hero-grid{gap:18px}.hero-copy{padding:10px 0}.hero-copy p{font-size:25px}h1{font-size:clamp(23px,8vw,38px)}.scene{min-height:0}.hud{grid-template-columns:1fr 1fr}.hud-box{min-height:65px;padding:10px}.hud-label{font-size:7px}.intro-grid,.paper-grid{grid-template-columns:1fr}.levels{grid-template-columns:1fr}section{padding:55px 0}h2{font-size:17px}.section-head p{font-size:24px}.panel{padding:17px}.dialogue{font-size:26px}.wall-link h3{font-size:10px}}
+@media(max-width:850px){.hero-grid{grid-template-columns:1fr}.hero-copy{padding-bottom:0}.landscape{min-height:0;max-width:650px;margin:auto}.landscape svg{max-height:360px}.levels{grid-template-columns:1fr 1fr}.links{gap:10px}.links a{font-size:7px}.nav-start{display:none}}
+@media(max-width:600px){.wrap{width:calc(100% - 24px)}header{height:auto;min-height:66px}.nav{padding:10px 0;flex-wrap:wrap}.brand{font-size:12px}.brand-mark{width:35px}.links{order:3;width:100%;justify-content:space-between;gap:5px;padding:8px 0 2px}.links a{font-size:6px}.hero{padding:28px 0 24px;min-height:0}.hero-grid{gap:8px}.hero-copy{padding:8px 0 0}h1{font-size:clamp(22px,7.8vw,36px);margin:17px 0}.hero-copy p{font-size:14px}.landscape svg{max-height:285px}.hud{grid-template-columns:1fr 1fr}.hud-box{min-height:64px;padding:10px}.hud-label{font-size:6px}.hud-value{font-size:16px}section{padding:52px 0}h2{font-size:15px}.section-head p{font-size:14px}.intro-grid,.paper-grid{grid-template-columns:1fr}.levels{grid-template-columns:1fr}.panel{padding:17px}.dialogue{font-size:15px}.wall-link h3{font-size:9px}.wall-link p{font-size:13px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 <body>
 <header><div class="wrap nav">
-<a class="brand" href="#top">𒀭 <span>ASHUR</span></a>
-<nav class="links"><a href="#game">ИГРА</a><a href="#levels">УРОВНИ</a><a href="#paper">ПРАВИЛА</a><a href="wall.html">СТЕНА</a></nav>
+<a class="brand" href="#top" aria-label="ASHUR — на главную">
+<svg class="brand-mark" viewBox="0 0 48 36" aria-hidden="true">
+<g fill="#f4d17a"><rect x="20" y="1" width="8" height="5"/><rect x="16" y="6" width="16" height="5"/><rect x="12" y="11" width="24" height="5"/><rect x="17" y="16" width="14" height="5"/><rect x="20" y="21" width="8" height="6"/><rect x="22" y="27" width="4" height="7"/><rect x="2" y="8" width="9" height="4"/><rect x="5" y="13" width="10" height="4"/><rect x="8" y="18" width="9" height="4"/><rect x="37" y="8" width="9" height="4"/><rect x="33" y="13" width="10" height="4"/><rect x="31" y="18" width="9" height="4"/></g>
+<rect x="21" y="11" width="6" height="5" fill="#bd6946"/><rect x="22" y="17" width="4" height="4" fill="#bd6946"/>
+</svg><span>ASHUR</span></a>
+<nav class="links"><a href="#game">МИР</a><a href="#levels">УРОВНИ</a><a href="#paper">КОДЕКС</a><a href="wall.html">СТЕНА</a></nav>
 <a class="nav-start" href="#levels">START GAME</a>
 </div></header>
 <main id="top">
 <section class="hero" id="game"><div class="wrap">
 <div class="hero-grid">
 <div class="hero-copy">
-<div class="eyebrow">CARTRIDGE 001 · MESOPOTAMIA EDITION</div>
+<div class="eyebrow">𒀭 MESOPOTAMIA · MARKET CHRONICLES</div>
 <h1>ASHUR<span>THE MARKET QUEST</span></h1>
-<p>Большая биржевая игра. Маленькие шаги. Сначала учимся побеждать на бумаге — и только потом рискуем настоящими монетами.</p>
-<div class="actions"><a class="btn" href="#levels">▶ НАЧАТЬ ИГРУ</a><a class="btn secondary" href="#paper">КАК ЭТО РАБОТАЕТ?</a></div>
+<p>Врата рынка открыты. Изучи знаки, испытай стратегии и докажи свою выдержку. Сначала виртуальная казна — реальный капитал только после испытаний.</p>
+<div class="actions"><a class="btn" href="#levels">▶ ВОЙТИ В ИГРУ</a><a class="btn secondary" href="#paper">ПРАВИЛА МИРА</a></div>
 </div>
-<div class="scene" aria-label="Пиксельный город древней Ассирии">
-<div class="scene-label">WORLD 01 — ASSUR</div>
-<svg viewBox="0 0 384 256" role="img" aria-label="Пиксельный город, зиккурат и восходящее солнце">
-<rect width="384" height="256" fill="#182a35"/>
-<rect x="0" y="0" width="384" height="112" fill="#203b4a"/>
-<path d="M0 94h384v8H0z" fill="#345566"/>
-<rect x="25" y="35" width="22" height="22" fill="#f4c95d"/><rect x="18" y="42" width="36" height="8" fill="#f4c95d"/><rect x="32" y="28" width="8" height="36" fill="#f4c95d"/>
-<path d="M0 156h384v100H0z" fill="#8b482e"/>
-<path d="M0 149h384v12H0z" fill="#d58a45"/>
-<path d="M62 149V99h18V83h18V67h54v16h18v16h18v50z" fill="#d9a75c"/>
-<path d="M82 149v-34h18v-16h18V83h34v16h18v16h18v34z" fill="#b66b3d"/>
-<rect x="118" y="111" width="18" height="38" fill="#203b4a"/><rect x="146" y="111" width="18" height="38" fill="#203b4a"/>
-<path d="M224 149V91h14V77h14V63h52v14h14v14h14v58z" fill="#d9a75c"/>
-<rect x="246" y="110" width="18" height="39" fill="#203b4a"/><rect x="280" y="110" width="18" height="39" fill="#203b4a"/>
-<path d="M0 178h384v78H0z" fill="#536b4c"/>
-<path d="M0 178h384v8H0z" fill="#9bbc0f"/>
-<g fill="#e98245"><rect x="38" y="184" width="8" height="8"/><rect x="54" y="200" width="8" height="8"/><rect x="330" y="190" width="8" height="8"/><rect x="348" y="210" width="8" height="8"/></g>
-<g fill="#17212a"><rect x="190" y="183" width="12" height="24"/><rect x="184" y="190" width="24" height="8"/><rect x="194" y="207" width="4" height="13"/></g>
-<g fill="#f4c95d"><rect x="188" y="179" width="16" height="4"/><rect x="192" y="174" width="8" height="5"/></g>
-<g fill="#b5c0ad"><rect x="12" y="230" width="16" height="4"/><rect x="42" y="239" width="22" height="4"/><rect x="300" y="230" width="24" height="4"/></g>
-<path d="M0 248h384v8H0z" fill="#263b49"/>
+<div class="landscape" aria-label="Пиксельная панорама Ассирии с крылатым солнечным диском и стражем">
+<svg viewBox="0 0 520 390" role="img" aria-label="Восьмибитный ассирийский город и крылатый страж">
+<defs><pattern id="brick" width="32" height="16" patternUnits="userSpaceOnUse"><path d="M0 15H32M16 0V15" stroke="#a66b4d" stroke-width="2" opacity=".45"/></pattern></defs>
+<g class="sun-disc"><circle cx="270" cy="83" r="48" fill="#f4d17a" opacity=".12"/><circle cx="270" cy="83" r="31" fill="#f4d17a"/><circle cx="270" cy="83" r="20" fill="#bd6946"/><rect x="265" y="59" width="10" height="48" fill="#f8edcf"/><rect x="246" y="78" width="48" height="10" fill="#f8edcf"/><rect x="252" y="65" width="7" height="7" fill="#f8edcf"/><rect x="281" y="65" width="7" height="7" fill="#f8edcf"/><path d="M223 78h-55l-20-12 11 20-11 20 20-12h55M317 78h55l20-12-11 20 11 20-20-12h-55" fill="#f4d17a"/><path d="M220 92l-43 15-23-5 17 15-1 15 16-13 34-12M320 92l43 15 23-5-17 15 1 15-16-13-34-12" fill="#d8b875"/></g>
+<g fill="#f8edcf" opacity=".8"><rect x="53" y="55" width="4" height="4"/><rect x="96" y="91" width="4" height="4"/><rect x="423" y="47" width="4" height="4"/><rect x="466" y="112" width="4" height="4"/><rect x="380" y="35" width="3" height="3"/></g>
+<g class="bird" fill="#111827"><path d="M0 0h8v4h8v-4h8v4h-8v4h-8v-4H0z"/></g><g class="bird b2" fill="#111827"><path d="M0 0h8v4h8v-4h8v4h-8v4h-8v-4H0z"/></g>
+<path d="M0 260l70 0 0-58 16 0 0-18 64 0 0 18 16 0 0 58 42 0 0-78 22-18 22 18 0 78h38v-62h15v-20h68v20h15v62h92v130H0z" fill="#a56b4d"/>
+<path d="M0 260l70 0 0-58 16 0 0-18 64 0 0 18 16 0 0 58 42 0 0-78 22-18 22 18 0 78h38v-62h15v-20h68v20h15v62h92v130H0z" fill="url(#brick)"/>
+<path d="M67 202h99v-16h-16v-18H83v18H67zM215 182l37-30 37 30zM328 198h98v-18h-15v-18h-68v18h-15z" fill="#d8b875"/>
+<g fill="#172a3a"><rect x="91" y="220" width="18" height="40"/><rect x="128" y="220" width="18" height="40"/><rect x="237" y="205" width="28" height="55"/><rect x="348" y="217" width="18" height="43"/><rect x="387" y="217" width="18" height="43"/></g>
+<path d="M0 274h520v116H0z" fill="#273c38"/><path d="M0 274h520v9H0z" fill="#a8bd75"/>
+<g fill="#d8b875"><rect x="0" y="291" width="520" height="3" opacity=".25"/><rect x="37" y="321" width="45" height="4"/><rect x="435" y="308" width="42" height="4"/></g>
+<g class="guardian">
+<g transform="translate(213 225)">
+<path d="M22 9h40v12H22z" fill="#d8b875"/><path d="M27 0h30v10H27z" fill="#f4d17a"/><rect x="31" y="4" width="5" height="4" fill="#172a3a"/><rect x="48" y="4" width="5" height="4" fill="#172a3a"/>
+<path d="M19 21h46v42H19z" fill="#bd6946"/><path d="M19 24H2L-8 12 3 15 19 17M65 24h17l10-12-11 3-16 11" fill="#f4d17a"/><path d="M23 63h13v24H23zM48 63h13v24H48z" fill="#d8b875"/><path d="M14 36H2v8h12M70 36h12v8H70" fill="#d8b875"/><rect x="37" y="26" width="10" height="24" fill="#f4d17a"/><rect x="33" y="51" width="18" height="5" fill="#f4d17a"/><path d="M21 12h42v7H21z" fill="#f8edcf"/>
+</g></g>
+<g class="dust" fill="#f4d17a"><rect x="190" y="318" width="5" height="5"/><rect x="300" y="334" width="4" height="4"/><rect x="330" y="305" width="5" height="5"/></g>
+<path d="M0 375h520v15H0z" fill="#111827"/>
 </svg>
 </div>
 </div>
 <div class="hud">
-<div class="hud-box"><span class="hud-label">PLAYER</span><span class="hud-value">ROOKIE</span></div>
-<div class="hud-box"><span class="hud-label">LEVEL</span><span class="hud-value">01 / 05</span></div>
-<div class="hud-box"><span class="hud-label">MODE</span><span class="hud-value">PAPER</span></div>
-<div class="hud-box"><span class="hud-label">RISK</span><span class="hud-value">0 COINS</span></div>
+<div class="hud-box"><span class="hud-label">ИГРОК</span><span class="hud-value">ROOKIE</span></div>
+<div class="hud-box"><span class="hud-label">УРОВЕНЬ</span><span class="hud-value">01 / 05</span></div>
+<div class="hud-box"><span class="hud-label">РЕЖИМ</span><span class="hud-value">PAPER</span></div>
+<div class="hud-box"><span class="hud-label">РИСК</span><span class="hud-value">0 COINS</span></div>
 </div>
 </div></section>
 <section id="levels"><div class="wrap">
-<div class="section-head"><div class="eyebrow">SELECT YOUR QUEST</div><h2>ПЯТЬ УРОВНЕЙ ДО БИРЖИ</h2><p>Каждый уровень открывается после проверки предыдущего. Никаких прыжков через пропасть с мешком денег.</p></div>
+<div class="section-head"><div class="eyebrow">ВЫБЕРИ СВОЁ ИСПЫТАНИЕ</div><h2>ПЯТЬ ВРАТ К РЫНКУ</h2><p>Каждые следующие врата открываются делом, а не красивыми обещаниями. Сперва учимся управлять риском — потом думаем о капитале.</p></div>
 <div class="levels">
-<article class="panel level active"><div class="level-no">LEVEL 01 · AVAILABLE</div><h3>УЧЕБНЫЙ РЫНОК</h3><p>Знакомимся с котировками, заявками и движением цены. Играем виртуальными деньгами.</p><div class="status">▶ ТЕКУЩИЙ УРОВЕНЬ</div></article>
-<article class="panel level"><div class="level-no">LEVEL 02 · LOCKED</div><h3>ПЕРВЫЕ СТРАТЕГИИ</h3><p>Проверяем идеи на истории, учимся видеть комиссии, просадки и статистику.</p><div class="status">🔒 ОТКРОЕТСЯ ПОСЛЕ LEVEL 01</div></article>
-<article class="panel level"><div class="level-no">LEVEL 03 · LOCKED</div><h3>БУМАЖНЫЙ БОЙ</h3><p>Торговля на реальном рынке без реальных денег. Проверка алгоритма вживую.</p><div class="status">🔒 ВПЕРЕДИ</div></article>
-<article class="panel level"><div class="level-no">LEVEL 04 · LOCKED</div><h3>СТРАЖ КАПИТАЛА</h3><p>Лимиты риска, защита от ошибок, контроль каждой сделки и остановка системы.</p><div class="status">🔒 ВПЕРЕДИ</div></article>
-<article class="panel level"><div class="level-no">LEVEL 05 · LOCKED</div><h3>РЕАЛЬНЫЙ КАПИТАЛ</h3><p>Подключение собственных средств — только после прохождения испытаний и ручного решения.</p><div class="status">🔒 НЕ ДОСТУПЕН НА СТАРТЕ</div></article>
-<article class="panel level"><div class="level-no">BONUS STAGE</div><h3>НОВЫЕ МИРЫ</h3><p>Новые рынки, инструменты, стратегии и испытания. Расширяем игру без потери контроля.</p><div class="status">★ БУДУЩЕЕ ОБНОВЛЕНИЕ</div></article>
+<article class="panel level active"><div class="level-no">LEVEL 01 · OPEN</div><h3>ЗНАКИ РЫНКА</h3><p>Котировки, заявки, свечи и движение цены. Осваиваем основы на виртуальных монетах.</p><div class="status">▶ ДОСТУПНО СЕЙЧАС</div></article>
+<article class="panel level"><div class="level-no">LEVEL 02 · SEALED</div><h3>ПИСЦЫ СТРАТЕГИЙ</h3><p>Исторические данные, проверка гипотез, комиссии и честная статистика.</p><div class="status">ЗАПЕЧАТАНО · НУЖЕН LEVEL 01</div></article>
+<article class="panel level"><div class="level-no">LEVEL 03 · SEALED</div><h3>ИСПЫТАНИЕ PAPER</h3><p>Проверяем стратегии на живом рынке без риска для настоящих денег.</p><div class="status">ЗАПЕЧАТАНО · ВПЕРЕДИ</div></article>
+<article class="panel level"><div class="level-no">LEVEL 04 · SEALED</div><h3>СТРАЖ КАЗНЫ</h3><p>Лимиты потерь, контроль сделок, защита от ошибок и аварийная остановка.</p><div class="status">ЗАПЕЧАТАНО · ВПЕРЕДИ</div></article>
+<article class="panel level"><div class="level-no">LEVEL 05 · SEALED</div><h3>МАЛАЯ КАЗНА</h3><p>Осторожный допуск к реальным средствам — только после проверок и вручную.</p><div class="status">ЗАПЕЧАТАНО · НЕ ДОСТУПНО</div></article>
+<article class="panel level"><div class="level-no">BONUS WORLD</div><h3>НОВЫЕ ЗЕМЛИ</h3><p>Новые рынки, инструменты и испытания. Расширяем мир без безумного риска.</p><div class="status">★ БУДУЩЕЕ ОБНОВЛЕНИЕ</div></article>
 </div>
 </div></section>
 <section id="paper"><div class="wrap">
-<div class="section-head"><div class="eyebrow">HOW TO PLAY</div><h2>СНАЧАЛА ТРЕНИРУЕМСЯ. ПОТОМ РЕШАЕМ.</h2><p>На старте система не получает доступ к твоим деньгам. Первый этап — исследование и бумажная торговля.</p></div>
+<div class="section-head"><div class="eyebrow">ЗАКОНЫ АШУРА</div><h2>СНАЧАЛА ЗНАНИЕ. ПОТОМ КАЗНА.</h2><p>На первом этапе ASHUR не получает доступа к твоим деньгам. Здесь тренируются, проверяют идеи и учатся не путать удачу с системой.</p></div>
 <div class="paper-grid">
-<div class="panel"><div class="panel-title">MISSION BRIEFING</div><div class="dialogue">«Писец, прежде чем открыть казну, докажи, что умеешь считать. <strong>Сначала знания. Потом монеты.</strong>»</div><ul class="pixel-list"><li>Исторические данные и тестирование стратегий.</li><li>Виртуальные сделки без реального капитала.</li><li>Сбор статистики: прибыль, просадка, комиссии.</li><li>Проверка стабильности и ограничений риска.</li></ul></div>
-<div class="panel warning"><div class="panel-title">CAPITAL SAFETY SYSTEM</div>
+<div class="panel"><div class="panel-title">СЛОВО СТАРШЕГО ПИСЦА</div><div class="dialogue">«Не доверяй монету первому встречному сигналу. <strong>Проверь стратегию, измерь риск и только потом делай ход.</strong>»</div><ul class="pixel-list"><li>Исторические данные и тестирование стратегий.</li><li>Виртуальные сделки без реального капитала.</li><li>Статистика прибыли, просадки и комиссий.</li><li>Проверка стабильности и защитных ограничений.</li></ul></div>
+<div class="panel warning"><div class="panel-title">ЗАЩИТА КАЗНЫ</div>
 <div class="stat-line"><span>РЕАЛЬНЫЕ ДЕНЬГИ</span><b>НЕ ПОДКЛЮЧЕНЫ</b></div>
-<div class="stat-line"><span>РЕЖИМ НА СТАРТЕ</span><b>PAPER</b></div>
+<div class="stat-line"><span>СТАРТОВЫЙ РЕЖИМ</span><b>PAPER</b></div>
 <div class="stat-line"><span>ПЛЕЧО</span><b>НЕТ</b></div>
 <div class="stat-line"><span>ДОПУСК К КАПИТАЛУ</span><b>ВРУЧНУЮ</b></div>
-<div class="progress"><span></span></div><div class="tiny" style="font:8px 'Press Start 2P';color:var(--muted);line-height:1.8">ПРОГРЕСС ИГРЫ: КОНЦЕПЦИЯ / LEVEL 01</div>
+<div class="progress"><span></span></div><div class="tiny">ПРОГРЕСС: НАЧАЛО ПУТИ · LEVEL 01</div>
 </div>
 </div>
 </div></section>
 <section><div class="wrap">
-<a class="panel wall-link" href="wall.html"><div><div class="eyebrow">WORLD MAP · KNOWLEDGE BASE</div><h3>СТЕНА ASHUR</h3><p>Хроника исследований, экспериментов, результатов и новых открытий.</p></div><span class="arrow">▶</span></a>
+<a class="panel wall-link" href="wall.html"><div><div class="eyebrow">АРХИВ ЦАРСТВА</div><h3>СТЕНА ASHUR</h3><p>Исследования, наблюдения, эксперименты и летопись результатов.</p></div><span class="arrow">▶</span></a>
 </div></section>
 </main>
-<footer><div class="wrap foot"><span class="footer-mark">𒀭 ASHUR · CARTRIDGE 001</span><small>ИГРА НАЧИНАЕТСЯ С ПРОВЕРКИ<br>© 2026 · PAPER MODE FIRST</small><span class="blink">PRESS START _</span></div></footer>
+<footer><div class="wrap foot"><span class="footer-mark">𒀭 ASHUR · CARTRIDGE 001</span><small>СНАЧАЛА ПРОВЕРЬ. ПОТОМ РИСКУЙ.<br>© 2026 · PAPER MODE FIRST</small><span class="blink">PRESS START _</span></div></footer>
 </body>
 </html>
