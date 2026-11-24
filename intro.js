@@ -6,8 +6,13 @@
   // Native Mega Drive-sized framebuffer. Legacy scene coordinates are mapped 3:2
   // onto this 320x224 surface; no post-render downsampling is performed.
   source.width = 320; source.height = 224;
-  const ctx = source.getContext('2d', { alpha: false });
-  ctx.imageSmoothingEnabled = false;
+  const sourceCtx = source.getContext('2d', { alpha: false });
+  let ctx = sourceCtx;
+  const spriteLayer = document.createElement('canvas');
+  spriteLayer.width = 320; spriteLayer.height = 224;
+  const spriteCtx = spriteLayer.getContext('2d', { alpha: false });
+  sourceCtx.imageSmoothingEnabled = false;
+  spriteCtx.imageSmoothingEnabled = false;
   ctx.setTransform(2/3,0,0,2/3,0,0);
   display.width = 320; display.height = 224;
   displayCtx.imageSmoothingEnabled = false;
@@ -26,8 +31,6 @@
   const paletteBanks = Array.from({length:4},(_,bank)=>palette
     .slice(bank*16,(bank+1)*16).slice(1)
     .map(hex=>[1,3,5].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*7/255)*255/7)));
-  const paletteRgb = paletteBanks.flat();
-  const paletteCache = new Map();
   function quantizeCanvasToBank(targetCtx,width,height,bankIndex){
     const frame=targetCtx.getImageData(0,0,width,height),data=frame.data;
     const bank=paletteBanks[bankIndex];
@@ -42,25 +45,26 @@
     }
     targetCtx.putImageData(frame,0,0);
   }
-  function presentFrame() {
-    const frame = ctx.getImageData(0,0,320,224);
-    const data = frame.data;
-    for(let i=0;i<data.length;i+=4){
-      const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];
-      let mapped=paletteCache.get(key);
-      if(mapped===undefined){
-        let best=0,dist=Infinity;
-        for(let p=0;p<paletteRgb.length;p++){
-          const c=paletteRgb[p],dr=data[i]-c[0],dg=data[i+1]-c[1],db=data[i+2]-c[2];
+  function quantizeBackgroundPlanes(targetCtx){
+    // Plane A: sky and distant architecture; Plane B: bazaar and street;
+    // foreground/effects use bank 3. The traveler is composited separately on bank 2.
+    const frame=targetCtx.getImageData(0,0,320,224),data=frame.data;
+    for(let y=0;y<224;y++){
+      const bank=paletteBanks[y<112?0:y<180?1:3];
+      for(let x=0;x<320;x++){
+        const i=(y*320+x)*4;let best=0,dist=Infinity;
+        for(let p=0;p<bank.length;p++){
+          const c=bank[p],dr=data[i]-c[0],dg=data[i+1]-c[1],db=data[i+2]-c[2];
           const d=dr*dr+dg*dg+db*db;
           if(d<dist){dist=d;best=p;}
         }
-        mapped=best;paletteCache.set(key,mapped);
+        const c=bank[best];data[i]=c[0];data[i+1]=c[1];data[i+2]=c[2];
       }
-      const c=paletteRgb[mapped];
-      data[i]=c[0];data[i+1]=c[1];data[i+2]=c[2];
     }
-    displayCtx.putImageData(frame,0,0);
+    targetCtx.putImageData(frame,0,0);
+  }
+  function presentFrame() {
+    displayCtx.putImageData(sourceCtx.getImageData(0,0,320,224),0,0);
   }
   const opening = document.getElementById('opening');
   const cuneiform = document.getElementById('cuneiform');
@@ -1002,6 +1006,10 @@
     ctx.fillRect(0,0,480,336);
     background(ts);
     drawObservers(e);
+    quantizeBackgroundPlanes(sourceCtx);
+    spriteCtx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
+    spriteCtx.clearRect(0,0,320,224);
+    ctx=spriteCtx;
     let sx=0,sy=0;
     if(e<8500){
       const walkEnd=8100;
@@ -1060,6 +1068,9 @@
       }
       sx=Math.sin(ts*.11)*2.2;sy=Math.cos(ts*.09)*1.3;
     }
+    ctx=sourceCtx;
+    quantizeCanvasToBank(spriteCtx,320,224,2);
+    sourceCtx.drawImage(spriteLayer,0,0);
     presentFrame();
     canvas.style.transform='translate('+Math.round(sx/1.5)+'px,'+Math.round(sy/1.5)+'px)';
     if(!skipped){
@@ -1087,7 +1098,16 @@
 
   // Respect reduced-motion preferences: show the finished title card immediately.
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    ctx.setTransform(2/3,0,0,2/3,0,0);
     background(0);
+    drawObservers(20000);
+    quantizeBackgroundPlanes(sourceCtx);
+    spriteCtx.setTransform(2/3,0,0,2/3,0,0);
+    ctx=spriteCtx;
+    drawTravelerRecovery(194,218,2,1);
+    ctx=sourceCtx;
+    quantizeCanvasToBank(spriteCtx,320,224,2);
+    sourceCtx.drawImage(spriteLayer,0,0);
     presentFrame();
     opening.classList.add('visible');
     title.classList.add('visible');
