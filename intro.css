@@ -14,7 +14,8 @@ body{color:#fff;font-family:"Pixelify Sans",monospace}
 .cuneiform i{font:700 clamp(24px,4vw,42px) "Pixelify Sans",monospace;color:#f0c77d}
 .game-title{width:var(--mark-size);height:var(--mark-size);aspect-ratio:1;margin:17px auto 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));place-items:center;color:#ffe1a1;font-family:"Pixelify Sans",monospace;font-size:calc(var(--mark-size)*.34);font-weight:700;line-height:1;letter-spacing:0;opacity:0;transform:translateY(10px) scale(.96);-webkit-text-stroke:1.5px #4b2a1c;text-shadow:3px 3px 0 #2c1918,5px 6px 0 #100d12,0 0 16px #08070b;transition:opacity .85s ease,transform .85s cubic-bezier(.2,.8,.2,1)}
 .game-title .glyph{display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-width:0;min-height:0}
-.game-title .punctuation{font-size:.48em;transform:translateY(-.06em);-webkit-text-stroke:1px #4b2a1c;text-shadow:2px 2px 0 #2c1918,0 0 12px #08070b}
+.game-title .punctuation{font-size:0;transform:none;-webkit-text-stroke:0;text-shadow:none}
+.game-title .punctuation::before{content:"";display:block;width:clamp(8px,1.1vw,12px);height:clamp(8px,1.1vw,12px);background:#ffe1a1;box-shadow:2px 2px 0 #2c1918,0 0 10px #f4c17a}
 .game-title.visible{opacity:1;transform:translateY(0) scale(1)}
 @media(max-width:600px){#world{height:auto;top:50%;bottom:auto;translate:0 -50%;object-fit:contain}.story-copy{top:47%}.opening{font-size:clamp(18px,5vw,23px)}.cuneiform{margin-top:19px}.game-title{--mark-size:clamp(180px,49vw,218px);margin-top:14px;-webkit-text-stroke:1px #4b2a1c}}
 @media(prefers-reduced-motion:reduce){.opening,.cuneiform,.game-title{transition:none}}
