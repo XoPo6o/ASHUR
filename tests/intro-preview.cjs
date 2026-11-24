@@ -34,17 +34,29 @@ const path = require('node:path');
     await desktop.waitForTimeout(800);
     await desktop.screenshot({ path: path.join(out, '01-market-arrival.png') });
     await desktop.waitForTimeout(8500);
-    await desktop.screenshot({ path: path.join(out, '02-fall-and-dust.png') });
-    await desktop.waitForTimeout(3800);
-    const openingVisible = await desktop.locator('#opening').evaluate(el => getComputedStyle(el).opacity);
-    const cuneiformVisible = await desktop.locator('#cuneiform').evaluate(el => getComputedStyle(el).opacity);
-    if (Number(openingVisible) < 0.9 || Number(cuneiformVisible) < 0.9) {
-      throw new Error('Opening text or cuneiform did not appear at the expected time');
+    const reaction = await desktop.locator('#world').evaluate(el => el.dataset.observerReaction);
+    if (reaction !== 'true') throw new Error('Observers did not enter their reaction state after the fall');
+    await desktop.screenshot({ path: path.join(out, '02-fall-and-observers.png') });
+
+    await desktop.waitForTimeout(1600);
+    const openingPhase = await desktop.locator('#opening').evaluate(el => Number(getComputedStyle(el).opacity));
+    const cuneiformBefore = await desktop.locator('#cuneiform').evaluate(el => Number(getComputedStyle(el).opacity));
+    if (openingPhase < 0.9 || cuneiformBefore > 0.1) {
+      throw new Error('Opening phrase phase is not isolated: ' + JSON.stringify({ openingPhase, cuneiformBefore }));
     }
-    await desktop.screenshot({ path: path.join(out, '03-cuneiform.png') });
-    await desktop.waitForTimeout(3800);
-    const titleVisible = await desktop.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
-    if (Number(titleVisible) < 0.9) throw new Error('KI.LAM title did not appear');
+    await desktop.screenshot({ path: path.join(out, '03-opening-phrase.png') });
+
+    await desktop.waitForTimeout(2500);
+    const openingHidden = await desktop.locator('#opening').evaluate(el => Number(getComputedStyle(el).opacity));
+    const cuneiformVisible = await desktop.locator('#cuneiform').evaluate(el => Number(getComputedStyle(el).opacity));
+    if (openingHidden > 0.1 || cuneiformVisible < 0.9) {
+      throw new Error('Opening phrase did not disappear before cuneiform: ' + JSON.stringify({ openingHidden, cuneiformVisible }));
+    }
+    await desktop.screenshot({ path: path.join(out, '04-cuneiform.png') });
+
+    await desktop.waitForTimeout(3500);
+    const titleVisible = await desktop.locator('#game-title').evaluate(el => Number(getComputedStyle(el).opacity));
+    if (titleVisible < 0.9) throw new Error('KI.LAM title did not appear');
     const desktopMark = await desktop.locator('#game-title').evaluate(el => {
       const box = el.getBoundingClientRect();
       const cells = [...el.querySelectorAll('.glyph')].map(node => {
@@ -66,10 +78,10 @@ const path = require('node:path');
           Math.abs(cell.height - desktopMark.height / 2) > 1)) {
       throw new Error('KI.LAM mark is not a square 3x2 grid: ' + JSON.stringify(desktopMark));
     }
-    await desktop.screenshot({ path: path.join(out, '04-title-desktop.png') });
+    await desktop.screenshot({ path: path.join(out, '05-title-desktop.png') });
 
     const mobile = await openScene(390, 844, 'mobile');
-    await mobile.waitForTimeout(16300);
+    await mobile.waitForTimeout(16800);
     const mobileTitle = await mobile.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     const titleBox = await mobile.locator('#game-title').boundingBox();
     if (Number(mobileTitle) < 0.9 || !titleBox || titleBox.y < 0 || titleBox.y + titleBox.height > 844) {
@@ -82,7 +94,7 @@ const path = require('node:path');
     await mobile.screenshot({ path: path.join(out, '05-title-mobile.png'), fullPage: true });
 
     const landscape = await openScene(844, 390, 'mobile-landscape');
-    await landscape.waitForTimeout(16300);
+    await landscape.waitForTimeout(16800);
     const landscapeBox = await landscape.locator('#world').boundingBox();
     const landscapeTitle = await landscape.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     const landscapeTitleBox = await landscape.locator('#game-title').boundingBox();
@@ -98,8 +110,17 @@ const path = require('node:path');
     await skipPage.waitForTimeout(900);
     const skippedTitle = await skipPage.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     if (Number(skippedTitle) < 0.9) throw new Error('Touch skip did not reveal the title');
+    const palette = await desktop.locator('#world').evaluate(el => {
+      const d = el.getContext('2d').getImageData(0, 0, 320, 224).data;
+      const colors = new Set();
+      for (let i = 0; i < d.length; i += 4) colors.add((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+      return colors.size;
+    });
+    if (palette > 60) throw new Error('Frame exceeds the 4x15 visible-color budget: ' + palette);
+    const mobileCamera = await mobile.locator('#world').evaluate(el => Number(el.dataset.cameraX));
+    if (!(mobileCamera > 0)) throw new Error('Portrait camera did not follow the traveler: ' + mobileCamera);
     if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, mobileCamera, palette, errors }));
   } finally {
     await browser.close();
   }
