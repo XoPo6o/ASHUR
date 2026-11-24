@@ -306,3 +306,6 @@ code{padding:2px 5px;background:#0c1119;color:#f0d28a;border:1px solid #4a3948}
  .wall-page .nav .actions{order:4;width:100%;justify-content:center;gap:6px;margin:0}.wall-page .nav .actions .btn{font-size:5px;padding:8px 7px}
  .wall-page .brand .brand-name{font-size:28px}.wall-page p,.wall-page td,.wall-page .hint,.wall-page .sub,.wall-page .note,.wall-page .disclaimer,.wall-page .minirow,.wall-page .listitem p{font-size:16px}
 }
+/* Wall Russian copy: explicit high-specificity pixel font coverage */
+.wall-page .hero p,.wall-page .section-head p{font-family:var(--font-tiny);font-size:18px;line-height:1.25}
+@media(max-width:680px){.wall-page .hero p,.wall-page .section-head p{font-size:16px}}
