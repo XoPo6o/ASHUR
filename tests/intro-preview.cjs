@@ -56,8 +56,7 @@ const path = require('node:path');
     }
     await mobile.screenshot({ path: path.join(out, '05-title-mobile.png'), fullPage: true });
 
-    await mobile.locator('#skip-hint').click({ force: true }).catch(() => {});
-    await desktop.locator('#skip-hint').click({ force: true }).catch(() => {});
+    await desktop.keyboard.press('Escape');
     const skippedTitle = await desktop.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     if (Number(skippedTitle) < 0.9) throw new Error('Skip action did not reveal title');
     if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
