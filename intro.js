@@ -1012,10 +1012,13 @@
     const worldViewWidth=320/renderScale;
     const worldViewHeight=224/renderScale;
     const targetCamera=travelerWorldX+16-worldViewWidth/2;
-    cameraX=mobileViewport?Math.max(-worldViewWidth/2-32,Math.min(W-worldViewWidth,targetCamera)):0;
-    cameraY=mobileViewport?Math.max(0,Math.min(H-worldViewHeight,202-worldViewHeight/2)):0;
+    const snapCamera=value=>Math.round(value*renderScale)/renderScale;
+    cameraX=mobileViewport?snapCamera(Math.max(-worldViewWidth/2-32,Math.min(W-worldViewWidth,targetCamera))):0;
+    cameraY=mobileViewport?snapCamera(Math.max(0,Math.min(H-worldViewHeight,202-worldViewHeight/2))):0;
     canvas.dataset.cameraX=String(Math.round(cameraX));
     canvas.dataset.cameraY=String(Math.round(cameraY));
+    canvas.dataset.cameraPixelX=String(Math.round(cameraX*renderScale));
+    canvas.dataset.cameraPixelY=String(Math.round(cameraY*renderScale));
     canvas.dataset.observerReaction=String(e>=8500);
     ctx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
     ctx.fillStyle='#17151c';
