@@ -3,14 +3,14 @@
   const display = canvas;
   const displayCtx = display.getContext('2d', { alpha: false });
   const source = document.createElement('canvas');
-  source.width = 480; source.height = 270;
+  // Native Mega Drive-sized framebuffer. Legacy scene coordinates are mapped 3:2
+  // onto this 320x224 surface; no post-render downsampling is performed.
+  source.width = 320; source.height = 224;
   const ctx = source.getContext('2d', { alpha: false });
-  const reduced = document.createElement('canvas');
-  reduced.width = 320; reduced.height = 180;
-  const reducedCtx = reduced.getContext('2d', { alpha: false, willReadFrequently: true });
+  ctx.imageSmoothingEnabled = false;
+  ctx.setTransform(2/3,0,0,2/3,0,0);
   display.width = 320; display.height = 224;
   displayCtx.imageSmoothingEnabled = false;
-  reducedCtx.imageSmoothingEnabled = false;
 
   // Four Mega Drive-style 16-entry palette banks; slot zero is reserved per bank.
   const palette = [
@@ -26,9 +26,7 @@
   const paletteRgb = palette.filter((_,index)=>index%16!==0).map(hex => [1,3,5].map(i => Math.round(parseInt(hex.slice(i,i+2),16)*7/255)*255/7));
   const paletteCache = new Map();
   function presentFrame() {
-    reducedCtx.clearRect(0,0,320,180);
-    reducedCtx.drawImage(source,0,0,320,180);
-    const frame = reducedCtx.getImageData(0,0,320,180);
+    const frame = ctx.getImageData(0,0,320,224);
     const data = frame.data;
     for(let i=0;i<data.length;i+=4){
       const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];
@@ -45,9 +43,7 @@
       const c=paletteRgb[mapped];
       data[i]=c[0];data[i+1]=c[1];data[i+2]=c[2];
     }
-    displayCtx.fillStyle='#10121c';
-    displayCtx.fillRect(0,0,320,224);
-    displayCtx.putImageData(frame,0,22);
+    displayCtx.putImageData(frame,0,0);
   }
   const opening = document.getElementById('opening');
   const cuneiform = document.getElementById('cuneiform');
@@ -64,6 +60,41 @@
     cloth:'#a94e43', clothHi:'#df8557', gold:'#e5b46e',
     lamp:'#ffd58a', black:'#15151d', skin:'#d9a06c'
   };
+
+  // Reusable 8x8 native-pixel tiles: first real tilemap pass for the bazaar floor.
+  const tileColors = {
+    '.':'#382930','a':'#59403a','b':'#4b3535','c':'#2b252e',
+    'd':'#624542','e':'#55403e','f':'#a27555','g':'#87604b',
+    'h':'#795047','i':'#bd805b','j':'#493139','k':'#684044'
+  };
+  const tilePatterns = {
+    floor0:['aaaaaaaa','a..a..a.','a..a..a.','aaaaaaaa','..bb..bb','..bb..bb','bbbbbbbb','b..b..b.'],
+    floor1:['a..a..a.','aaaaaaaa','..bb..bb','bbbbbbbb','b..b..b.','bbbbbbbb','..bb..bb','aaaaaaaa'],
+    floor2:['aaaaaaaa','a..a..a.','a..a..a.','aaagaaaa','..bb..bb','..bb..bb','bbbbbbbb','b..b..b.'],
+    floor3:['aaaaaaaa','a..a..a.','aaafaaaa','aaaaaaaa','..bb..bb','..bb..bb','bbbbbbbb','b..b..b.'],
+    brick0:['kkkkkkkk','k..k..k.','k..k..k.','kkkkkkkk','..jj..jj','..jj..jj','jjjjjjjj','j..j..j.'],
+    brick1:['kkkkkkkk','..k..k..','..k..k..','kkkkkkkk','jj..jj..','jj..jj..','jjjjjjjj','..j..j..']
+  };
+  const tileAtlas = {};
+  Object.entries(tilePatterns).forEach(([name,rows])=>{
+    const tile=document.createElement('canvas');tile.width=8;tile.height=8;
+    const tileCtx=tile.getContext('2d');
+    rows.forEach((row,y)=>[...row].forEach((key,x)=>{
+      tileCtx.fillStyle=tileColors[key]||'#382930';
+      tileCtx.fillRect(x,y,1,1);
+    }));
+    tileAtlas[name]=tile;
+  });
+  function drawNativeTilemap(rows,nativeX,nativeY){
+    rows.forEach((row,ty)=>[...row].forEach((tileName,tx)=>{
+      const tile=tileAtlas[tileName];
+      if(tile)ctx.drawImage(tile,(nativeX+tx*8)*1.5,(nativeY+ty*8)*1.5,12,12);
+    }));
+  }
+  const marketFloorMap = Array.from({length:7},(_,row)=>
+    Array.from({length:40},(_,col)=>['floor0','floor1','floor2','floor3'][(row*3+col*5+Math.floor(col/4))%4]).join('')
+  );
+
   const px = (x,y,w,h,c) => {
     ctx.fillStyle = c;
     ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));
@@ -323,10 +354,8 @@
     // Main market street and foreground stalls.
     px(0,190,480,80,'#382930');
     px(0,192,480,8,'#60403a');
-    // Ground plane with perspective paving.
-    const floor=ctx.createLinearGradient(0,198,0,270);
-    floor.addColorStop(0,'#59403a');floor.addColorStop(.5,'#4b3535');floor.addColorStop(1,'#2b252e');
-    ctx.fillStyle=floor;ctx.fillRect(0,198,480,72);
+    // Native 8x8 tilemap replaces the former smooth-gradient ground plane.
+    drawNativeTilemap(marketFloorMap,0,132);
     for(let y=203;y<270;y+=8){
       const perspective=(y-200)/70;
       line(0,y,480,y,'#87604b');
