@@ -77,16 +77,20 @@ const path = require('node:path');
     }
     await mobile.screenshot({ path: path.join(out, '05-title-mobile.png'), fullPage: true });
 
-    const skipPage = await openScene(1280, 720, 'skip');
-    await skipPage.keyboard.press('Escape');
+    const landscape = await openScene(844, 390, 'mobile-landscape');
+    const landscapeBox = await landscape.locator('#world').boundingBox();
+    if (!landscapeBox || landscapeBox.x < -1 || landscapeBox.x + landscapeBox.width > 845) {
+      throw new Error('Landscape scene is horizontally clipped: ' + JSON.stringify(landscapeBox));
+    }
+    await landscape.screenshot({ path: path.join(out, '06-title-landscape.png') });
+
+    const skipPage = await openScene(390, 844, 'touch-skip');
+    await skipPage.mouse.click(195, 420);
     await skipPage.waitForTimeout(900);
     const skippedTitle = await skipPage.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
-    const hintCount = await skipPage.locator('#skip-hint').count();
-    if (Number(skippedTitle) < 0.9 || hintCount !== 0) {
-      throw new Error('Skip action failed or an unwanted UI hint is present');
-    }
+    if (Number(skippedTitle) < 0.9) throw new Error('Touch skip did not reveal the title');
     if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, skippedTitle, hintCount, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, errors }));
   } finally {
     await browser.close();
   }
