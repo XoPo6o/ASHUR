@@ -87,10 +87,10 @@ const path = require('node:path');
     const mobileReaction = await mobile.locator('#world').evaluate(el => el.dataset.observerReaction);
     const mobileFrame = await mobile.locator('#world').evaluate(el => {
       const r = el.getBoundingClientRect();
-      return { objectFit: getComputedStyle(el).objectFit, width: r.width, height: r.height };
+      return { objectFit: getComputedStyle(el).objectFit, imageRendering: getComputedStyle(el).imageRendering, width: r.width, height: r.height };
     });
     if (!(mobileCamera > 0) || !(mobileCameraY > 60) || mobileReaction !== 'true' ||
-        mobileFrame.objectFit !== 'cover' || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
+        mobileFrame.objectFit !== 'cover' || !mobileFrame.imageRendering.includes('pixelated') || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
       throw new Error('Portrait camera, fall reaction or full-screen framing failed: ' +
         JSON.stringify({ mobileCamera, mobileReaction, mobileFrame }));
     }
@@ -107,7 +107,7 @@ const path = require('node:path');
     }
     await mobile.screenshot({ path: path.join(out, '07-title-mobile.png'), fullPage: true });
 
-    const landscape = await openScene(844, 390, 'mobile-landscape');
+    const landscape = await openScene(844, 390, 'mobile-landscape', 3);
     await landscape.waitForTimeout(16800);
     const landscapeBox = await landscape.locator('#world').boundingBox();
     const landscapeTitle = await landscape.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
