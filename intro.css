@@ -17,5 +17,5 @@ body{color:#fff;font-family:"Pixelify Sans",monospace}
 .game-title.visible{opacity:1;transform:translateY(0) scale(1)}
 .skip-hint{position:absolute;z-index:4;bottom:14px;right:18px;color:#f1d6ae;font:700 11px/1.5 "Pixelify Sans",monospace;letter-spacing:.04em;opacity:0;transition:opacity .5s;text-shadow:2px 2px #09070b;cursor:pointer}
 .skip-hint.visible{opacity:.75}
-@media(max-width:600px){.story-copy{top:47%}.opening{font-size:clamp(18px,5vw,23px)}.cuneiform{margin-top:19px}.game-title{font-size:clamp(48px,15vw,72px);margin-top:14px}.skip-hint{font-size:10px;right:12px;bottom:10px}}
+@media(max-width:600px){#world{height:auto;top:50%;bottom:auto;translate:0 -50%;object-fit:contain}.story-copy{top:47%}.opening{font-size:clamp(18px,5vw,23px)}.cuneiform{margin-top:19px}.game-title{font-size:clamp(48px,15vw,72px);margin-top:14px}.skip-hint{font-size:10px;right:12px;bottom:10px}}
 @media(prefers-reduced-motion:reduce){.opening,.cuneiform,.game-title{transition:none}}
