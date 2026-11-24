@@ -377,6 +377,16 @@
     '...LL.....LL....',
     '..LL.......LL...'
   ];
+  function drawTravelerShadow(x,y,scale=2,weight=1){
+    // Three stepped layers keep the ground contact crisp at the canvas pixel scale.
+    const alpha=Math.max(.12,Math.min(.34,weight*.24));
+    ctx.globalAlpha=alpha;
+    px(x+4*scale,y,10*scale,2,'#17151d');
+    px(x+2*scale,y+2,14*scale,2,'#17151d');
+    px(x,y+4,18*scale,1,'#17151d');
+    ctx.globalAlpha=1;
+  }
+
   function drawTraveler(x,y,scale=2,fallen=false){
     if(fallen){
       // Side-on exhausted merchant: readable hood, face, beard, robe, arm, pack and boots.
@@ -421,6 +431,23 @@
     px(x+12*scale,y+7*scale,3*scale,6*scale,'#5b6b5c');
     px(x+13*scale,y+8*scale,2*scale,3*scale,'#9a9a72');
     px(x+3*scale,y+9*scale,2*scale,6*scale,'#3d3434');
+    // Woven cloak: hem, folds and a narrow bronze-trimmed travel belt.
+    px(x+4*scale,y+14*scale,9*scale,1,'#713d39');
+    px(x+5*scale,y+15*scale,1*scale,4*scale,'#e2a16a');
+    px(x+8*scale,y+14*scale,1*scale,5*scale,'#783d38');
+    px(x+11*scale,y+15*scale,1*scale,4*scale,'#e2a16a');
+    px(x+5*scale,y+13*scale,8*scale,1*scale,'#e0b477');
+    px(x+8*scale,y+13*scale,2*scale,2*scale,'#e9c17b');
+    px(x+9*scale,y+14*scale,1*scale,1*scale,'#49332e');
+    // Hood seam, cheek highlight and a clearer eye/nose silhouette.
+    px(x+6*scale,y+1*scale,1*scale,3*scale,'#594039');
+    px(x+7*scale,y+4*scale,4*scale,1*scale,'#f5d59e');
+    px(x+10*scale,y+3*scale,1*scale,1*scale,'#30232a');
+    px(x+12*scale,y+4*scale,1*scale,2*scale,'#d18a57');
+    // Satchel strap crosses the shoulder; bronze clasp catches the lantern light.
+    px(x+11*scale,y+6*scale,1*scale,7*scale,'#d5a45f');
+    px(x+12*scale,y+10*scale,2*scale,1*scale,'#e8c17c');
+    px(x+13*scale,y+12*scale,1*scale,2*scale,'#3e5148');
     // Clear outline pixels separate figure from the background.
     px(x+5*scale,y+1*scale,7*scale,1,'#f2d19a');
     px(x+4*scale,y+6*scale,1,8*scale,'#f0c68a');
@@ -460,7 +487,7 @@
       const step=Math.floor(e/330)%2;
       const wobble=Math.sin(e*.035)*1.25;
       const limp=Math.abs(Math.sin(e*.018))*2.1;
-      px(x+5,220,25,3,'#29232b');
+      drawTravelerShadow(Math.round(x)+2,220,2,1);
       drawTraveler(Math.round(x),178+Math.round(wobble+limp),2,false);
       // Scuffed footprints and dragging dust trail.
       if(step===0){ctx.globalAlpha=.4;px(x-6,207,13,2,'#d5a477');px(x-12,211,7,1,'#b98a65');ctx.globalAlpha=1;}
@@ -468,7 +495,7 @@
     }else if(e<10400){
       const p=Math.min(1,(e-8500)/650);
       const shake=Math.sin(e*.09)*(1-p)*2;
-      px(201,251,46,4,'#29232b');
+      drawTravelerShadow(201,250,2,1.25);
       ctx.save();
       ctx.translate(226+shake,225+Math.abs(shake));
       ctx.rotate(p*1.48);
@@ -477,7 +504,7 @@
       dust(218,254,Math.min(1,p),ts);
     }else{
       const tremble=e<11600?Math.sin(e*.09)*1.3:0;
-      px(191,263,55,3,'#29232b');
+      drawTravelerShadow(193,260,2,1.3);
       drawTraveler(194+tremble,226+Math.abs(tremble),2,true);
       if(e<11600)dust(218,255,.55,ts);
     }
