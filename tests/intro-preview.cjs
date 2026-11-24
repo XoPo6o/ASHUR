@@ -59,7 +59,11 @@ const path = require('node:path');
         Math.abs(desktopMark.cells[1].x - desktopMark.cells[4].x) > 1 ||
         Math.abs(desktopMark.cells[2].x - desktopMark.cells[5].x) > 1 ||
         Math.abs(desktopMark.cells[0].y - desktopMark.cells[1].y) > 1 ||
-        Math.abs(desktopMark.cells[3].y - desktopMark.cells[4].y) > 1) {
+        Math.abs(desktopMark.cells[0].y - desktopMark.cells[2].y) > 1 ||
+        Math.abs(desktopMark.cells[3].y - desktopMark.cells[4].y) > 1 ||
+        Math.abs(desktopMark.cells[3].y - desktopMark.cells[5].y) > 1 ||
+        desktopMark.cells.some(cell => Math.abs(cell.width - desktopMark.width / 3) > 1 ||
+          Math.abs(cell.height - desktopMark.height / 2) > 1)) {
       throw new Error('KI.LAM mark is not a square 3x2 grid: ' + JSON.stringify(desktopMark));
     }
     await desktop.screenshot({ path: path.join(out, '04-title-desktop.png') });
