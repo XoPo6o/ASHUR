@@ -119,7 +119,7 @@ input.search{background:var(--px-surface)!important;color:var(--px-ink)!importan
 
 
 /* === ASHUR PIXEL RESEARCH TERMINAL / 8-BIT UI === */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap');
+
 :root{--bg:var(--px-bg);--panel:var(--px-surface);--panel2:var(--px-surface2);--line:var(--px-line);--text:var(--px-ink);--muted:var(--px-muted);--gold:var(--px-accent2);--green:#a7dc9a;--red:#f08b87;--blue:#8cc6ed;--mono:'VT323',monospace;--sans:'VT323',monospace}
 html,body{background:var(--px-bg)!important;color:var(--px-ink)!important}
 body{font:20px/1.35 'VT323',monospace!important;letter-spacing:.015em;background-color:var(--px-bg)!important;background-image:linear-gradient(90deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),linear-gradient(0deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,var(--px-surface) 0%,var(--px-bg) 72%)!important;background-size:16px 16px,16px 16px,auto!important}
@@ -194,6 +194,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--px-accent) 35%,var(--px-surfac
 @media print{body{background:#fff!important;color:#111!important}body:before{display:none!important}header .palette-dock,header .home-link{display:none!important}}
 
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
 <header><div class="wrap nav"><a class="brand" href="index.html">𒀭 <b>ASHUR</b> / RESEARCH</a><nav class="navlinks"><a href="#overview">Сводка</a><a href="#validation">Валидация</a><a href="#candidates">Кандидаты</a><a href="#engineering">Инженерия</a><a href="#paper">Paper</a></nav><div class="actions"><a class="btn home-link" href="index.html">← ГЛАВНАЯ</a><button class="btn" onclick="downloadCSV()">EXPORT CSV</button><button class="btn primary" onclick="window.print()">EXPORT PDF ↗</button></div></div></header>
@@ -368,14 +369,7 @@ function downloadCSV(){const rows=[['Pair','TF','ADX','ATR','Test trades','Test 
   let saved='kurenai-kon';try{saved=localStorage.getItem('ashur-pixel-palette')||saved}catch(e){}
   apply(palettes.find(p=>p.id===saved)||palettes[0],false);
  }
- function pixelateImages(){
-  document.querySelectorAll('img:not([data-pixel-done])').forEach(img=>{
-   img.dataset.pixelDone='1';const src=img.currentSrc||img.src;if(!src)return;
-   const alt=img.alt||'Pixelated historical image';const replacement=document.createElement('canvas');replacement.className='pixel-canvas';replacement.setAttribute('role','img');replacement.setAttribute('aria-label',alt);
-   const render=()=>{try{const w=96,h=Math.max(48,Math.round(96*(img.naturalHeight/img.naturalWidth)));replacement.width=w;replacement.height=h;const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.drawImage(img,0,0,w,h);const out=replacement.getContext('2d');out.imageSmoothingEnabled=false;out.drawImage(c,0,0,w,h);img.replaceWith(replacement)}catch(e){img.classList.add('pixel-fallback')}};
-   if(img.complete&&img.naturalWidth){render()}else{img.addEventListener('load',render,{once:true})}
-  });
- }
+ function pixelateImages(){ /* No image downsampling: historical illustrations remain legible. */ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{mount();pixelateImages()});else{mount();pixelateImages()}
 })();
 
