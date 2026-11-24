@@ -342,7 +342,7 @@ input.search{background:var(--px-surface)!important;color:var(--px-ink)!importan
 
 
 /* === ASHUR 8-BIT WORLD / v2: real pixel UI, not image pixelation === */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap');
+
 :root{--px-bg:#10131d;--px-surface:#1b2a4e;--px-surface2:#26365c;--px-ink:#f4eee0;--px-muted:#c8c3ba;--px-accent:#9a2a2a;--px-accent2:#d9a6a0;--px-line:#d9a6a066;--px-shadow:#05070dcc}
 html,body{background:var(--px-bg)!important;color:var(--px-ink)!important}
 body{font-family:'VT323',monospace!important;font-size:21px;line-height:1.35;letter-spacing:.015em;background-color:var(--px-bg)!important;background-image:linear-gradient(90deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),linear-gradient(0deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,var(--px-surface) 0%,var(--px-bg) 72%)!important;background-size:16px 16px,16px 16px,auto!important}
@@ -406,6 +406,7 @@ footer strong{color:var(--px-ink)!important;font:700 18px 'Silkscreen',monospace
 @media(max-width:420px){.cards,.portraits,.marketgrid{grid-template-columns:1fr!important}.hero h1{font-size:32px!important}.brand{font-size:14px!important}}
 
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
 <header><div class="wrap nav"><a class="brand" href="#top">𒀭 <span>ASHUR</span></a><nav class="links"><a href="#vision">Летопись</a><a href="#archive">Стены</a><a href="#pantheon">Стражи</a><a href="#expedition">Путь</a><a href="#markets">Территории</a><a href="research.html">Исследования</a></nav><a class="navbtn" href="#archive">Открыть врата ↗</a><a class="navbtn mobile-research" href="research.html">RESEARCH ↗</a><button class="menu" aria-label="Прокрутить к архиву" onclick="document.querySelector('#archive').scrollIntoView({behavior:'smooth'})">☰</button></div></header>
