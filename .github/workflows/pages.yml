@@ -2,6 +2,7 @@ name: Publish KI.LAM preview alongside ASHUR
 
 on:
   # Manual only until repository Pages source is switched from main to GitHub Actions.
+  workflow_dispatch:
 
 permissions:
   contents: read
