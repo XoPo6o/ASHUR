@@ -305,6 +305,14 @@
     '..LL.......LL...'
   ];
   function drawTraveler(x,y,scale=2,fallen=false){
+    if(fallen){
+      ctx.save();
+      ctx.translate(x+16*scale,y+10*scale);
+      ctx.rotate(Math.PI/2);
+      drawTraveler(-16*scale,-10*scale,scale,false);
+      ctx.restore();
+      return;
+    }
     const colors={H:'#29232a',S:'#e3b77e',R:'#a64e42',L:'#25232b'};
     traveler.forEach((row,ry)=>[...row].forEach((ch,rx)=>{
       if(ch!=='.')px(x+rx*scale,y+ry*scale,scale,scale,colors[ch]);
