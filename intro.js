@@ -141,7 +141,7 @@
       const offset=row%2?6:0;
       for(let xx=-offset;xx<w;xx+=tileStep){
         const tile=tileAtlas[tileNames[(row+Math.floor((xx+offset)/tileStep)+seed)%tileNames.length]];
-        if(tile)ctx.drawImage(tile,x+xx,y+yy,tileStep,tileStep);
+        if(tile)ctx.drawImage(tile,snapNative(x+xx),snapNative(y+yy),tileStep,tileStep);
       }
     }
     // A sharply stepped coping stone and dark foundation keep the silhouette readable.
