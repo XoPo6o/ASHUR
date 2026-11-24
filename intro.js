@@ -304,6 +304,33 @@
       if(i===1){px(x+12,y+9,3,5,'#b9784b');px(x+13,y+10,1,2,'#ffd28a');}
       else if(i===2){px(x-3,y+13,5,4,'#bd8a56');px(x-2,y+12,3,1,'#e1b87d');}
       else{px(x+10,y+10,3,2,'#e0b77a');}
+      // Individual merchant silhouettes: hood piping, face shadow, belt, sleeves and footwear.
+      px(x+4,y+1,5,1,'#e8bd80');
+      px(x+3,y+4,1,3,'#594039');px(x+9,y+4,1,2,'#594039');
+      px(x+5,y+6,4,1,'#875044');
+      px(x+4,y+8,2,2,'#e8bd80');px(x+8,y+8,2,2,'#e8bd80');
+      px(x+2,y+11,2,4,'#30252c');px(x+9,y+11,2,4,'#30252c');
+      px(x+3,y+15,7,1,'#e0b477');
+      px(x+5,y+15,1,2,'#d69a68');px(x+8,y+15,1,2,'#d69a68');
+      px(x+3,y+18,4,1,'#201e27');px(x+8,y+18,4,1,'#201e27');
+      if(i===0){
+        // Spice seller: rolled sleeves and a small bronze weighing scale.
+        px(x+1,y+8,3,2,'#d6a675');px(x+10,y+8,3,2,'#d6a675');
+        px(x+12,y+7,1,5,'#d5a45f');px(x+10,y+7,5,1,'#e8bd80');
+        px(x+11,y+12,4,2,'#a8614b');
+      }else if(i===1){
+        // Lamp merchant: embroidered sash and a glowing pendant.
+        px(x+4,y+9,5,1,'#f0c58a');px(x+6,y+10,2,3,'#d69a68');
+        px(x+7,y+12,2,2,'#ffd28a');
+      }else if(i===2){
+        // Basket carrier: shoulder strap and woven pack.
+        px(x+8,y+6,2,8,'#d5a45f');px(x+10,y+8,4,5,'#52665a');
+        px(x+11,y+9,2,1,'#e0b477');px(x+11,y+11,2,1,'#e0b477');
+      }else{
+        // Gate watcher: dark shoulder mantle and a short bronze staff.
+        px(x+2,y+6,8,2,'#38444a');px(x+1,y+8,2,7,'#38444a');
+        px(x+13,y+7,1,13,'#d5a45f');px(x+12,y+7,3,1,'#e8bd80');
+      }
     });
     // Hanging bundles of herbs and woven goods beneath the awnings.
     for(let i=0;i<5;i++){
@@ -710,6 +737,49 @@
     px(x,y+4,18*scale,1,'#202536');
   }
 
+  function drawTravelerCraft(x,y,scale=2,gait=0){
+    // Fine pixel-art pass: layered hood, beard, embroidered cloak, belt and travel gear.
+    const s=scale,phase=Math.floor(gait/(Math.PI/2))%4;
+    // Hood rim and folded cloth around the cheek.
+    px(x+5*s,y+1*s,7*s,1*s,'#e8bd80');
+    px(x+4*s,y+2*s,1*s,4*s,'#684044');
+    px(x+12*s,y+2*s,1*s,3*s,'#684044');
+    px(x+6*s,y+5*s,5*s,1*s,'#c18a61');
+    px(x+7*s,y+6*s,4*s,1*s,'#875044');
+    // Beard silhouette and two warm highlights make the profile legible at native size.
+    px(x+8*s,y+6*s,4*s,2*s,'#49353b');
+    px(x+9*s,y+8*s,3*s,2*s,'#684044');
+    px(x+9*s,y+8*s,1*s,1*s,'#d69a68');
+    px(x+11*s,y+9*s,1*s,1*s,'#d69a68');
+    // Layered shoulder mantle and stitched edge of the cloak.
+    px(x+3*s,y+8*s,2*s,5*s,'#684044');
+    px(x+4*s,y+9*s,1*s,4*s,'#d09376');
+    px(x+5*s,y+11*s,7*s,1*s,'#e8bd80');
+    px(x+4*s,y+13*s,9*s,1*s,'#49353b');
+    px(x+5*s,y+14*s,1*s,4*s,'#e0a06b');
+    px(x+7*s,y+15*s,1*s,3*s,'#d09376');
+    px(x+10*s,y+14*s,1*s,4*s,'#e0a06b');
+    px(x+12*s,y+13*s,1*s,4*s,'#684044');
+    // Woven sash, bronze buckle and alternating stitch marks.
+    px(x+5*s,y+12*s,8*s,1*s,'#e8bd80');
+    px(x+8*s,y+11*s,2*s,3*s,'#49353b');
+    px(x+8*s,y+12*s,1*s,1*s,'#f2d69a');
+    for(let i=0;i<4;i++)px(x+(5+i*2)*s,y+14*s,1*s,1*s,i%2?'#f0c58a':'#d69a68');
+    // Satchel has a flap, seam, clasp and a tightly rolled blanket.
+    px(x+12*s,y+7*s,3*s,1*s,'#d0b486');
+    px(x+12*s,y+8*s,3*s,3*s,'#52665a');
+    px(x+13*s,y+9*s,1*s,1*s,'#a9a06f');
+    px(x+14*s,y+10*s,1*s,1*s,'#e8bd80');
+    px(x+13*s,y+11*s,2*s,1*s,'#302b35');
+    px(x+3*s,y+9*s,2*s,5*s,'#536b68');
+    px(x+3*s,y+10*s,1*s,3*s,'#a9a06f');
+    // Boots, sole glints and tiny gait-dependent dust scuffs.
+    px(x+4*s,y+20*s,4*s,1*s,'#49353b');
+    px(x+10*s,y+20*s,5*s,1*s,'#49353b');
+    px(x+(phase%2?4:5)*s,y+19*s,2*s,1*s,'#e8bd80');
+    px(x+(phase%2?11:12)*s,y+19*s,2*s,1*s,'#e8bd80');
+  }
+
   function drawTraveler(x,y,scale=2,fallen=false,gait=0){
     if(fallen){
       // Side-on exhausted merchant: readable hood, face, beard, robe, arm, pack and boots.
@@ -773,6 +843,7 @@
     px(x+5*scale,y+1*scale,7*scale,1,'#f2d19a');
     px(x+4*scale,y+6*scale,1,8*scale,'#f0c68a');
     px(x+13*scale,y+11*scale,1,5*scale,'#f0c68a');
+    drawTravelerCraft(x,y,scale,gait);
     if(fallen){
       px(x+5*scale,y+17*scale,9*scale,3*scale,'#a64e42');
       px(x+11*scale,y+18*scale,6*scale,2*scale,'#29232a');
