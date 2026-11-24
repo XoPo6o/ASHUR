@@ -117,10 +117,86 @@ input.search{background:var(--px-surface)!important;color:var(--px-ink)!importan
 @media(max-width:700px){.palette-dock{position:absolute;right:0;top:72px}.palette-trigger{padding:7px 8px}.hero h1{font-size:clamp(58px,17vw,88px)!important}.hero{background-position:62% center!important}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
+
+/* === ASHUR PIXEL RESEARCH TERMINAL / 8-BIT UI === */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap');
+:root{--bg:var(--px-bg);--panel:var(--px-surface);--panel2:var(--px-surface2);--line:var(--px-line);--text:var(--px-ink);--muted:var(--px-muted);--gold:var(--px-accent2);--green:#a7dc9a;--red:#f08b87;--blue:#8cc6ed;--mono:'VT323',monospace;--sans:'VT323',monospace}
+html,body{background:var(--px-bg)!important;color:var(--px-ink)!important}
+body{font:20px/1.35 'VT323',monospace!important;letter-spacing:.015em;background-color:var(--px-bg)!important;background-image:linear-gradient(90deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),linear-gradient(0deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,var(--px-surface) 0%,var(--px-bg) 72%)!important;background-size:16px 16px,16px 16px,auto!important}
+body:before{display:none!important}
+h1,h2,h3,.brand,.eyebrow,.label,.tag,.smalllabel,.runhead,.k,.footer{font-family:'Silkscreen',monospace!important;letter-spacing:0!important;text-transform:uppercase}
+header{height:auto!important;min-height:76px;background:var(--px-bg)!important;border-bottom:3px solid var(--px-accent2)!important;box-shadow:0 5px 0 #0008!important;backdrop-filter:none!important}
+.nav{min-height:76px;gap:12px!important;flex-wrap:wrap}
+.brand{font:700 15px 'Silkscreen',monospace!important;color:var(--px-ink)!important}
+.brand b{color:var(--px-accent2)!important}
+.navlinks{display:flex!important;gap:12px!important;flex-wrap:wrap;font:11px 'Silkscreen',monospace!important;color:var(--px-ink)!important}
+.navlinks a:hover{color:var(--px-accent2)!important}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:2px solid var(--px-ink)!important;border-radius:0!important;background:var(--px-surface)!important;color:var(--px-ink)!important;padding:9px 11px!important;box-shadow:4px 4px 0 var(--px-accent)!important;font:11px 'Silkscreen',monospace!important;letter-spacing:0!important}
+.btn.primary{background:var(--px-accent)!important;color:#fff!important;border-color:var(--px-ink)!important;box-shadow:4px 4px 0 var(--px-accent2)!important}
+.btn:hover{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--px-accent2)!important}
+main{padding-bottom:60px}
+.hero{padding:50px 0 34px!important;border-bottom:2px solid var(--px-accent2)!important;background:transparent!important}
+.hero h1{font:700 clamp(24px,4vw,42px)/1.3 'Silkscreen',monospace!important;letter-spacing:0!important;color:var(--px-ink)!important;text-shadow:4px 4px 0 var(--px-accent)!important;margin:14px 0!important}
+.hero h1 .gold{color:var(--px-accent2)!important}
+.hero p{font:22px/1.4 'VT323',monospace!important;color:var(--px-muted)!important;max-width:850px}
+.eyebrow{font:11px 'Silkscreen',monospace!important;color:var(--px-accent2)!important}
+.hero-meta{gap:8px!important}
+.tag,.statusline{font:11px 'Silkscreen',monospace!important;border:2px solid var(--px-accent2)!important;border-radius:0!important;background:var(--px-surface)!important;color:var(--px-ink)!important;padding:8px 10px!important}
+.statusline{display:inline-flex!important;margin-top:18px!important}
+.dot{border-radius:0!important;box-shadow:none!important}
+section{padding:34px 0!important;border-bottom:2px solid var(--px-line)!important;background:transparent!important}
+.section-head h2{font:700 clamp(18px,2.5vw,26px)/1.3 'Silkscreen',monospace!important;color:var(--px-ink)!important;letter-spacing:0!important}
+.section-head p,.sub,.hint,.disclaimer{font:18px/1.35 'VT323',monospace!important;color:var(--px-muted)!important}
+.grid4{gap:12px!important}
+.metric,.panel,.compare-card,.note,.run,.table-wrap{background:var(--px-surface)!important;border:3px solid var(--px-ink)!important;border-radius:0!important;box-shadow:5px 5px 0 var(--px-accent)!important;color:var(--px-ink)!important}
+.metric{padding:16px!important;min-height:120px!important}
+.metric .label{font:10px 'Silkscreen',monospace!important;color:var(--px-accent2)!important}
+.metric .value,.big{font:30px 'VT323',monospace!important;color:var(--px-ink)!important;letter-spacing:0!important}
+.metric .hint{font:17px 'VT323',monospace!important;color:var(--px-muted)!important}
+.panel{padding:18px!important}
+.panel h3,.compare-card h3{font:12px 'Silkscreen',monospace!important;color:var(--px-accent2)!important}
+.compare-card{background:var(--px-surface2)!important}
+.smalllabel,.minirow,.listitem p,.run p{font:17px 'VT323',monospace!important;color:var(--px-muted)!important}
+.minirow{border-color:var(--px-line)!important}
+.barrow{font:17px 'VT323',monospace!important;color:var(--px-ink)!important}
+.track{height:12px!important;border:2px solid var(--px-accent2)!important;border-radius:0!important;background:var(--px-bg)!important}
+.fill{background:var(--px-accent2)!important;border-radius:0!important}.fill.neg{background:var(--px-accent)!important}
+.table-wrap{overflow-x:auto!important}
+table{border-collapse:collapse!important;color:var(--px-ink)!important;font:18px 'VT323',monospace!important;min-width:700px}
+th{background:var(--px-accent)!important;color:#fff!important;font:10px 'Silkscreen',monospace!important;padding:13px!important}
+td{color:var(--px-ink)!important;padding:12px!important;border-top:2px solid var(--px-line)!important}
+td,th{border-right:1px solid var(--px-line)!important}
+tbody tr:nth-child(odd){background:var(--px-surface2)!important}
+tbody tr:hover{background:color-mix(in srgb,var(--px-accent) 35%,var(--px-surface))!important}
+.pair{font:18px 'VT323',monospace!important}
+.pill{border:2px solid #a7dc9a!important;border-radius:0!important;color:#b6e6a9!important;background:transparent!important;font:10px 'Silkscreen',monospace!important}
+.pill.loss{border-color:#f08b87!important;color:#f08b87!important}
+.toolbar{gap:12px!important}
+.search{background:var(--px-bg)!important;color:var(--px-ink)!important;border:2px solid var(--px-accent2)!important;border-radius:0!important;font:18px 'VT323',monospace!important;padding:10px 12px!important}
+.note{border-left:5px solid var(--px-accent2)!important;padding:14px!important;font:18px/1.35 'VT323',monospace!important}
+.note strong{color:var(--px-ink)!important}
+.listitem{border-color:var(--px-line)!important}.listitem .k{font:10px 'Silkscreen',monospace!important;color:var(--px-accent2)!important}
+.run{padding:14px!important}.runhead{font:10px 'Silkscreen',monospace!important;color:var(--px-ink)!important}
+.run a{font:16px 'VT323',monospace!important;color:var(--px-accent2)!important}
+.footer{border-top:2px solid var(--px-accent2)!important;color:var(--px-muted)!important;font:10px 'Silkscreen',monospace!important}
+.palette-dock{position:relative;z-index:60;display:inline-flex;align-items:center;gap:6px;font:11px 'Silkscreen',monospace!important}
+.palette-trigger{border:2px solid var(--px-accent2)!important;background:var(--px-surface)!important;color:var(--px-ink)!important;padding:9px 10px!important;box-shadow:3px 3px 0 var(--px-accent)!important;cursor:pointer;font:10px 'Silkscreen',monospace!important}
+.palette-menu{position:absolute;right:0;top:calc(100% + 9px);width:275px;padding:10px;background:var(--px-bg)!important;border:2px solid var(--px-accent2)!important;box-shadow:5px 5px 0 #000b;display:none;gap:6px}
+.palette-menu.open{display:grid}
+.palette-choice{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:9px;border:1px solid var(--px-line)!important;background:var(--px-surface)!important;color:var(--px-ink)!important;cursor:pointer;font:11px 'Silkscreen',monospace!important}
+.palette-choice small{font:15px 'VT323',monospace!important}
+.palette-choice[aria-pressed=true]{outline:2px solid var(--px-accent2);outline-offset:-3px}
+.palette-caption{font:16px/1.3 'VT323',monospace!important;color:var(--px-muted)!important;padding:4px}
+::selection{background:var(--px-accent2);color:var(--px-bg)}
+@media(max-width:900px){.navlinks{display:none!important}.nav{padding:10px 0}.actions{margin-left:auto}.brand{font-size:12px!important}}
+@media(max-width:560px){.wrap{width:calc(100% - 24px)!important}.hero{padding-top:30px!important}.hero h1{font-size:23px!important}.hero p{font-size:20px!important}.grid4{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}.metric{padding:11px!important}.metric .value{font-size:25px!important}.section-head{gap:8px!important}.compare{grid-template-columns:1fr!important}.listitem{grid-template-columns:82px 1fr!important;gap:8px!important}.actions .btn{font-size:9px!important;padding:8px!important}.palette-dock{position:absolute;right:0;top:72px}}
+@media print{body{background:#fff!important;color:#111!important}body:before{display:none!important}header .palette-dock,header .home-link{display:none!important}}
+
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a class="brand" href="index.html">𒀭 <b>ASHUR</b> / RESEARCH</a><nav class="navlinks"><a href="#overview">Сводка</a><a href="#validation">Валидация</a><a href="#candidates">Кандидаты</a><a href="#engineering">Инженерия</a><a href="#paper">Paper</a></nav><div class="actions"><button class="btn" onclick="downloadCSV()">EXPORT CSV</button><button class="btn primary" onclick="window.print()">EXPORT PDF ↗</button></div></div></header>
+<header><div class="wrap nav"><a class="brand" href="index.html">𒀭 <b>ASHUR</b> / RESEARCH</a><nav class="navlinks"><a href="#overview">Сводка</a><a href="#validation">Валидация</a><a href="#candidates">Кандидаты</a><a href="#engineering">Инженерия</a><a href="#paper">Paper</a></nav><div class="actions"><a class="btn home-link" href="index.html">← ГЛАВНАЯ</a><button class="btn" onclick="downloadCSV()">EXPORT CSV</button><button class="btn primary" onclick="window.print()">EXPORT PDF ↗</button></div></div></header>
 <main>
 <div class="wrap">
 <section class="hero" id="overview">
