@@ -151,6 +151,49 @@
     for(let x=0;x<480;x+=22){px(x,173,14,7,'#795047');px(x+2,175,10,2,'#bd805b');}
     for(let x=12;x<480;x+=44){px(x,182,5,8,'#201e27');}
   }
+  function drawBazaarLife(t){
+    // A string of small market pennants breaks the skyline and gives the street scale.
+    line(54,139,424,145,'#382a30');
+    const flags=['#b65345','#d0a05f','#607b68','#a95a43','#b98a57','#6e8170'];
+    for(let i=0;i<10;i++){
+      const x=66+i*37;
+      const y=139+Math.round((x-54)*.016);
+      px(x,y,9,2,'#3b2b31');
+      px(x+2,y+2,6,7,flags[i%flags.length]);
+      px(x+2,y+8,3,3,flags[i%flags.length]);
+      px(x+3,y+3,3,1,'#e4bd83');
+    }
+    // Tiny merchants and visitors: kept behind the stalls so the traveler remains the hero.
+    const people=[
+      {x:108,y:160,robe:'#557064',hood:'#29252b'},
+      {x:238,y:158,robe:'#a65a43',hood:'#30242a'},
+      {x:326,y:163,robe:'#9b7950',hood:'#29232a'},
+      {x:455,y:158,robe:'#586c70',hood:'#29232a'}
+    ];
+    people.forEach((p,i)=>{
+      const bob=Math.round(Math.sin(t*.002+i*1.8)*1);
+      const x=p.x,y=p.y+bob;
+      // Hood, face, shoulders and long robe.
+      px(x+3,y,7,5,p.hood);px(x+4,y+2,5,5,'#d6a675');
+      px(x+5,y+3,1,1,'#29232a');px(x+8,y+3,1,1,'#29232a');
+      px(x+2,y+6,9,4,p.robe);px(x+1,y+9,11,9,p.robe);
+      px(x+3,y+10,2,6,'#d2a16d');px(x+8,y+10,2,6,'#30272b');
+      px(x+2,y+17,4,2,'#30252b');px(x+8,y+17,4,2,'#30252b');
+      // A small lantern or basket gives each silhouette a readable action.
+      if(i===1){px(x+12,y+9,3,5,'#b9784b');px(x+13,y+10,1,2,'#ffd28a');}
+      else if(i===2){px(x-3,y+13,5,4,'#bd8a56');px(x-2,y+12,3,1,'#e1b87d');}
+      else{px(x+10,y+10,3,2,'#e0b77a');}
+    });
+    // Hanging bundles of herbs and woven goods beneath the awnings.
+    for(let i=0;i<5;i++){
+      const x=147+i*48;
+      line(x,151,x,163,'#4b3932');
+      px(x-3,162,7,5,i%2?'#6b8058':'#8c7950');
+      px(x-2,160,5,2,'#a9a16b');
+      px(x-1,167,3,2,'#4e684b');
+    }
+  }
+
   function drawLamassu(){
     // Monumental winged bull guardian on a raised plinth, fully readable silhouette.
     px(281,174,65,7,'#2d252b');px(285,171,57,3,'#c28a5b');
@@ -281,7 +324,7 @@
     ctx.globalAlpha=1;
   }
   function background(t){
-    drawSky(t);drawZiggurat();drawGardens();drawCity();drawLamassu();drawMarket(t);drawAtmosphere(t);
+    drawSky(t);drawZiggurat();drawGardens();drawCity();drawBazaarLife(t);drawLamassu();drawMarket(t);drawAtmosphere(t);
   }
 
   // A compact, hand-drawn traveler sprite with readable silhouette and layered cloth.
