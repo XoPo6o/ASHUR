@@ -129,7 +129,7 @@
   const snapNative = value => Math.round(value * renderScale) / renderScale;
   const px = (x,y,w,h,c) => {
     const sx=snapNative(x),sy=snapNative(y);
-    const sw=Math.max(1.5,snapNative(w)),sh=Math.max(1.5,snapNative(h));
+    const sw=Math.max(1/renderScale,snapNative(w)),sh=Math.max(1/renderScale,snapNative(h));
     ctx.fillStyle=c;
     ctx.fillRect(sx,sy,sw,sh);
   };
@@ -1092,7 +1092,7 @@
   }
   function skip(){
     if(skipped)return;skipped=true;
-    opening.classList.add('visible');cuneiform.classList.remove('visible');
+    opening.classList.remove('visible');cuneiform.classList.remove('visible');
     title.classList.add('visible');
   }
   document.addEventListener('keydown',e=>{
@@ -1115,7 +1115,7 @@
     sourceCtx.setTransform(1,0,0,1,0,0);
     sourceCtx.drawImage(spriteLayer,0,0);
     presentFrame();
-    opening.classList.add('visible');
+    opening.classList.remove('visible');
     title.classList.add('visible');
   }else{
     requestAnimationFrame(ts=>{start=ts;draw(ts);});
