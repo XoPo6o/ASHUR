@@ -1006,7 +1006,7 @@
     const mobileViewport=window.matchMedia('(max-width: 900px)').matches;
     // Both phone orientations follow the traveler. Portrait uses a stronger zoom;
     // landscape keeps more of the bazaar while centering the walking/fall sequence.
-    const zoom=portrait?1.25:mobileViewport?1.1:1;
+    const zoom=portrait?1.25:mobileViewport?1.125:1;
     renderScale=(2/3)*zoom;
     const travelerWorldX=e<8100 ? -42+Math.max(0,Math.min(1,e/8100))*250 : 208;
     const worldViewWidth=320/renderScale;
