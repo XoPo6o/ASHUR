@@ -720,10 +720,10 @@
     // Their raised arms and bright cloak edges make the reaction readable at phone size.
     const reacting = elapsed >= 8500;
     const observers = [
-      {x:145,y:201,robe:'#29202a',trim:'#e29a69',accent:'#805047',skin:'#f2d69a'},
-      {x:172,y:199,robe:'#302b35',trim:'#edbd83',accent:'#a8614b',skin:'#f2d69a'},
-      {x:260,y:202,robe:'#29202a',trim:'#d7a66d',accent:'#805047',skin:'#edbd83'},
-      {x:287,y:200,robe:'#302b35',trim:'#e29a69',accent:'#a8614b',skin:'#f2d69a'}
+      {x:142,y:238,robe:'#29202a',trim:'#e29a69',accent:'#805047',skin:'#f2d69a'},
+      {x:174,y:236,robe:'#302b35',trim:'#edbd83',accent:'#a8614b',skin:'#f2d69a'},
+      {x:246,y:238,robe:'#29202a',trim:'#d7a66d',accent:'#805047',skin:'#edbd83'},
+      {x:278,y:236,robe:'#302b35',trim:'#e29a69',accent:'#a8614b',skin:'#f2d69a'}
     ];
     observers.forEach((p,i)=>{
       const look=reacting ? (i<2?1:-1) : 0;
