@@ -1052,30 +1052,31 @@
     }else if(e<9150){
       const p=Math.max(0,Math.min(1,(e-8500)/650));
       const shake=Math.sin(e*.09)*(1-p)*2;
-      drawTravelerShadow(201,250,2,1.25);
+      const heroScale=3;
+      drawTravelerShadow(201,276,3,1.35);
       ctx.save();
-      ctx.translate(226+shake,225+Math.abs(shake));
+      ctx.translate(226+shake,246+Math.abs(shake));
       ctx.rotate(p*1.48);
-      drawTraveler(-14,-20,2,false);
+      drawTraveler(-18,-25,heroScale,false);
       ctx.restore();
       // A short dust burst marks the impact, then settles into a few pixels.
       dust(218,254,Math.min(1,p),ts);
     }else if(e<11600){
       const tremble=Math.sin(e*.09)*.7;
-      drawTravelerShadow(193,260,2,1.3);
-      drawTraveler(194+tremble,226+Math.abs(tremble),2,true);
+      drawTravelerShadow(188,278,3,1.4);
+      drawTraveler(188+tremble,241+Math.abs(tremble),3,true);
       if(e<10100)dust(218,255,.55,ts);
       // One shoulder pixel and the fingers twitch before the traveler gathers strength.
       if(Math.floor(e/250)%2===0)px(220,245,2,1,'#e8bd80');
     }else if(e<12600){
       const p=(e-11600)/1000;
-      drawTravelerShadow(193,260,2,1.15);
-      drawTravelerRecovery(194,218,2,p);
+      drawTravelerShadow(190,278,3,1.2);
+      drawTravelerRecovery(190,230,2.5,p);
       if(p<.55)px(190,258,5,1,'#d09376');
     }else{
       // He reaches a low, exhausted kneel rather than snapping back to a full idle pose.
-      drawTravelerShadow(193,260,2,1.05);
-      drawTravelerRecovery(194,218,2,1);
+      drawTravelerShadow(190,278,3,1.15);
+      drawTravelerRecovery(190,230,2.5,1);
       if(Math.floor(e/500)%2===0)px(218,235,1,1,'#f0c58a');
     }
     // Sand gust carries the cuneiform away.
