@@ -1014,6 +1014,7 @@
     cameraX=portrait?Math.max(-worldViewWidth/2-32,Math.min(W-worldViewWidth,targetCamera)):0;
     cameraY=portrait?Math.max(0,Math.min(H-worldViewHeight,202-worldViewHeight/2)):0;
     canvas.dataset.cameraX=String(Math.round(cameraX));
+    canvas.dataset.cameraY=String(Math.round(cameraY));
     canvas.dataset.observerReaction=String(e>=8500);
     ctx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
     ctx.fillStyle='#17151c';
