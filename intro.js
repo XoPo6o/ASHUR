@@ -10,7 +10,7 @@
   let ctx = sourceCtx;
   const spriteLayer = document.createElement('canvas');
   spriteLayer.width = 320; spriteLayer.height = 224;
-  const spriteCtx = spriteLayer.getContext('2d', { alpha: false });
+  const spriteCtx = spriteLayer.getContext('2d', { alpha: true });
   sourceCtx.imageSmoothingEnabled = false;
   spriteCtx.imageSmoothingEnabled = false;
   ctx.setTransform(2/3,0,0,2/3,0,0);
@@ -35,6 +35,7 @@
     const frame=targetCtx.getImageData(0,0,width,height),data=frame.data;
     const bank=paletteBanks[bankIndex];
     for(let i=0;i<data.length;i+=4){
+      if(data[i+3]===0)continue;
       let best=0,dist=Infinity;
       for(let p=0;p<bank.length;p++){
         const c=bank[p],dr=data[i]-c[0],dg=data[i+1]-c[1],db=data[i+2]-c[2];
@@ -1001,14 +1002,17 @@
     const targetCamera=travelerWorldX+16-worldViewWidth/2;
     cameraX=portrait?Math.max(0,Math.min(W-worldViewWidth,targetCamera)):0;
     cameraY=0;
+    canvas.dataset.cameraX=String(Math.round(cameraX));
+    canvas.dataset.observerReaction=String(e>=8500);
     ctx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
     ctx.fillStyle='#17151c';
     ctx.fillRect(0,0,480,336);
     background(ts);
     drawObservers(e);
     quantizeBackgroundPlanes(sourceCtx);
-    spriteCtx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
+    spriteCtx.setTransform(1,0,0,1,0,0);
     spriteCtx.clearRect(0,0,320,224);
+    spriteCtx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
     ctx=spriteCtx;
     let sx=0,sy=0;
     if(e<8500){
