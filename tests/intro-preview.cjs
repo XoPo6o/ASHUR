@@ -45,6 +45,23 @@ const path = require('node:path');
     await desktop.waitForTimeout(3800);
     const titleVisible = await desktop.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     if (Number(titleVisible) < 0.9) throw new Error('KI.LAM title did not appear');
+    const desktopMark = await desktop.locator('#game-title').evaluate(el => {
+      const box = el.getBoundingClientRect();
+      const cells = [...el.querySelectorAll('.glyph')].map(node => {
+        const r = node.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      });
+      return { width: box.width, height: box.height, cells };
+    });
+    if (Math.abs(desktopMark.width - desktopMark.height) > 1 ||
+        desktopMark.cells.length !== 6 ||
+        Math.abs(desktopMark.cells[0].x - desktopMark.cells[3].x) > 1 ||
+        Math.abs(desktopMark.cells[1].x - desktopMark.cells[4].x) > 1 ||
+        Math.abs(desktopMark.cells[2].x - desktopMark.cells[5].x) > 1 ||
+        Math.abs(desktopMark.cells[0].y - desktopMark.cells[1].y) > 1 ||
+        Math.abs(desktopMark.cells[3].y - desktopMark.cells[4].y) > 1) {
+      throw new Error('KI.LAM mark is not a square 3x2 grid: ' + JSON.stringify(desktopMark));
+    }
     await desktop.screenshot({ path: path.join(out, '04-title-desktop.png') });
 
     const mobile = await openScene(390, 844, 'mobile');
@@ -54,18 +71,22 @@ const path = require('node:path');
     if (Number(mobileTitle) < 0.9 || !titleBox || titleBox.y < 0 || titleBox.y + titleBox.height > 844) {
       throw new Error('Mobile title is hidden or clipped: ' + JSON.stringify({ mobileTitle, titleBox }));
     }
+    const mobileMark = await mobile.locator('#game-title').boundingBox();
+    if (!mobileMark || Math.abs(mobileMark.width - mobileMark.height) > 1) {
+      throw new Error('Mobile KI.LAM mark is not square: ' + JSON.stringify(mobileMark));
+    }
     await mobile.screenshot({ path: path.join(out, '05-title-mobile.png'), fullPage: true });
 
     const skipPage = await openScene(1280, 720, 'skip');
     await skipPage.keyboard.press('Escape');
     await skipPage.waitForTimeout(900);
     const skippedTitle = await skipPage.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
-    const skippedHint = await skipPage.locator('#skip-hint').evaluate(el => getComputedStyle(el).opacity);
-    if (Number(skippedTitle) < 0.9 || Number(skippedHint) > 0.1) {
-      throw new Error('Skip action did not reveal title and hide the hint');
+    const hintCount = await skipPage.locator('#skip-hint').count();
+    if (Number(skippedTitle) < 0.9 || hintCount !== 0) {
+      throw new Error('Skip action failed or an unwanted UI hint is present');
     }
     if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, mobileTitle, titleBox, skippedTitle, skippedHint, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingVisible, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, skippedTitle, hintCount, errors }));
   } finally {
     await browser.close();
   }
