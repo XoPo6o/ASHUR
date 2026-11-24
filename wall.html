@@ -8,6 +8,40 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Handjet:wght@300;500;700&family=Pixelify+Sans:wght@400;500;700&family=Press+Start+2P&family=Russo+One&family=Tiny5&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="ashur-theme.css">
+<style>
+/* ASHUR 8-bit type system: unify the research wall with the game landing page */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+.wall-page, .wall-page * {
+  font-family: "Press Start 2P", monospace !important;
+  font-synthesis: none;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+}
+.wall-page { font-size: 10px; line-height: 2; }
+.wall-page p, .wall-page li, .wall-page td, .wall-page th,
+.wall-page .sub, .wall-page .hint, .wall-page .note,
+.wall-page .listitem p, .wall-page .disclaimer {
+  font-size: 9px !important;
+  line-height: 2.1 !important;
+}
+.wall-page h1 { font-size: clamp(18px, 3vw, 28px) !important; line-height: 1.8 !important; }
+.wall-page h2 { font-size: clamp(14px, 2vw, 20px) !important; line-height: 1.8 !important; }
+.wall-page h3 { font-size: 10px !important; line-height: 2 !important; }
+.wall-page .eyebrow, .wall-page .tag, .wall-page .label,
+.wall-page .smalllabel, .wall-page .k, .wall-page .pill,
+.wall-page .statusline, .wall-page .navlinks a,
+.wall-page .toolbar, .wall-page .footer {
+  font-size: 7px !important;
+  line-height: 2 !important;
+}
+@media(max-width:700px) {
+  .wall-page p, .wall-page li, .wall-page td, .wall-page th,
+  .wall-page .sub, .wall-page .hint, .wall-page .note,
+  .wall-page .listitem p, .wall-page .disclaimer {
+    font-size: 8px !important;
+  }
+}
+</style>
 </head>
 <body class="wall-page">
 <header><div class="wrap nav"><a class="brand" href="index.html"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M7 0h2v3h3v2h3v2h1v2h-4v2h-2v3H7v-3H5v-2H1V7h3V5h3Z" fill="#efbd67"/><rect x="7" y="5" width="2" height="5" fill="#ed376d"/><rect x="5" y="7" width="6" height="2" fill="#ed376d"/></svg><span class="brand-name">ASHUR</span><span class="brand-section">/ СТЕНА</span></a><nav class="navlinks"><a href="#overview"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="1" y="2" width="14" height="12" fill="#315a83"/><rect x="3" y="4" width="4" height="3" fill="#efbd67"/><rect x="9" y="4" width="4" height="3" fill="#ed376d"/><rect x="3" y="9" width="10" height="2" fill="#43d8c9"/></svg><span>СВОДКА</span></a><a href="#validation"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="1" width="12" height="14" fill="#d8bd83"/><rect x="4" y="4" width="8" height="2" fill="#6d4937"/><rect x="4" y="8" width="6" height="2" fill="#6d4937"/></svg><span>ВАЛИДАЦИЯ</span></a><a href="#candidates"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="2" width="4" height="4" fill="#efbd67"/><rect x="10" y="2" width="4" height="4" fill="#43d8c9"/><rect x="2" y="10" width="4" height="4" fill="#ed376d"/><rect x="10" y="10" width="4" height="4" fill="#d8bd83"/></svg><span>КАНДИДАТЫ</span></a><a href="#engineering"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="6" y="1" width="4" height="14" fill="#efbd67"/><rect x="1" y="6" width="14" height="4" fill="#43d8c9"/><rect x="6" y="6" width="4" height="4" fill="#ed376d"/></svg><span>ИНЖЕНЕРИЯ</span></a><a href="#paper"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="1" width="12" height="14" fill="#d8bd83"/><rect x="4" y="4" width="8" height="1" fill="#6d4937"/><rect x="4" y="7" width="8" height="1" fill="#6d4937"/><rect x="4" y="10" width="5" height="1" fill="#6d4937"/></svg><span>PAPER</span></a></nav><div class="actions"><a class="btn home-link" href="index.html">← ГЛАВНАЯ</a><button class="btn" onclick="downloadCSV()">EXPORT CSV</button><button class="btn primary" onclick="window.print()">EXPORT PDF ↗</button></div></div></header>
