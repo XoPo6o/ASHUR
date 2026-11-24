@@ -1,0 +1,54 @@
+name: KI.LAM intro visual test
+
+on:
+  push:
+    branches: ["game-dev"]
+    paths:
+      - "index.html"
+      - "intro.css"
+      - "intro.js"
+      - "tests/intro-preview.cjs"
+      - ".github/workflows/intro-visual-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout game-dev
+        uses: actions/checkout@v4
+        with:
+          ref: game-dev
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: node --check intro.js
+      - name: Start local preview server
+        run: |
+          python3 -m http.server 4173 > /tmp/ki-lam-preview.log 2>&1 &
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:4173/index.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ki-lam-preview.log
+          exit 1
+      - name: Run desktop and mobile visual checks
+        run: node tests/intro-preview.cjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ki-lam-intro-visual-test
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 7
