@@ -1,4 +1,4 @@
-name: Deploy ASHUR to GitHub Pages
+name: Deploy ASHUR site with KI.LAM preview
 
 on:
   push:
@@ -11,26 +11,43 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: "ki-lam-preview"
   cancel-in-progress: true
 
 jobs:
   deploy:
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: ki-lam-preview
+      url: ${{ steps.deployment.outputs.page_url }}ki-lam/
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout published main site
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site
+
+      - name: Checkout KI.LAM preview from game-dev
+        uses: actions/checkout@v4
+        with:
+          ref: game-dev
+          path: preview-source
+
+      - name: Add KI.LAM as a separate preview route
+        run: |
+          mkdir -p site/ki-lam
+          cp preview-source/index.html preview-source/intro.css preview-source/intro.js site/ki-lam/
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Upload site
+
+      - name: Upload combined site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
+          path: site
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
