@@ -109,7 +109,8 @@ const path = require('node:path');
     await skipPage.mouse.click(195, 420);
     await skipPage.waitForTimeout(900);
     const skippedTitle = await skipPage.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
-    if (Number(skippedTitle) < 0.9) throw new Error('Touch skip did not reveal the title');
+    const skippedOpening = await skipPage.locator('#opening').evaluate(el => Number(getComputedStyle(el).opacity));
+    if (Number(skippedTitle) < 0.9 || skippedOpening > 0.1) throw new Error('Touch skip did not reveal a clean final title card');
     const palette = await desktop.locator('#world').evaluate(el => {
       const d = el.getContext('2d').getImageData(0, 0, 320, 224).data;
       const colors = new Set();
@@ -120,7 +121,7 @@ const path = require('node:path');
     const mobileCamera = await mobile.locator('#world').evaluate(el => Number(el.dataset.cameraX));
     if (!(mobileCamera > 0)) throw new Error('Portrait camera did not follow the traveler: ' + mobileCamera);
     if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, mobileCamera, palette, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, skippedOpening, mobileCamera, palette, errors }));
   } finally {
     await browser.close();
   }
