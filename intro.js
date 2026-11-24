@@ -211,6 +211,28 @@
     // Main market street and foreground stalls.
     px(0,190,480,80,'#382930');
     px(0,192,480,8,'#60403a');
+    // Ground plane with perspective paving.
+    const floor=ctx.createLinearGradient(0,198,0,270);
+    floor.addColorStop(0,'#59403a');floor.addColorStop(.5,'#4b3535');floor.addColorStop(1,'#2b252e');
+    ctx.fillStyle=floor;ctx.fillRect(0,198,480,72);
+    for(let y=203;y<270;y+=8){
+      const perspective=(y-200)/70;
+      line(0,y,480,y,'#87604b');
+      const step=17+Math.floor(perspective*22);
+      for(let x=(y%16?7:0);x<480;x+=step){
+        const ww=Math.max(7,step-3);
+        px(x,y+1,ww,5+Math.floor(perspective*2),((x+y)%3===0)?'#624542':'#55403e');
+        px(x+2,y+1,Math.max(3,ww-5),1,'#a27555');
+      }
+    }
+    // Converging perspective seams.
+    for(let x=-100;x<600;x+=82)line(240+(x-240)*.08,200,x,270,'#382d32');
+    // scattered straw, footprints and spilled grain.
+    for(let i=0;i<48;i++){
+      const x=(i*67+13)%480,y=207+(i*29)%61;
+      px(x,y,1+(i%3===0?1:0),1,i%2?'#bd8b5e':'#9d7956');
+    }
+    for(let i=0;i<7;i++){px(165+i*5,243+(i%2)*3,2,1,'#e0b77a');}
     // distant awnings establish a busy bazaar silhouette.
     drawStall({x:8,y:177,w:94,h:48,cloth:'#a94e43'},0);
     drawStall({x:128,y:181,w:92,h:45,cloth:'#c08a4e'},1);
@@ -239,28 +261,6 @@
     for(let i=0;i<5;i++){px(22+i*10,231,2,5,'#e7bd80');}
     px(389,229,43,10,'#624033');px(393,226,34,4,'#b97a4e');
     for(let i=0;i<4;i++){px(397+i*8,227,4,4,'#d7a45f');}
-    // Ground plane with perspective paving.
-    const floor=ctx.createLinearGradient(0,198,0,270);
-    floor.addColorStop(0,'#59403a');floor.addColorStop(.5,'#4b3535');floor.addColorStop(1,'#2b252e');
-    ctx.fillStyle=floor;ctx.fillRect(0,198,480,72);
-    for(let y=203;y<270;y+=8){
-      const perspective=(y-200)/70;
-      line(0,y,480,y,'#87604b');
-      const step=17+Math.floor(perspective*22);
-      for(let x=(y%16?7:0);x<480;x+=step){
-        const ww=Math.max(7,step-3);
-        px(x,y+1,ww,5+Math.floor(perspective*2),((x+y)%3===0)?'#624542':'#55403e');
-        px(x+2,y+1,Math.max(3,ww-5),1,'#a27555');
-      }
-    }
-    // Converging perspective seams.
-    for(let x=-100;x<600;x+=82)line(240+(x-240)*.08,200,x,270,'#382d32');
-    // scattered straw, footprints and spilled grain.
-    for(let i=0;i<48;i++){
-      const x=(i*67+13)%480,y=207+(i*29)%61;
-      px(x,y,1+(i%3===0?1:0),1,i%2?'#bd8b5e':'#9d7956');
-    }
-    for(let i=0;i<7;i++){px(165+i*5,243+(i%2)*3,2,1,'#e0b77a');}
   }
   function drawAtmosphere(t){
     // Distant smoke and low amber haze.
