@@ -70,7 +70,7 @@
   const opening = document.getElementById('opening');
   const cuneiform = document.getElementById('cuneiform');
   const title = document.getElementById('game-title');
-  const W = 480, H = 270;
+  const W = 480, H = 336;
   let start = 0, skipped = false, lastFrame = 0;
 
   const C = {
@@ -118,7 +118,7 @@
       if(tile)ctx.drawImage(tile,(nativeX+tx*8)*1.5,(nativeY+ty*8)*1.5,12,12);
     }));
   }
-  const marketFloorMap = Array.from({length:7},(_,row)=>
+  const marketFloorMap = Array.from({length:25},(_,row)=>
     Array.from({length:40},(_,col)=>['floor0','floor1','floor2','floor3'][(row*3+col*5+Math.floor(col/4))%4]).join('')
   );
 
@@ -468,11 +468,11 @@
   }
   function drawMarket(t){
     // Main market street and foreground stalls.
-    px(0,190,480,80,'#382930');
+    px(0,190,480,146,'#382930');
     px(0,192,480,8,'#60403a');
     // Native 8x8 tilemap replaces the former smooth-gradient ground plane.
     drawNativeTilemap(marketFloorMap,0,132);
-    for(let y=203;y<270;y+=8){
+    for(let y=203;y<336;y+=8){
       const perspective=(y-200)/70;
       line(0,y,480,y,'#87604b');
       const step=17+Math.floor(perspective*22);
@@ -483,10 +483,10 @@
       }
     }
     // Converging perspective seams.
-    for(let x=-100;x<600;x+=82)line(240+(x-240)*.08,200,x,270,'#382d32');
+    for(let x=-100;x<600;x+=82)line(240+(x-240)*.08,200,x,336,'#382d32');
     // scattered straw, footprints and spilled grain.
     for(let i=0;i<48;i++){
-      const x=(i*67+13)%480,y=207+(i*29)%61;
+      const x=(i*67+13)%480,y=207+(i*29)%125;
       px(x,y,1+(i%3===0?1:0),1,i%2?'#bd8b5e':'#9d7956');
     }
     for(let i=0;i<7;i++){px(165+i*5,243+(i%2)*3,2,1,'#e0b77a');}
@@ -720,10 +720,10 @@
     // their routines, turn toward the traveler and raise a hand in alarm.
     const reacting = elapsed >= 8500;
     const observers = [
-      {x:154,y:181,robe:'#263039',trim:'#718078',skin:'#d6a675',side:-1},
-      {x:181,y:184,robe:'#30252e',trim:'#a66a55',skin:'#e0b477',side:1},
-      {x:257,y:180,robe:'#263239',trim:'#8c987d',skin:'#d6a675',side:-1},
-      {x:285,y:184,robe:'#35272d',trim:'#b17a59',skin:'#e0b477',side:1}
+      {x:145,y:206,robe:'#263039',trim:'#91a18a',skin:'#e3b77e',side:-1},
+      {x:172,y:204,robe:'#30252e',trim:'#d09376',skin:'#f0c58a',side:1},
+      {x:260,y:207,robe:'#263239',trim:'#a2a66e',skin:'#e3b77e',side:-1},
+      {x:287,y:205,robe:'#35272d',trim:'#d09376',skin:'#f0c58a',side:1}
     ];
     observers.forEach((p,i)=>{
       const look=reacting ? (i%2===0?1:0) : 0;
@@ -999,9 +999,10 @@
     renderScale=(2/3)*(portrait?1.25:1);
     const travelerWorldX=e<8100 ? -42+Math.max(0,Math.min(1,e/8100))*250 : 208;
     const worldViewWidth=320/renderScale;
+    const worldViewHeight=224/renderScale;
     const targetCamera=travelerWorldX+16-worldViewWidth/2;
     cameraX=portrait?Math.max(-worldViewWidth/2-32,Math.min(W-worldViewWidth,targetCamera)):0;
-    cameraY=0;
+    cameraY=portrait?Math.max(0,Math.min(H-worldViewHeight,202-worldViewHeight/2)):0;
     canvas.dataset.cameraX=String(Math.round(cameraX));
     canvas.dataset.observerReaction=String(e>=8500);
     ctx.setTransform(renderScale,0,0,renderScale,-cameraX*renderScale,-cameraY*renderScale);
