@@ -81,7 +81,20 @@ const path = require('node:path');
     await desktop.screenshot({ path: path.join(out, '05-title-desktop.png') });
 
     const mobile = await openScene(390, 844, 'mobile');
-    await mobile.waitForTimeout(16800);
+    await mobile.waitForTimeout(9000);
+    const mobileCamera = await mobile.locator('#world').evaluate(el => Number(el.dataset.cameraX));
+    const mobileReaction = await mobile.locator('#world').evaluate(el => el.dataset.observerReaction);
+    const mobileFrame = await mobile.locator('#world').evaluate(el => {
+      const r = el.getBoundingClientRect();
+      return { objectFit: getComputedStyle(el).objectFit, width: r.width, height: r.height };
+    });
+    if (!(mobileCamera > 0) || mobileReaction !== 'true' ||
+        mobileFrame.objectFit !== 'cover' || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
+      throw new Error('Portrait camera, fall reaction or full-screen framing failed: ' +
+        JSON.stringify({ mobileCamera, mobileReaction, mobileFrame }));
+    }
+    await mobile.screenshot({ path: path.join(out, '06-mobile-fall-follow.png') });
+    await mobile.waitForTimeout(8000);
     const mobileTitle = await mobile.locator('#game-title').evaluate(el => getComputedStyle(el).opacity);
     const titleBox = await mobile.locator('#game-title').boundingBox();
     if (Number(mobileTitle) < 0.9 || !titleBox || titleBox.y < 0 || titleBox.y + titleBox.height > 844) {
@@ -91,7 +104,7 @@ const path = require('node:path');
     if (!mobileMark || Math.abs(mobileMark.width - mobileMark.height) > 1) {
       throw new Error('Mobile KI.LAM mark is not square: ' + JSON.stringify(mobileMark));
     }
-    await mobile.screenshot({ path: path.join(out, '05-title-mobile.png'), fullPage: true });
+    await mobile.screenshot({ path: path.join(out, '07-title-mobile.png'), fullPage: true });
 
     const landscape = await openScene(844, 390, 'mobile-landscape');
     await landscape.waitForTimeout(16800);
@@ -103,7 +116,7 @@ const path = require('node:path');
         landscapeTitleBox.y < 0 || landscapeTitleBox.y + landscapeTitleBox.height > 390) {
       throw new Error('Landscape scene or title is clipped: ' + JSON.stringify({ landscapeBox, landscapeTitle, landscapeTitleBox }));
     }
-    await landscape.screenshot({ path: path.join(out, '06-title-landscape.png') });
+    await landscape.screenshot({ path: path.join(out, '08-title-landscape.png') });
 
     const skipPage = await openScene(390, 844, 'touch-skip');
     await skipPage.mouse.click(195, 420);
@@ -118,10 +131,8 @@ const path = require('node:path');
       return colors.size;
     });
     if (palette > 60) throw new Error('Frame exceeds the 4x15 visible-color budget: ' + palette);
-    const mobileCamera = await mobile.locator('#world').evaluate(el => Number(el.dataset.cameraX));
-    if (!(mobileCamera > 0)) throw new Error('Portrait camera did not follow the traveler: ' + mobileCamera);
-    if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, skippedOpening, mobileCamera, palette, errors }));
+        if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, skippedOpening, mobileCamera, mobileReaction, mobileFrame, palette, errors }));
   } finally {
     await browser.close();
   }
