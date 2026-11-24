@@ -510,6 +510,35 @@
     '...LL.....LL....',
     '..LL.......LL...'
   ];
+  // Four-frame 16x24 native-pixel sprite sheet: idle, left stride, passing, right stride.
+  const travelerSheet=document.createElement('canvas');
+  travelerSheet.width=64;travelerSheet.height=24;
+  const travelerSheetCtx=travelerSheet.getContext('2d');
+  const travelerColors={H:'#29232a',S:'#e3b77e',R:'#a64e42',L:'#25232b'};
+  for(let frame=0;frame<4;frame++){
+    const phase=frame*Math.PI/2;
+    traveler.forEach((row,ry)=>[...row].forEach((ch,rx)=>{
+      if(ch==='.'||!travelerColors[ch])return;
+      let dx=rx,dy=ry;
+      if(ry>=16){
+        const leg=rx<8?0:1;
+        const shift=Math.round(Math.sin(phase+(leg?Math.PI:0)));
+        dx=Math.max(0,Math.min(15,rx+shift));
+        dy=ry-(Math.max(0,Math.round(Math.cos(phase+(leg?Math.PI:0))))>0&&ry>=18?1:0);
+      }
+      travelerSheetCtx.fillStyle=travelerColors[ch];
+      travelerSheetCtx.fillRect(frame*16+dx,dy,1,1);
+    }));
+    // A one-pixel boot highlight gives the tiny silhouette a readable ground contact.
+    travelerSheetCtx.fillStyle='#d2a16d';
+    travelerSheetCtx.fillRect(frame*16+4,22,4,1);
+    travelerSheetCtx.fillRect(frame*16+11,22,4,1);
+  }
+  function drawTravelerFrame(x,y,scale,gait){
+    const frame=((Math.floor(gait/(Math.PI/2))%4)+4)%4;
+    ctx.drawImage(travelerSheet,frame*16,0,16,24,x,y,16*scale,24*scale);
+  }
+
   function drawTravelerShadow(x,y,scale=2,weight=1){
     // Three stepped layers keep the ground contact crisp at the canvas pixel scale.
     const alpha=Math.max(.12,Math.min(.34,weight*.24));
@@ -549,11 +578,8 @@
       px(x+3*scale,y+15*scale,7*scale,2*scale,'#25232b');
       return;
     }
-    const colors={H:'#29232a',S:'#e3b77e',R:'#a64e42',L:'#25232b'};
-    traveler.forEach((row,ry)=>[...row].forEach((ch,rx)=>{
-      // Legs are drawn separately below so the whole stride, not just the sandals, moves.
-      if(ry<16&&ch!=='.')px(x+rx*scale,y+ry*scale,scale,scale,colors[ch]);
-    }));
+    // Base body and all four gait poses come from the dedicated native sprite sheet.
+    drawTravelerFrame(x,y,scale,gait);
     // Face, hood highlights and traveler's scarf.
     px(x+7*scale,y+2*scale,5*scale,scale,'#f1cc91');
     px(x+8*scale,y+3*scale,2,2,'#34252a');
@@ -586,18 +612,7 @@
     px(x+5*scale,y+1*scale,7*scale,1,'#f2d19a');
     px(x+4*scale,y+6*scale,1,8*scale,'#f0c68a');
     px(x+13*scale,y+11*scale,1,5*scale,'#f0c68a');
-    if(!fallen){
-      // Animate both lower legs and sandals in opposite phases for a complete stride.
-      const swing=Math.round(Math.sin(gait)*scale);
-      const lift=Math.max(0,Math.round(Math.cos(gait)*scale));
-      px(x+5*scale+swing,y+15*scale,3*scale,5*scale-lift,'#31272b');
-      px(x+10*scale-swing,y+15*scale,3*scale,5*scale,'#31272b');
-      px(x+4*scale+swing,y+(20-lift)*scale,4*scale,2,'#d2a16d');
-      px(x+11*scale-swing,y+20*scale,5*scale,2,'#d2a16d');
-      px(x+3*scale+swing,y+(21-lift)*scale,5*scale,1,'#f0c58a');
-      px(x+11*scale-swing,y+21*scale,5*scale,1,'#f0c58a');
-    }else{
-      // Horizontal pose: body, bent knees and one exhausted arm.
+    if(fallen){
       px(x+5*scale,y+17*scale,9*scale,3*scale,'#a64e42');
       px(x+11*scale,y+18*scale,6*scale,2*scale,'#29232a');
       px(x+15*scale,y+19*scale,5*scale,2*scale,'#d4a16d');
