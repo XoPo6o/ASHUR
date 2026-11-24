@@ -420,7 +420,7 @@
   function skip(){
     if(skipped)return;skipped=true;
     opening.classList.add('visible');cuneiform.classList.remove('visible');
-    title.classList.add('visible');hint.classList.remove('visible');
+    title.classList.add('visible');
   }
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'||e.key===' '){e.preventDefault();skip();}
