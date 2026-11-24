@@ -246,3 +246,63 @@ code{padding:2px 5px;background:#0c1119;color:#f0d28a;border:1px solid #4a3948}
  .table-wrap{overflow:visible!important}table{min-width:0!important;font-size:8pt}
  .footer{color:#333!important}
 }
+/* Typography test bench and pixel UI controls */
+:root{--font-press:'Press Start 2P',monospace;--font-tiny:'Tiny5',monospace;--font-handjet:'Handjet',monospace;--font-pixelify:'Pixelify Sans',monospace}
+.brand{gap:9px}.brand svg{width:34px;height:34px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 var(--red))}
+.brand .brand-name{font:36px/.95 var(--display);letter-spacing:.045em;color:#f4d17e;text-shadow:3px 0 var(--cyan),-3px 0 var(--red),0 4px #09070d,3px 7px #09070d}
+.brand .brand-section{font:7px/1.5 var(--font-press);color:var(--cyan);text-shadow:none}
+.nav{gap:12px}.links,.navlinks{gap:7px}
+.links a,.navlinks a{min-height:43px;gap:7px;padding:7px 10px;border:2px solid #80546b;border-bottom:4px solid var(--cyan);background:repeating-linear-gradient(90deg,#251726 0 7px,#2c1b2d 7px 14px);box-shadow:3px 3px 0 #08070b;font:7px/1.3 var(--font-press);clip-path:polygon(0 5px,5px 5px,5px 0,calc(100% - 5px) 0,calc(100% - 5px) 5px,100% 5px,100% calc(100% - 5px),calc(100% - 5px) calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,5px calc(100% - 5px),0 calc(100% - 5px))}
+.nav-pixel-icon{width:16px;height:16px;flex:none;image-rendering:pixelated}
+.start-small{width:auto;height:44px;min-width:104px;padding:0 16px;flex:none;border:0;border-radius:0;background:repeating-linear-gradient(90deg,#f04470 0 8px,#d92d61 8px 16px);color:#fff7e8;box-shadow:inset 0 0 0 3px #ffd1c5,inset 0 -6px 0 #8f1f43,4px 4px 0 #07060b,0 0 0 2px #53152f;font:9px/1 var(--font-press);text-shadow:2px 2px #7b1538;clip-path:polygon(0 6px,6px 6px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 6px),0 calc(100% - 6px));transition:transform .15s,filter .15s}
+.start-small:hover{transform:translateY(-2px);filter:brightness(1.13)}
+.ashur-wordmark{position:relative;display:table;margin:20px auto 10px;font-family:var(--display);letter-spacing:.055em;color:transparent;background-image:linear-gradient(180deg,#fff0b7 0%,#f4d17e 44%,#c98742 100%),repeating-linear-gradient(90deg,transparent 0 3px,#fff8 3px 4px),repeating-linear-gradient(0deg,transparent 0 5px,#100b17aa 5px 6px);background-blend-mode:screen;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:5px 0 #43d8c9,-5px 0 #ed376d,0 9px #09070d,5px 12px #09070d;filter:drop-shadow(0 0 8px #ed376d66)}
+.ashur-wordmark:before,.ashur-wordmark:after{content:attr(aria-label);position:absolute;inset:0;pointer-events:none;-webkit-text-fill-color:transparent}
+.ashur-wordmark:before{color:#43d8c9;text-shadow:none;transform:translate(-3px,1px);clip-path:polygon(0 13%,100% 13%,100% 20%,0 20%,0 48%,100% 48%,100% 52%,0 52%);opacity:.7}
+.ashur-wordmark:after{color:#ed376d;text-shadow:none;transform:translate(3px,-1px);clip-path:polygon(0 28%,100% 28%,100% 33%,0 33%,0 72%,100% 72%,100% 76%,0 76%);opacity:.7}
+.font-lab-section{padding:48px 0;background:linear-gradient(135deg,#15101c,#1b2631);border-bottom:3px solid var(--cyan)}
+.font-lab-section .section-head{margin-bottom:22px}
+.font-samples{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.font-sample{min-width:0;padding:19px;background:#17121e;border:2px solid #69445b;box-shadow:5px 5px 0 #07060b}
+.font-sample:nth-child(2){background:#14252d;border-color:#43d8c9}.font-sample:nth-child(3){background:#281522;border-color:#ed376d}.font-sample:nth-child(4){background:#292218;border-color:#efbd67}
+.font-sample-label{margin-bottom:14px;color:var(--cyan);font:7px/1.8 var(--font-press)}
+.font-sample h3{margin:0 0 12px;color:#fff0d1;font:clamp(13px,2vw,18px)/1.55 var(--font-press)}
+.font-sample strong{display:block;margin-bottom:10px;color:var(--gold);font:16px/1.25 var(--font-tiny)}
+.font-sample p{margin:0 0 12px;color:#eee0c8;font-size:20px;line-height:1.28}
+.font-sample small{display:block;margin-top:10px;color:#bcae99;font:14px/1.3 var(--font-tiny)}
+.font-alphabet{padding-top:9px;border-top:1px dashed #8a6a5b;color:var(--cyan);font:16px/1.5 var(--font-tiny);overflow-wrap:anywhere}
+.font-press h3,.font-press p,.font-press strong,.font-press .font-alphabet{font-family:var(--font-press)}.font-press p{font-size:8px;line-height:2.35}
+.font-tiny h3,.font-tiny p,.font-tiny strong,.font-tiny .font-alphabet,.font-tiny small{font-family:var(--font-tiny)}.font-tiny p{font-size:24px;line-height:1.12}
+.font-handjet h3,.font-handjet p,.font-handjet strong,.font-handjet .font-alphabet,.font-handjet small{font-family:var(--font-handjet)}.font-handjet p{font-size:25px;line-height:1.12}
+.font-pixelify h3,.font-pixelify p,.font-pixelify strong,.font-pixelify .font-alphabet,.font-pixelify small{font-family:var(--font-pixelify)}.font-pixelify p{font-size:21px;line-height:1.25;font-weight:600}
+.home-page .hero-slogan{font-family:var(--font-tiny);font-size:clamp(36px,6vw,54px);letter-spacing:.02em}
+.home-page .hero-lead span:last-child{font:23px/1.3 var(--font-handjet);letter-spacing:.015em}
+.home-page .section-head h2{font-family:var(--font-press);font-size:clamp(14px,2.4vw,21px);line-height:1.8}
+.home-page .section-head p{font:22px/1.25 var(--font-tiny)}
+.home-page .map-caption{font:9px/1.8 var(--font-press)}
+.home-page .level h3{font:11px/1.8 var(--font-press)}
+.home-page .level p{font:21px/1.22 var(--font-tiny)}
+.home-page .level:nth-child(2) p{font-family:var(--font-handjet);font-size:24px}
+.home-page .level:nth-child(3) p{font-family:var(--font-pixelify);font-size:20px}
+.home-page .level:nth-child(4) p{font-family:var(--font-tiny)}.home-page .level:nth-child(5) p{font-family:var(--font-handjet)}.home-page .level:nth-child(6) p{font-family:var(--font-pixelify)}
+.home-page .dialogue{font:25px/1.2 var(--font-handjet)}.home-page .pixel-list li{font:21px/1.2 var(--font-tiny)}
+.home-page .stat-line,.home-page .stat-line b{font:20px/1.2 var(--font-pixelify)}
+.home-page .hud-label,.home-page .mode-stamp,.home-page .level-no,.home-page .status{font-family:var(--font-press)}
+.home-page .hud-detail{font:20px/1.2 var(--font-tiny)}
+.home-page .wall-link h3{font:22px/1.2 var(--font-press)}.home-page .wall-link p{font:21px/1.2 var(--font-handjet)}
+.home-page footer .footer-mark{font:22px/1 var(--display);letter-spacing:.06em}.home-page footer small{font:8px/2 var(--font-press)}
+.wall-page p,.wall-page td,.wall-page .hint,.wall-page .sub,.wall-page .note,.wall-page .disclaimer,.wall-page .minirow,.wall-page .listitem p{font-family:var(--font-tiny);font-size:18px;line-height:1.25}
+.wall-page .hero h1,.wall-page .section-head h2,.wall-page .panel h3{font-family:var(--font-handjet);font-weight:700}
+.wall-page .navlinks a{font-size:6px}.wall-page .brand .brand-name{font-size:34px}.wall-page .footer span{font-family:var(--font-tiny);font-size:16px}
+@media(max-width:950px){.nav{gap:8px}.brand .brand-name{font-size:30px}.links a,.navlinks a{padding:7px 7px;font-size:6px}.start-small{min-width:92px;padding:0 12px}}
+@media(max-width:680px){
+ .nav{gap:7px}.brand svg{width:30px;height:30px}.brand .brand-name{font-size:29px}
+ .links{order:3;width:100%;justify-content:space-between;gap:4px}.links a{flex:1;min-width:0;padding:7px 4px;gap:4px;font-size:5px;flex-direction:column}.links .nav-pixel-icon{width:14px;height:14px}
+ .start-small{min-width:88px;height:40px;font-size:8px;padding:0 10px}
+ .font-lab-section{padding:34px 0}.font-samples{grid-template-columns:1fr;gap:12px}.font-sample{padding:15px}.font-sample h3{font-size:13px}.font-sample p{font-size:21px}.font-press p{font-size:7px}
+ .home-page .section-head h2{font-size:13px}.home-page .section-head p{font-size:20px}.home-page .hero-slogan{font-size:36px}.home-page .hero-lead span:last-child{font-size:21px}
+ .home-page .level h3{font-size:9px}.home-page .level p{font-size:20px}.home-page .dialogue{font-size:23px}.home-page .pixel-list li{font-size:19px}.home-page .stat-line,.home-page .stat-line b{font-size:17px}
+ .wall-page .navlinks{order:3;width:100%;justify-content:center;flex-wrap:wrap;gap:5px}.wall-page .navlinks a{font-size:5px;padding:7px 6px}.wall-page .navlinks .nav-pixel-icon{width:12px;height:12px}
+ .wall-page .nav .actions{order:4;width:100%;justify-content:center;gap:6px;margin:0}.wall-page .nav .actions .btn{font-size:5px;padding:8px 7px}
+ .wall-page .brand .brand-name{font-size:28px}.wall-page p,.wall-page td,.wall-page .hint,.wall-page .sub,.wall-page .note,.wall-page .disclaimer,.wall-page .minirow,.wall-page .listitem p{font-size:16px}
+}
