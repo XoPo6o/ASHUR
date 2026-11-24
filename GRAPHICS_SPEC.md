@@ -35,13 +35,13 @@
 3. Не более 60 видимых цветов на кадр в текущем общем палитровом режиме.
 4. Пол игрового пространства собирается из повторно используемых 8×8 native tiles; нет градиентной заливки пола.
 5. 12 FPS cap для основной анимации.
-6. Desktop: полный 320×224 кадр; mobile portrait: camera-follow кадрирование на путнике с заполнением viewport; mobile landscape: заполнение viewport без растяжения пропорций.
+6. Desktop: полный 320×224 кадр; mobile portrait и landscape: camera-follow кадрирование на путнике с заполнением viewport без растяжения пропорций.
 7. Skip по тапу/клику, Escape, Space, Enter; reduced-motion показывает финальный экран.
 8. Следующий production-этап: художественная полировка наблюдателей, микродвижений окружения и ручная визуальная приёмка на реальном Android-устройстве.
 
 ## Camera, observers and title sequence
 
-- Portrait camera follows the traveler in world coordinates, shifts the vertical framing down to the street, and preserves the 320×224 framebuffer and nearest-neighbor pixel rendering. The 480×336 world floor fills the full framebuffer, with no unused lower strip.
+- Mobile portrait and landscape cameras follow the traveler in world coordinates; portrait uses a 1.25× zoom, landscape a 1.1× zoom, and both shift the vertical framing toward the street while preserving the 320×224 framebuffer and nearest-neighbor pixel rendering. The 480×336 world floor fills the full framebuffer, with no unused lower strip.
 - Four separate observer silhouettes stand around the central market lane. On the fall beat they stop, turn toward the traveler and raise/point an arm.
 - Opening text appears first, fades out completely, cuneiform appears alone, then fades before the KI.LAM mark.
 - GitHub Pages deploy workflow is triggered by pushes to `game-dev`; `main` remains untouched.
