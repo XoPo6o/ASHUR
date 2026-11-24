@@ -4,7 +4,6 @@
   const opening = document.getElementById('opening');
   const cuneiform = document.getElementById('cuneiform');
   const title = document.getElementById('game-title');
-  const hint = document.getElementById('skip-hint');
   const W = 480, H = 270;
   let start = 0, skipped = false;
 
@@ -416,14 +415,13 @@
       if(e>16300)title.classList.add('visible');
     }
     if(e<19000)requestAnimationFrame(draw);
-    else{title.classList.add('visible');hint.classList.add('visible');}
+    else{title.classList.add('visible');}
   }
   function skip(){
     if(skipped)return;skipped=true;
     opening.classList.add('visible');cuneiform.classList.remove('visible');
     title.classList.add('visible');hint.classList.remove('visible');
   }
-  hint.addEventListener('click',skip);
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'||e.key===' '){e.preventDefault();skip();}
   });
