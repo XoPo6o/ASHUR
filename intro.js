@@ -246,11 +246,16 @@
     const lamps=[34,116,245,335,442];
     lamps.forEach((x,i)=>{
       const y=157+(i%2)*8;
+      const flicker=.82+.18*Math.sin(t*.009+i*2.1);
+      const glow=ctx.createRadialGradient(x,y+7,1,x,y+7,34);
+      glow.addColorStop(0,'rgba(255,190,105,.30)');
+      glow.addColorStop(.35,'rgba(255,160,85,.12)');
+      glow.addColorStop(1,'rgba(255,145,70,0)');
+      ctx.globalAlpha=flicker;ctx.fillStyle=glow;ctx.fillRect(x-34,y-27,68,68);ctx.globalAlpha=1;
       px(x,y-9,1,13,'#31242a');px(x-4,y+1,9,2,'#d6a16b');
       px(x-4,y+3,9,8,'#a95d43');px(x-2,y+4,5,5,'#ffd28a');
-      px(x,y+9,2,4,'#e6a45e');
-      ctx.globalAlpha=.11;px(x-17,y+10,34,24,'#ffc16b');ctx.globalAlpha=1;
-      ctx.globalAlpha=.07;px(x-9,y+13,18,28,'#ffc16b');ctx.globalAlpha=1;
+      px(x-1,y+5,2,3,'#fff0bf');px(x,y+9,2,4,'#e6a45e');
+      ctx.globalAlpha=.10;px(x-17,y+10,34,24,'#ffc16b');ctx.globalAlpha=1;
     });
     // Market signs in simple painted pictograms.
     px(17,166,18,9,'#d8b178');px(19,168,14,2,'#6c3d37');px(24,171,4,3,'#a84f43');
@@ -310,7 +315,10 @@
       px(x+3*scale,y+7*scale,8*scale,7*scale,'#e3b77e');
       px(x+8*scale,y+9*scale,2*scale,2*scale,'#34252a');
       px(x+8*scale,y+12*scale,4*scale,2*scale,'#875044');
+      px(x+5*scale,y+13*scale,7*scale,3*scale,'#765044');
+      px(x+6*scale,y+15*scale,2*scale,2*scale,'#e0b47c');
       px(x+2*scale,y+5*scale,8*scale,2*scale,'#f0c58a');
+      px(x+3*scale,y+4*scale,6*scale,1*scale,'#34252a');
       px(x+11*scale,y+8*scale,18*scale,10*scale,'#a64e42');
       px(x+14*scale,y+7*scale,12*scale,2*scale,'#e0a06a');
       px(x+16*scale,y+10*scale,9*scale,1*scale,'#cf7650');
@@ -319,8 +327,13 @@
       px(x+17*scale,y+18*scale,9*scale,2*scale,'#b4a078');
       px(x+15*scale,y+14*scale,10*scale,2*scale,'#e3b77e');
       px(x+23*scale,y+14*scale,3*scale,2*scale,'#f0c58a');
+      // Woven travel satchel, stitched flap and bronze clasp.
+      px(x+22*scale,y+5*scale,7*scale,7*scale,'#52665a');
+      px(x+23*scale,y+6*scale,5*scale,4*scale,'#829071');
+      px(x+24*scale,y+10*scale,3*scale,1*scale,'#d5a45f');
       px(x+28*scale,y+10*scale,8*scale,4*scale,'#25232b');
       px(x+34*scale,y+13*scale,6*scale,3*scale,'#d2a16d');
+      px(x+35*scale,y+14*scale,4*scale,1*scale,'#f0c58a');
       px(x+3*scale,y+15*scale,7*scale,2*scale,'#25232b');
       return;
     }
@@ -384,17 +397,20 @@
       if(step===0){ctx.globalAlpha=.4;px(x-6,207,13,2,'#d5a477');px(x-12,211,7,1,'#b98a65');ctx.globalAlpha=1;}
       if(e>3000&&e<8500){ctx.globalAlpha=.18;px(x-24,204,18,2,'#e5bc83');ctx.globalAlpha=1;}
     }else if(e<10400){
-      const p=Math.min(1,(e-8500)/600);
-      const shake=Math.sin(e*.09)*(1-p)*3;
-      px(201,231,46,4,'#29232b');
-      ctx.save();ctx.translate(207+shake,194+Math.abs(shake));ctx.rotate(p*.11);
-      drawTraveler(-12,0,2,true);ctx.restore();
-      dust(218,226,Math.min(1,p),ts);
+      const p=Math.min(1,(e-8500)/650);
+      const shake=Math.sin(e*.09)*(1-p)*2;
+      px(201,251,46,4,'#29232b');
+      ctx.save();
+      ctx.translate(226+shake,225+Math.abs(shake));
+      ctx.rotate(p*1.48);
+      drawTraveler(-14,-20,2,false);
+      ctx.restore();
+      dust(218,254,Math.min(1,p),ts);
     }else{
       const tremble=e<11600?Math.sin(e*.09)*1.3:0;
-      px(201,231,46,4,'#29232b');
-      drawTraveler(194+tremble,194+Math.abs(tremble),2,true);
-      if(e<11600)dust(218,226,.55,ts);
+      px(191,263,55,3,'#29232b');
+      drawTraveler(194+tremble,226+Math.abs(tremble),2,true);
+      if(e<11600)dust(218,255,.55,ts);
     }
     // Sand gust carries the cuneiform away.
     if(e>14800&&e<16600){
