@@ -364,17 +364,43 @@
     }
   }
   function drawAtmosphere(t){
-    // Distant smoke and low amber haze.
+    // Low amber haze softens the far end of the street without washing out pixels.
     for(let i=0;i<7;i++){
       const x=(i*91+(t*.006)%540)-30,y=184+(i%3)*13;
       ctx.globalAlpha=.055;px(x,y,65,3,'#e5b17d');ctx.globalAlpha=1;
     }
-    // Floating dust motes catch the lantern light.
-    for(let i=0;i<30;i++){
+    // Thin cooking-smoke ribbons drift sideways from the market roofs.
+    const chimneys=[{x:76,y:174},{x:181,y:178},{x:397,y:171}];
+    chimneys.forEach((p,i)=>{
+      for(let k=0;k<5;k++){
+        const drift=(t*.008+i*19+k*13)%30;
+        const rise=(t*.012+k*8+i*5)%34;
+        const width=5+(k%3)*3;
+        ctx.globalAlpha=.10+(k%2)*.035;
+        px(p.x+Math.round(drift*.45)-Math.round(rise*.12),p.y-rise,width,2,'#d6a17d');
+        if(k%2===0)px(p.x+Math.round(drift*.45)+3,p.y-rise-2,width-2,1,'#b98370');
+      }
+    });
+    // A slow ribbon of warm air moves above the paving, broken into pixel bands.
+    for(let i=0;i<4;i++){
+      const x=(i*137+t*.018)%540-40;
+      const y=204+i*7+Math.sin(t*.0015+i)*2;
+      ctx.globalAlpha=.045;
+      px(x,y,38,1,'#f0bd83');px(x+9,y+2,21,1,'#e0a16e');
+    }
+    // Floating dust motes catch the lantern light; some brighten as they cross it.
+    for(let i=0;i<38;i++){
       const x=(i*83+(t*.012*(i%3+1)))%480;
       const y=(i*47+Math.sin(t*.001+i)*5)%205;
-      ctx.globalAlpha=.2+seeded(i)*.35;px(x,y,1,1,'#f4ca8b');
+      const pulse=.18+seeded(i)*.35+Math.max(0,Math.sin(t*.002+i))*.12;
+      ctx.globalAlpha=Math.min(.62,pulse);px(x,y,1+(i%9===0?1:0),1,'#f4ca8b');
     }
+    // Soft edge vignette keeps the eye on the traveler and illuminated stalls.
+    const vignette=ctx.createRadialGradient(240,142,62,240,142,255);
+    vignette.addColorStop(0,'rgba(18,15,24,0)');
+    vignette.addColorStop(.72,'rgba(18,15,24,.08)');
+    vignette.addColorStop(1,'rgba(12,12,20,.34)');
+    ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
     ctx.globalAlpha=1;
   }
   function background(t){
@@ -415,7 +441,7 @@
     ctx.globalAlpha=1;
   }
 
-  function drawTraveler(x,y,scale=2,fallen=false){
+  function drawTraveler(x,y,scale=2,fallen=false,gait=0){
     if(fallen){
       // Side-on exhausted merchant: readable hood, face, beard, robe, arm, pack and boots.
       px(x+1*scale,y+6*scale,11*scale,10*scale,'#29232a');
@@ -484,9 +510,12 @@
       // Legs, sandals and one dragging foot.
       px(x+5*scale,y+15*scale,3*scale,5*scale,'#31272b');
       px(x+10*scale,y+15*scale,3*scale,5*scale,'#31272b');
-      px(x+4*scale,y+20*scale,4*scale,2,'#d2a16d');
-      px(x+11*scale,y+20*scale,5*scale,2,'#d2a16d');
-      px(x+3*scale,y+21*scale,5*scale,1,'#f0c58a');
+      const swing=Math.round(Math.sin(gait)*scale);
+      // Alternating sandals and heel highlights make each step read at 2x scale.
+      px(x+4*scale+swing,y+20*scale,4*scale,2,'#d2a16d');
+      px(x+11*scale-swing,y+20*scale,5*scale,2,'#d2a16d');
+      px(x+3*scale+swing,y+21*scale,5*scale,1,'#f0c58a');
+      px(x+11*scale-swing,y+21*scale,5*scale,1,'#f0c58a');
     }else{
       // Horizontal pose: body, bent knees and one exhausted arm.
       px(x+5*scale,y+17*scale,9*scale,3*scale,'#a64e42');
@@ -516,7 +545,7 @@
       const wobble=Math.sin(e*.035)*1.25;
       const limp=Math.abs(Math.sin(e*.018))*2.1;
       drawTravelerShadow(Math.round(x)+2,220,2,1);
-      drawTraveler(Math.round(x),178+Math.round(wobble+limp),2,false);
+      drawTraveler(Math.round(x),178+Math.round(wobble+limp),2,false,e*.019);
       // Scuffed footprints and dragging dust trail.
       if(step===0){ctx.globalAlpha=.4;px(x-6,207,13,2,'#d5a477');px(x-12,211,7,1,'#b98a65');ctx.globalAlpha=1;}
       if(e>3000&&e<8500){ctx.globalAlpha=.18;px(x-24,204,18,2,'#e5bc83');ctx.globalAlpha=1;}
