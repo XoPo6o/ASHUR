@@ -8,8 +8,8 @@ const path = require('node:path');
   const browser = await chromium.launch({ headless: true });
   const errors = [];
 
-  async function openScene(width, height, label) {
-    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+  async function openScene(width, height, label, deviceScaleFactor = 1) {
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor });
     page.on('pageerror', error => errors.push(label + ': ' + error.message));
     await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#world');
@@ -80,15 +80,16 @@ const path = require('node:path');
     }
     await desktop.screenshot({ path: path.join(out, '05-title-desktop.png') });
 
-    const mobile = await openScene(390, 844, 'mobile');
+    const mobile = await openScene(390, 844, 'mobile', 3);
     await mobile.waitForTimeout(9000);
     const mobileCamera = await mobile.locator('#world').evaluate(el => Number(el.dataset.cameraX));
+    const mobileCameraY = await mobile.locator('#world').evaluate(el => Number(el.dataset.cameraY));
     const mobileReaction = await mobile.locator('#world').evaluate(el => el.dataset.observerReaction);
     const mobileFrame = await mobile.locator('#world').evaluate(el => {
       const r = el.getBoundingClientRect();
       return { objectFit: getComputedStyle(el).objectFit, width: r.width, height: r.height };
     });
-    if (!(mobileCamera > 0) || mobileReaction !== 'true' ||
+    if (!(mobileCamera > 0) || !(mobileCameraY > 60) || mobileReaction !== 'true' ||
         mobileFrame.objectFit !== 'cover' || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
       throw new Error('Portrait camera, fall reaction or full-screen framing failed: ' +
         JSON.stringify({ mobileCamera, mobileReaction, mobileFrame }));
@@ -132,7 +133,7 @@ const path = require('node:path');
     });
     if (palette > 60) throw new Error('Frame exceeds the 4x15 visible-color budget: ' + palette);
         if (errors.length) throw new Error('Browser runtime errors: ' + errors.join(' | '));
-    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, skippedOpening, mobileCamera, mobileReaction, mobileFrame, palette, errors }));
+    console.log('INTRO_VISUAL_TEST_OK', JSON.stringify({ openingPhase, openingHidden, cuneiformVisible, titleVisible, desktopMark, mobileTitle, titleBox, mobileMark, landscapeBox, skippedTitle, skippedOpening, mobileCamera, mobileCameraY, mobileReaction, mobileFrame, palette, errors }));
   } finally {
     await browser.close();
   }
