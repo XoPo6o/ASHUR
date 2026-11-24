@@ -61,10 +61,54 @@ section:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:no
 .wall-link{background:linear-gradient(105deg,rgba(65,15,59,.98),rgba(8,39,56,.96));box-shadow:0 0 28px rgba(255,48,132,.18),inset 0 0 28px rgba(0,229,255,.08)}
 @media(max-width:900px){.level:nth-child(2),.level:nth-child(5){transform:none}}
 @media(max-width:620px){.hero{min-height:0}.hero:after{height:300px;bottom:-150px}.hero-sun{width:240px;height:165px;top:56px}.level,.level:nth-child(2),.level:nth-child(5){transform:none}}
+
+/* Midnight bazaar palette / moonlit arcade pass */
+:root{--bg:#071a27;--pink:#ff7867;--orange:#f4a64e;--yellow:#f6d77a;--cyan:#69e0d0;--lime:#b7e38a;--paper:#eaf5e9;--muted:#a9c7c7}
+body:before{background:radial-gradient(ellipse at 16% 12%,rgba(35,116,126,.26),transparent 31%),radial-gradient(ellipse at 84% 38%,rgba(49,76,121,.25),transparent 36%),radial-gradient(ellipse at 50% 100%,rgba(14,88,83,.22),transparent 42%),linear-gradient(180deg,#071722 0%,#102b39 48%,#071722 100%)}
+body:after{opacity:.14;background-image:radial-gradient(circle at 1px 1px,rgba(105,224,208,.5) 1px,transparent 1.6px),linear-gradient(rgba(105,224,208,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(105,224,208,.10) 1px,transparent 1px);background-size:31px 31px,62px 62px,62px 62px}
+header{background:rgba(5,21,31,.96);border-bottom-color:var(--cyan);box-shadow:0 0 20px rgba(105,224,208,.13),0 5px #04121b}
+.links a{background:#123342;border-bottom-color:var(--orange)}
+.start-small{background:var(--yellow);color:#10232a}
+.hero{background:radial-gradient(ellipse at 50% 18%,rgba(105,224,208,.16),transparent 36%),linear-gradient(180deg,#123544 0%,rgba(11,34,47,.88) 66%,#081b27 100%)}
+.hero:before{background:radial-gradient(ellipse at 50% 24%,rgba(246,215,122,.12),transparent 39%),linear-gradient(180deg,transparent 0 62%,rgba(3,16,24,.68)),repeating-linear-gradient(90deg,transparent 0 79px,rgba(105,224,208,.055) 80px 82px)}
+.hero-sun{background:repeating-linear-gradient(to bottom,#f6d77a 0 13px,#f4a64e 14px 22px,transparent 23px 29px);filter:drop-shadow(0 0 24px rgba(244,166,78,.38));opacity:.48}
+.hero:after{background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(105,224,208,.36) 28px 30px),repeating-linear-gradient(90deg,transparent 0 69px,rgba(244,166,78,.24) 70px 72px);filter:drop-shadow(0 0 6px rgba(105,224,208,.28))}
+.hero-moon{position:absolute;z-index:-1;top:68px;right:clamp(22px,12vw,190px);width:94px;height:94px;border-radius:50%;background:#dcebd0;box-shadow:0 0 18px rgba(220,235,208,.38),0 0 58px rgba(105,224,208,.19);opacity:.88}
+.hero-moon:before,.hero-moon:after{content:"";position:absolute;border-radius:50%;background:rgba(93,132,125,.16)}
+.hero-moon:before{width:20px;height:14px;left:21px;top:25px;transform:rotate(-25deg)}
+.hero-moon:after{width:13px;height:13px;right:20px;bottom:22px;box-shadow:-25px -8px 0 -3px rgba(93,132,125,.16)}
+.orbit .spark{background:var(--yellow);box-shadow:0 0 13px var(--yellow)}
+.orbit .spark:nth-child(2){background:var(--cyan)}
+.orbit .spark:nth-child(4){background:var(--pink)}
+.hud-box{background:linear-gradient(135deg,#123b45,#102b3b);border-color:var(--cyan);box-shadow:inset 0 0 0 3px rgba(105,224,208,.08)}
+.hud-box:nth-child(2){border-color:var(--orange)}.hud-box:nth-child(3){border-color:var(--yellow)}.hud-box:nth-child(4){border-color:var(--pink)}
+.meter{background:#071a27;border-color:#477b7d}
+section{border-bottom-color:rgba(105,224,208,.25)}
+section:nth-of-type(2){background:radial-gradient(ellipse at 90% 10%,rgba(244,166,78,.12),transparent 34%),linear-gradient(115deg,rgba(6,25,35,.42),rgba(17,54,63,.66))}
+section:nth-of-type(3){background:radial-gradient(ellipse at 8% 65%,rgba(105,224,208,.13),transparent 32%),linear-gradient(110deg,rgba(5,24,34,.78),rgba(13,43,53,.58))}
+section:nth-of-type(4){background:radial-gradient(ellipse at 80% 50%,rgba(255,120,103,.12),transparent 35%),linear-gradient(110deg,rgba(17,42,47,.58),rgba(5,21,31,.76))}
+section:before{opacity:.13;background-image:repeating-linear-gradient(135deg,transparent 0 42px,rgba(105,224,208,.13) 43px 44px,transparent 45px 86px)}
+.level{background:linear-gradient(145deg,rgba(17,58,67,.97),rgba(8,31,45,.98));border-color:var(--cyan);box-shadow:inset 0 0 24px rgba(105,224,208,.10),0 0 17px rgba(105,224,208,.08)}
+.level:nth-child(3n+2){background:linear-gradient(145deg,rgba(28,49,77,.97),rgba(9,28,44,.98));border-color:#82b7e8}
+.level:nth-child(3n){background:linear-gradient(145deg,rgba(77,49,39,.96),rgba(27,32,47,.98));border-color:var(--orange)}
+.level-no,.level .status{color:var(--yellow)}
+.level:nth-child(2){border-color:#82b7e8;background:linear-gradient(145deg,rgba(28,49,77,.97),rgba(9,28,44,.98))}
+.level:nth-child(3){border-color:var(--orange);background:linear-gradient(145deg,rgba(77,49,39,.96),rgba(27,32,47,.98))}
+.level:nth-child(4){border-color:#8e9de0;background:linear-gradient(145deg,rgba(35,48,83,.96),rgba(8,28,44,.98))}
+.level:nth-child(5){border-color:var(--yellow);background:linear-gradient(145deg,rgba(75,65,36,.9),rgba(13,31,43,.98))}
+.level:nth-child(6){border-color:var(--pink);background:linear-gradient(145deg,rgba(74,43,48,.94),rgba(10,29,42,.98))}
+.codex-panel,.treasury{background:linear-gradient(135deg,#173e48,#102c3b);border-color:var(--yellow)}
+.treasury{background:linear-gradient(145deg,#123d43,#102b3c 75%);border-color:var(--cyan)}
+.codex-panel:before,.treasury:after{border-color:rgba(246,215,122,.34)}
+.treasury:after{border-color:rgba(105,224,208,.35)}
+.wall-link{background:linear-gradient(105deg,rgba(46,48,65,.98),rgba(9,61,67,.97));border-color:var(--orange);box-shadow:0 0 28px rgba(105,224,208,.12),inset 0 0 28px rgba(244,166,78,.06)}
+.wall-link:after{color:rgba(246,215,122,.17)}
+footer{background:#04131d;border-top-color:var(--cyan)}
+@media(max-width:620px){.hero-moon{width:62px;height:62px;top:34px;right:8%}}
 </style></head><body>
 <div class="noise" aria-hidden="true"></div><div class="scanlines" aria-hidden="true"></div>
 <header><div class="wrap nav"><a class="brand" href="#top" aria-label="ASHUR — главная"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1l5 10 11-5-5 11 8 3-8 4 5 11-11-5-5 9-5-9-11 5 5-11-8-4 8-3-5-11 11 5z" fill="#ffe45c" stroke="#fff0c2" stroke-width="2"/><path d="M20 9l4 8 8 3-8 4-4 8-4-8-8-4 8-3z" fill="#ff397d"/></svg><span>ASHUR</span></a><nav class="links" aria-label="Главная навигация"><a href="#game">МИР</a><a href="#levels">УРОВНИ</a><a href="#paper">КОДЕКС</a><a href="wall.html">СТЕНА</a></nav><a class="start-small" href="#levels">START</a></div></header>
-<main id="top"><section class="hero" id="game"><div class="drift"></div><div class="hero-sun" aria-hidden="true"></div><div class="orbit" aria-hidden="true"><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i></div><div class="wrap hero-inner">
+<main id="top"><section class="hero" id="game"><div class="drift"></div><div class="hero-sun" aria-hidden="true"></div><div class="hero-moon" aria-hidden="true"></div><div class="orbit" aria-hidden="true"><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i></div><div class="wrap hero-inner">
 <div class="eyebrow">𒀭 MESOPOTAMIA · MARKET CHRONICLES</div>
 <svg class="logo" viewBox="0 0 900 245" role="img" aria-label="ASHUR — объёмный аркадный логотип"><defs><linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff8a9"/><stop offset=".38" stop-color="#ffe45c"/><stop offset=".72" stop-color="#ffad36"/><stop offset="1" stop-color="#e85b36"/></linearGradient><linearGradient id="side" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c92e70"/><stop offset="1" stop-color="#641e68"/></linearGradient><filter id="shadow" x="-20%" y="-30%" width="150%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur"/><feOffset dy="8" dx="2" result="offset"/><feComponentTransfer><feFuncA type="linear" slope=".65"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
 
