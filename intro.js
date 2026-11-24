@@ -1003,16 +1003,17 @@
     lastFrame=ts;
     const e=ts-start;
     const portrait=window.matchMedia('(orientation: portrait)').matches;
-    // Portrait gets a closer, vertically composed market view. The canvas itself
-    // remains 320x224; CSS cover reveals its central strip while this camera follows
-    // the traveler in world coordinates instead of shrinking the whole panorama.
-    renderScale=(2/3)*(portrait?1.25:1);
+    const mobileViewport=window.matchMedia('(max-width: 900px)').matches;
+    // Both phone orientations follow the traveler. Portrait uses a stronger zoom;
+    // landscape keeps more of the bazaar while centering the walking/fall sequence.
+    const zoom=portrait?1.25:mobileViewport?1.1:1;
+    renderScale=(2/3)*zoom;
     const travelerWorldX=e<8100 ? -42+Math.max(0,Math.min(1,e/8100))*250 : 208;
     const worldViewWidth=320/renderScale;
     const worldViewHeight=224/renderScale;
     const targetCamera=travelerWorldX+16-worldViewWidth/2;
-    cameraX=portrait?Math.max(-worldViewWidth/2-32,Math.min(W-worldViewWidth,targetCamera)):0;
-    cameraY=portrait?Math.max(0,Math.min(H-worldViewHeight,202-worldViewHeight/2)):0;
+    cameraX=mobileViewport?Math.max(-worldViewWidth/2-32,Math.min(W-worldViewWidth,targetCamera)):0;
+    cameraY=mobileViewport?Math.max(0,Math.min(H-worldViewHeight,202-worldViewHeight/2)):0;
     canvas.dataset.cameraX=String(Math.round(cameraX));
     canvas.dataset.cameraY=String(Math.round(cameraY));
     canvas.dataset.observerReaction=String(e>=8500);
