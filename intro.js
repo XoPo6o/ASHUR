@@ -117,12 +117,20 @@
     Array.from({length:40},(_,col)=>['floor0','floor1','floor2','floor3'][(row*3+col*5+Math.floor(col/4))%4]).join('')
   );
 
+  // Legacy scene coordinates are 3:2 relative to the native 320x224 framebuffer.
+  // Snap every primitive to native pixel boundaries before the 2/3 transform is applied.
+  const snapNative = value => Math.round(value * 2 / 3) * 1.5;
   const px = (x,y,w,h,c) => {
-    ctx.fillStyle = c;
-    ctx.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));
+    const sx=snapNative(x),sy=snapNative(y);
+    const sw=Math.max(1.5,snapNative(w)),sh=Math.max(1.5,snapNative(h));
+    ctx.fillStyle=c;
+    ctx.fillRect(sx,sy,sw,sh);
   };
   const line = (x1,y1,x2,y2,c) => {
-    ctx.strokeStyle=c;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1+.5,y1+.5);ctx.lineTo(x2+.5,y2+.5);ctx.stroke();
+    ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.beginPath();
+    ctx.moveTo(snapNative(x1)+.75,snapNative(y1)+.75);
+    ctx.lineTo(snapNative(x2)+.75,snapNative(y2)+.75);
+    ctx.stroke();
   };
   function seeded(n){const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v);}
   function brickWall(x,y,w,h,rows=5,seed=0){
@@ -141,10 +149,20 @@
     px(x,y+h-2,w,2,'#30232a');
   }
   function arch(x,y,w,h,color,inside){
-    px(x,y+Math.floor(w/2),w,h-Math.floor(w/2),color);
-    ctx.fillStyle=color;ctx.beginPath();ctx.arc(x+w/2,y+w/2,w/2,Math.PI,0);ctx.fill();
-    px(x+3,y+w/2,w-6,h-w/2,inside);
-    ctx.fillStyle=inside;ctx.beginPath();ctx.arc(x+w/2,y+w/2,w/2-3,Math.PI,0);ctx.fill();
+    // A stepped 1-native-pixel arch: no vector arcs or antialiased curves.
+    const crown=Math.max(2,Math.floor(w/3));
+    for(let row=0;row<crown;row++){
+      const inset=crown-row-1;
+      px(x+inset,y+row,w-inset*2,1,color);
+    }
+    px(x,y+crown,w,h-crown,color);
+    const innerX=x+3,innerY=y+3,innerW=Math.max(3,w-6),innerH=Math.max(3,h-3);
+    const innerCrown=Math.max(1,Math.floor(innerW/3));
+    for(let row=0;row<innerCrown;row++){
+      const inset=innerCrown-row-1;
+      px(innerX+inset,innerY+row,innerW-inset*2,1,inside);
+    }
+    px(innerX,innerY+innerCrown,innerW,innerH-innerCrown,inside);
     px(x-2,y+h-3,w+4,3,'#d09a68');
   }
   function drawMoon(){
@@ -239,8 +257,9 @@
       px(x-3,y-4,w+6,4,'#93604a');
       px(x+4,y+7,w-8,2,'#bd8057');
       for(let xx=x+7;xx<x+w-6;xx+=14){
-        px(xx,y+14,6,12,'#211d27');px(xx+1,y+15,3,10,'#7a4c42');
-        px(xx+1,y+14,4,1,'#d09376');
+        arch(xx,y+10,8,16,'#d09376','#211d27');
+        px(xx+3,y+13,2,8,'#7a4c42');
+        px(xx+2,y+12,3,1,'#e0a06b');
       }
       px(x+2,y+h-4,w-4,4,'#30252c');
     });
@@ -557,7 +576,9 @@
   quantizeCanvasToBank(travelerSheetCtx,64,24,2);
   function drawTravelerFrame(x,y,scale,gait){
     const frame=((Math.floor(gait/(Math.PI/2))%4)+4)%4;
-    ctx.drawImage(travelerSheet,frame*16,0,16,24,x,y,16*scale,24*scale);
+    ctx.drawImage(travelerSheet,frame*16,0,16,24,
+      snapNative(x),snapNative(y),
+      Math.max(1.5,snapNative(16*scale)),Math.max(1.5,snapNative(24*scale)));
   }
 
   function drawTravelerShadow(x,y,scale=2,weight=1){
