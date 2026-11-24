@@ -38,3 +38,11 @@
 6. Desktop, mobile portrait и landscape: кадр целиком виден, без растяжения.
 7. Skip по тапу/клику, Escape, Space, Enter; reduced-motion показывает финальный экран.
 8. Следующий production-этап: полноценное разделение palette banks при финальной композиции слоёв, отдельные tilemaps арок/домов, а затем детальная анимация второстепенных персонажей и микродвижения окружения.
+
+## Bazaar character animation
+
+- Spice seller: 12fps scoop, lift, pour and scale-settle loop.
+- Lamp merchant: 12fps lamp lift and flame-check loop.
+- Porter: 12fps shoulder-load shift loop.
+- Gate watcher: 12fps staff tap and return-to-guard loop.
+- Motion uses discrete native-pixel poses; no smooth tweening.
