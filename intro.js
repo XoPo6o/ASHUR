@@ -331,6 +331,46 @@
         px(x+2,y+6,8,2,'#38444a');px(x+1,y+8,2,7,'#38444a');
         px(x+13,y+7,1,13,'#d5a45f');px(x+12,y+7,3,1,'#e8bd80');
       }
+
+      // Four distinct, stepped work cycles, sampled at the scene's native 12fps.
+      const beat=Math.floor(t/(1000/12));
+      const action=(beat+i*3)%12;
+      if(i===0){
+        // Spice seller scoops a pinch, raises it, then lets it fall into the weighing pan.
+        const handY=action<3?0:action<6?-2:action<9?-1:0;
+        px(x+10,y+8+handY,3,2,'#d6a675');
+        px(x+12,y+6+handY,2,1,'#e8bd80');
+        if(action>=3&&action<9){
+          px(x+15,y+8,1,1,'#d8b578');
+          if(action===5||action===6)px(x+16,y+10,1,1,'#c08a55');
+        }
+        // Scale beam rocks by one native pixel as the pan receives the spice.
+        const tilt=action<6?0:action<9?1:0;
+        px(x+10,y+7,5,1,'#e8bd80');
+        if(tilt)px(x+14,y+8,2,1,'#d5a45f');
+      }else if(i===1){
+        // Lamp seller lifts a small oil lamp and checks its flame.
+        const lift=action<4?0:action<8?-2:-1;
+        px(x+12,y+9+lift,3,5,'#b9784b');
+        px(x+13,y+10+lift,1,2,'#ffd28a');
+        px(x+13,y+8+lift,1,1,'#fff0bf');
+        if(action%4===0)px(x+14,y+7+lift,1,1,'#e8bd80');
+        px(x+9,y+8,2,2,'#d6a675');
+      }else if(i===2){
+        // Porter shifts the loaded basket from one shoulder to the other.
+        const sway=action<4?0:action<8?1:0;
+        px(x+8-sway,y+6,2,8,'#d5a45f');
+        px(x+10-sway,y+8,4,5,'#52665a');
+        px(x+11-sway,y+9,2,1,'#e0b477');
+        px(x+11-sway,y+11,2,1,'#e0b477');
+        if(action>=4&&action<8)px(x+3,y+9,2,2,'#e8bd80');
+      }else{
+        // Watchman taps the staff once, then returns to a still guard stance.
+        const tap=action===5||action===6?1:0;
+        px(x+13,y+7+tap,1,13,'#d5a45f');
+        px(x+12,y+7+tap,3,1,'#e8bd80');
+        if(tap)px(x+12,y+20,3,1,'#d09376');
+      }
     });
     // Hanging bundles of herbs and woven goods beneath the awnings.
     for(let i=0;i<5;i++){
