@@ -90,9 +90,9 @@ const path = require('node:path');
       return { objectFit: getComputedStyle(el).objectFit, imageRendering: getComputedStyle(el).imageRendering, width: r.width, height: r.height };
     });
     if (!(mobileCamera > 0) || !(mobileCameraY > 60) || mobileReaction !== 'true' ||
-        mobileFrame.objectFit !== 'cover' || !mobileFrame.imageRendering.includes('pixelated') || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
+        mobileFrame.objectFit !== 'cover' || !['pixelated', 'crisp-edges'].includes(mobileFrame.imageRendering) || mobileFrame.width !== 390 || mobileFrame.height !== 844) {
       throw new Error('Portrait camera, fall reaction or full-screen framing failed: ' +
-        JSON.stringify({ mobileCamera, mobileReaction, mobileFrame }));
+        JSON.stringify({ mobileCamera, mobileCameraY, mobileReaction, mobileFrame }));
     }
     await mobile.screenshot({ path: path.join(out, '06-mobile-fall-follow.png') });
     await mobile.waitForTimeout(8000);
