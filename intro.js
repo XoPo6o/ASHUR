@@ -1,11 +1,59 @@
 (() => {
   const canvas = document.getElementById('world');
-  const ctx = canvas.getContext('2d', { alpha: false });
+  const display = canvas;
+  const displayCtx = display.getContext('2d', { alpha: false });
+  const source = document.createElement('canvas');
+  source.width = 480; source.height = 270;
+  const ctx = source.getContext('2d', { alpha: false });
+  const reduced = document.createElement('canvas');
+  reduced.width = 320; reduced.height = 180;
+  const reducedCtx = reduced.getContext('2d', { alpha: false, willReadFrequently: true });
+  display.width = 320; display.height = 224;
+  displayCtx.imageSmoothingEnabled = false;
+  reducedCtx.imageSmoothingEnabled = false;
+
+  // Four Mega Drive-style 16-entry palette banks; slot zero is reserved per bank.
+  const palette = [
+    '#10121c','#202536','#30364a','#45465a','#625365','#85636a','#ad776e','#d09376',
+    '#e7b28a','#f2d2a0','#73816f','#536b68','#3b505c','#293b4a','#172b39',
+    '#17131c','#29202a','#40303a','#5b3b42','#805047','#a8614b','#ca7955','#e29a69',
+    '#edbd83','#f2d69a','#d7a66d','#b78358','#8b5b46','#68443e','#49353b','#302b35',
+    '#111923','#202d3b','#314655','#49616b','#668079','#89947a','#b1a27a','#d0b486',
+    '#e7d0a0','#f4e1b4','#a64e42','#c4654d','#df8557','#e9a66e','#8a9b82','#5d765e',
+    '#131923','#242936','#373545','#51434d','#70505a','#96636a','#bd7b70','#d99a80',
+    '#edc091','#f5d9a5','#a9a06f','#7e8d68','#5d7658','#435849','#34443f','#252b32'
+  ];
+  const paletteRgb = palette.map(hex => [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)));
+  const paletteCache = new Map();
+  function presentFrame() {
+    reducedCtx.clearRect(0,0,320,180);
+    reducedCtx.drawImage(source,0,0,320,180);
+    const frame = reducedCtx.getImageData(0,0,320,180);
+    const data = frame.data;
+    for(let i=0;i<data.length;i+=4){
+      const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];
+      let mapped=paletteCache.get(key);
+      if(mapped===undefined){
+        let best=0,dist=Infinity;
+        for(let p=0;p<paletteRgb.length;p++){
+          const c=paletteRgb[p],dr=data[i]-c[0],dg=data[i+1]-c[1],db=data[i+2]-c[2];
+          const d=dr*dr+dg*dg+db*db;
+          if(d<dist){dist=d;best=p;}
+        }
+        mapped=best;paletteCache.set(key,mapped);
+      }
+      const c=paletteRgb[mapped];
+      data[i]=c[0];data[i+1]=c[1];data[i+2]=c[2];
+    }
+    displayCtx.fillStyle='#10121c';
+    displayCtx.fillRect(0,0,320,224);
+    displayCtx.putImageData(frame,0,22);
+  }
   const opening = document.getElementById('opening');
   const cuneiform = document.getElementById('cuneiform');
   const title = document.getElementById('game-title');
   const W = 480, H = 270;
-  let start = 0, skipped = false;
+  let start = 0, skipped = false, lastFrame = 0;
 
   const C = {
     sky0:'#171b2d', sky1:'#343044', sky2:'#6b4140', dusk:'#a45c48',
@@ -536,6 +584,8 @@
     ctx.globalAlpha=1;
   }
   function draw(ts){
+    if(ts-lastFrame < 1000/12){requestAnimationFrame(draw);return;}
+    lastFrame=ts;
     const e=ts-start;
     background(ts);
     let sx=0,sy=0;
@@ -577,7 +627,8 @@
       }
       ctx.globalAlpha=1;sx=Math.sin(ts*.11)*2.2;sy=Math.cos(ts*.09)*1.3;
     }
-    canvas.style.transform='translate('+Math.round(sx)+'px,'+Math.round(sy)+'px)';
+    presentFrame();
+    canvas.style.transform='translate('+Math.round(sx/1.5)+'px,'+Math.round(sy/1.5)+'px)';
     if(!skipped){
       if(e>10400)opening.classList.add('visible');
       if(e>12800)cuneiform.classList.add('visible');
@@ -601,6 +652,7 @@
   // Respect reduced-motion preferences: show the finished title card immediately.
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
     background(0);
+    presentFrame();
     opening.classList.add('visible');
     title.classList.add('visible');
   }else{
