@@ -73,7 +73,9 @@
     floor2:['aaaaaaaa','a..a..a.','a..a..a.','aaagaaaa','..bb..bb','..bb..bb','bbbbbbbb','b..b..b.'],
     floor3:['aaaaaaaa','a..a..a.','aaafaaaa','aaaaaaaa','..bb..bb','..bb..bb','bbbbbbbb','b..b..b.'],
     brick0:['kkkkkkkk','k..k..k.','k..k..k.','kkkkkkkk','..jj..jj','..jj..jj','jjjjjjjj','j..j..j.'],
-    brick1:['kkkkkkkk','..k..k..','..k..k..','kkkkkkkk','jj..jj..','jj..jj..','jjjjjjjj','..j..j..']
+    brick1:['kkkkkkkk','..k..k..','..k..k..','kkkkkkkk','jj..jj..','jj..jj..','jjjjjjjj','..j..j..'],
+    brick2:['kkkkkkkk','k...k...','k...k...','kkkkkkkk','jjjjjjjj','..j..j..','..j..j..','jjjjjjjj'],
+    brick3:['kkkkkkkk','...k...k','...k...k','kkkkkkkk','..jj..jj','..jj..jj','jjjjjjjj','jj..jj..']
   };
   const tileAtlas = {};
   Object.entries(tilePatterns).forEach(([name,rows])=>{
@@ -104,19 +106,18 @@
   };
   function seeded(n){const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v);}
   function brickWall(x,y,w,h,rows=5,seed=0){
-    const rh=h/rows;
-    for(let r=0;r<rows;r++){
-      const off=r%2?7:0;
-      for(let xx=x-off;xx<x+w;xx+=15){
-        const bx=Math.max(x,xx),bw=Math.min(x+w,xx+14)-bx;
-        if(bw<=0)continue;
-        const v=seeded(seed+r*41+xx);
-        px(bx,y+r*rh,bw,rh-1,v>.68?'#b77754':v>.32?'#965b48':'#75464a');
-        px(bx+1,y+r*rh+1,Math.max(1,bw-3),1,'#d18b5b');
-        if(v>.55)px(bx+Math.floor(bw*.55),y+r*rh+2,2,1,'#593b3d');
+    // Repeated 8x8 stone tiles, with alternating bond to break vertical seams.
+    const tileNames=['brick0','brick1','brick2','brick3'];
+    const tileStep=12; // 8 native pixels represented in legacy scene coordinates.
+    for(let yy=0,row=0;yy<h;yy+=tileStep,row++){
+      const offset=row%2?6:0;
+      for(let xx=-offset;xx<w;xx+=tileStep){
+        const tile=tileAtlas[tileNames[(row+Math.floor((xx+offset)/tileStep)+seed)%tileNames.length]];
+        if(tile)ctx.drawImage(tile,x+xx,y+yy,tileStep,tileStep);
       }
     }
-    px(x,y,w,2,'#d69a68');
+    // A sharply stepped coping stone and dark foundation keep the silhouette readable.
+    px(x-2,y,w+4,3,'#d69a68');
     px(x,y+h-2,w,2,'#30232a');
   }
   function arch(x,y,w,h,color,inside){
@@ -159,12 +160,13 @@
       [51,76,54,15,'#b27650'],[62,63,32,13,'#9b6048']
     ];
     tiers.forEach(([x,y,w,h,c],i)=>{
-      px(x,y,w,h,c);px(x-2,y,w+4,3,i%2?'#e0a06b':'#c98559');
+      brickWall(x,y,w,h,Math.max(2,Math.ceil(h/12)),i+2);
+      px(x-2,y,w+4,3,i%2?'#e0a06b':'#c98559');
       px(x+4,y+h-3,w-8,3,'#543941');
-      for(let bx=x+7;bx<x+w-6;bx+=13){
-        px(bx,y+5,7,3,'#583b3d');px(bx+1,y+6,4,1,'#d18b5e');
+      // Recessed slit windows are carved into the masonry as crisp dark pixels.
+      for(let bx=x+7;bx<x+w-6;bx+=26){
+        px(bx,y+5,5,5,'#583b3d');px(bx+1,y+6,3,2,'#d18b5e');
       }
-      for(let b=x+5;b<x+w-8;b+=25){px(b,y+9,2,4,'#d49a68');}
     });
     // Shrine at the summit.
     px(68,48,21,16,'#c88a5b');px(65,46,27,4,'#e2ae74');
