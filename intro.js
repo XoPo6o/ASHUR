@@ -81,9 +81,9 @@
       sprite(step?walkB:walkA,Math.round(x),151+(step?1:0),2);
       if(e>400&&step===0){ctx.globalAlpha=.25;px(x-2,198,8,2,'#c8a17b');ctx.globalAlpha=1}
     }else if(e<10400){
-      const p=Math.min(1,(e-8600)/650);ctx.save();ctx.translate(210,202);ctx.rotate(p*.08);sprite(fallen,-8,0,2);ctx.restore();
+      const p=Math.min(1,(e-8600)/650);ctx.save();ctx.translate(210,160);ctx.rotate(p*.08);sprite(fallen,-8,0,2);ctx.restore();
       if(p>.6){ctx.globalAlpha=(p-.6)*.45;px(190,221,34,2,'#b99878');px(183,224,14,1,'#b99878');ctx.globalAlpha=1}
-    }else sprite(fallen,194,202,2);
+    }else sprite(fallen,194,160,2);
     hammer(ts,e);
     if(e>14700&&e<16900)sandBurst(ts,Math.min(1,(e-14700)/450));
     if(e>=16900&&e<18400)sandBurst(ts,Math.max(0,1-(e-16900)/1500));
