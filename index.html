@@ -1,479 +1,174 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10100f">
-<meta name="description" content="ASHUR — экспедиция в сердце древней Ассирии. Интеллектуальная алгоритмическая торговая система.">
-<title>ASHUR — Ночной архив Ассирии</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101820">
+<meta name="description" content="ASHUR — биржевая игра: сначала бумажная торговля, затем реальные деньги под контролем риска.">
+<title>ASHUR — Биржевая игра</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{--ink:#292016;--muted:#75634c;--paper:#e8d8b7;--paper2:#d8c39a;--edge:#9c8056;--rust:#873f2b;--gold:#a77b3d;--dark:#211910;--shadow:rgba(44,29,15,.24)}
-*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:78px}body{margin:0;color:var(--ink);font:15px/1.75 Manrope,Arial,sans-serif;background:#c8b18a;background-image:radial-gradient(ellipse at 15% 8%,#f2e7ce 0,transparent 42%),repeating-linear-gradient(2deg,#6c4c2910 0 1px,transparent 1px 5px),repeating-linear-gradient(91deg,#fff7df20 0 1px,transparent 1px 8px)}
-a{color:inherit;text-decoration:none}.wrap{width:min(1160px,calc(100% - 44px));margin:auto}.serif,h1,h2,h3,.brand,.quote{font-family:'Cormorant Garamond',Georgia,serif}.script{font-family:'IM Fell English',Georgia,serif;font-style:italic}.eyebrow{font-size:10px;letter-spacing:.23em;text-transform:uppercase;color:var(--rust);font-weight:700}.muted{color:var(--muted)}
-header{height:76px;position:fixed;z-index:20;inset:0 0 auto;background:#e8d8b7eF;border-bottom:1px solid #8d704a88;box-shadow:0 3px 15px #39281718;backdrop-filter:blur(10px)}.nav{height:100%;display:flex;align-items:center;justify-content:space-between}.brand{font-size:21px;letter-spacing:.2em;font-weight:700}.brand span{color:var(--rust)}.links{display:flex;gap:26px;font-size:10px;letter-spacing:.13em;text-transform:uppercase}.links a{opacity:.78}.links a:hover{color:var(--rust);opacity:1}.navbtn,.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 17px;border:1px solid var(--edge);background:#eadbbd;box-shadow:3px 4px 0 #94734c;color:#503822;font-size:10px;letter-spacing:.13em;text-transform:uppercase;transition:.2s}.navbtn:hover,.btn:hover{transform:translate(2px,2px);box-shadow:1px 2px 0 #94734c}.btn.primary{background:var(--rust);border-color:#663322;color:#f5e8c9;box-shadow:3px 4px 0 #58351f}.menu{display:none;background:none;border:0;color:var(--ink);font-size:24px}
-.hero{min-height:790px;padding:140px 0 80px;display:flex;align-items:center;position:relative;overflow:hidden;background:linear-gradient(90deg,#eadcbe 0%,#e5d3afed 40%,#d6c09955 75%),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg') center right/cover no-repeat}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#c8b18a 0,transparent 18%,transparent 82%,#e8d8b7 100%),repeating-linear-gradient(0deg,transparent 0 5px,#50361d0a 6px)}.hero:after{content:"";position:absolute;inset:20px;border:1px solid #8e6d4555;pointer-events:none}.hero-copy{position:relative;z-index:2;max-width:650px}.stamp{display:inline-block;border:2px solid #873f2b;color:#873f2b;padding:5px 12px;transform:rotate(-4deg);font:700 10px Manrope;letter-spacing:.2em;text-transform:uppercase;margin-bottom:22px}.hero h1{font-size:clamp(62px,10vw,116px);line-height:.9;letter-spacing:.04em;margin:12px 0 18px;text-shadow:2px 3px 0 #fff0d0,5px 7px 0 #92734d55}.hero h1 small{display:block;font:600 11px Manrope;letter-spacing:.35em;margin-top:25px;color:var(--rust)}.hero p{font:clamp(18px,2.2vw,23px)/1.55 'IM Fell English',Georgia,serif;max-width:530px;color:#59432d}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.hero-meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:55px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#755a3b}.hero-meta b{color:var(--rust)}
-section{padding:100px 0;position:relative}.section-head{max-width:720px;margin-bottom:42px}.section-head h2{font-size:clamp(32px,5vw,54px);line-height:1.12;margin:12px 0 14px;font-weight:500}.section-head p{max-width:650px}.two{display:grid;grid-template-columns:1fr 1fr;gap:58px;align-items:center}.intro{background:linear-gradient(180deg,#e9dbbdc9,#d9c49dba);border-block:1px solid #9b7b5055}.quote{font-size:clamp(25px,3.5vw,40px);line-height:1.35}.quote em{color:var(--rust);font-style:normal}.paper-note{position:relative;padding:30px;background:#eee1c5;border:1px solid #b49a70;box-shadow:5px 7px 0 #8e704b55, inset 0 1px #fff9e9;transform:rotate(1deg)}.paper-note:before{content:"ЗАПИСЬ НА ГЛИНЯНОЙ ТАБЛИЧКЕ / 001";display:block;color:var(--rust);font-size:9px;letter-spacing:.2em;margin-bottom:16px}.paper-note p{font:18px/1.65 'IM Fell English',Georgia,serif}.paper-note:after{content:"";position:absolute;width:65px;height:65px;right:18px;bottom:14px;border:2px solid #873f2b66;border-radius:50%;background:repeating-linear-gradient(45deg,transparent 0 5px,#873f2b22 6px 7px)}
-.archive{background:#d5c098}.archive-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.photo{position:relative;overflow:hidden;background:#8d7653;border:9px solid #eadcbd;box-shadow:4px 7px 0 #80634266;min-height:300px}.photo img{width:100%;height:100%;min-height:300px;object-fit:cover;display:block;filter:sepia(.24) contrast(1.03)}.photo.large{grid-row:span 2}.photo.large img{min-height:620px}.photo figcaption{position:absolute;bottom:0;left:0;right:0;padding:26px 18px 14px;color:#f5e8ca;background:linear-gradient(transparent,#21180fe8);font:italic 15px 'IM Fell English',serif}.photo figcaption small{display:block;font:9px Manrope;letter-spacing:.13em;text-transform:uppercase;color:#e1c99d;margin-top:4px}.source-line{font-size:10px;color:#6e5638;margin-top:18px}
-.people{background:linear-gradient(180deg,#e9dbbd,#d1ba90)}.portraits{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.portrait{background:#eadcbd;border:1px solid #a88a5d;padding:12px;box-shadow:4px 5px 0 #8e704b55;transition:.25s}.portrait:hover{transform:translateY(-5px) rotate(-.5deg)}.portrait-art{height:260px;display:grid;place-items:center;background:radial-gradient(circle,#d8c39b,#b99b6e);border:1px solid #a78b60;overflow:hidden}.portrait-art svg{height:100%;width:100%;max-width:280px;filter:drop-shadow(4px 5px 0 #6b4b2c44)}.portrait h3{font-size:20px;margin:15px 4px 2px}.portrait p{font-size:12px;color:var(--muted);margin:0 4px 8px}.portrait .tag{font-size:9px;color:var(--rust);letter-spacing:.14em;text-transform:uppercase;margin:0 4px}
-.pantheon{background:#cbb48b}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{padding:23px 17px;min-height:255px;background:linear-gradient(145deg,#f0e3c8,#d8c39b);border:1px solid #a88a5d;box-shadow:4px 5px 0 #92724c66,inset 0 1px #fff9e9;position:relative}.card:before{content:"";position:absolute;inset:7px;border:1px dashed #a88a5d66;pointer-events:none}.num{font:12px 'IM Fell English',serif;color:var(--rust)}.card h3{font-size:22px;margin:28px 0 4px}.role{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--rust)}.card p{font-size:12px;color:#6f593e;line-height:1.65}
-.blueprint{background:#e2d1ae}.blueprint .two{align-items:start}.map-art{min-height:440px;position:relative;border:10px solid #eadcbd;box-shadow:5px 7px 0 #8e704b66;background:linear-gradient(#d8c39b88,#d8c39b88),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Assyrian_Relief_Garden_of_Ashurbanipal_Nineveh_Gypsum_N_Palace_Ashurbanipal_British_Museum_AG_02.jpg/1280px-Assyrian_Relief_Garden_of_Ashurbanipal_Nineveh_Gypsum_N_Palace_Ashurbanipal_British_Museum_AG_02.jpg') center/cover;display:grid;place-items:center}.map-art:after{content:"НИНЕВИЯ / МЕСОПОТАМИЯ";position:absolute;bottom:15px;left:18px;color:#f4e6c8;font:12px 'IM Fell English',serif;letter-spacing:.16em;text-shadow:0 1px 5px #21180f}.map-seal{width:155px;height:155px;border:2px solid #873f2b;border-radius:50%;display:grid;place-items:center;color:#873f2b;font:22px Cinzel;background:#e8d8b7cc;box-shadow:inset 0 0 0 7px #e8d8b7,inset 0 0 0 8px #873f2b66;transform:rotate(-12deg)}.steps{border-left:1px solid #9c8056;padding-left:25px}.step{position:relative;padding:0 0 22px}.step:before{content:"";position:absolute;left:-31px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--rust);box-shadow:0 0 0 4px #e2d1ae,0 0 0 5px #9c8056}.step h3{font-size:17px;margin:0}.step p{font-size:12px;color:#75634c;margin:5px 0}
-.markets{background:linear-gradient(180deg,#d1bc94,#e8d9bb)}.marketgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.market{min-height:280px;display:flex;align-items:end;padding:28px;color:#f4e8cd;border:8px solid #eadcbd;box-shadow:5px 7px 0 #80634266;position:relative;overflow:hidden;background:linear-gradient(0deg,#21180fe8,transparent 75%),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Ashurbanipal_wall_relief%2C_7th_century_BC%2C_from_Nineveh%2C_the_British_Museum.jpg/1280px-Ashurbanipal_wall_relief%2C_7th_century_BC%2C_from_Nineveh%2C_the_British_Museum.jpg') center/cover}.market:nth-child(2){background-image:linear-gradient(0deg,#21180fe8,transparent 75%),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Tablet_with_Cuneiform_Writing.jpg/500px-Tablet_with_Cuneiform_Writing.jpg') center/cover}.market h3{font-size:26px;margin:0}.market p{font-size:12px;color:#ead9b8;margin:5px 0 0}
-.guardian{background:#d9c49c}.guardian .two{gap:0}.guardian-image{min-height:440px;background:url('https://commons.wikimedia.org/wiki/Special:FilePath/Human-headed_winged_bull_%28lamassu%29_MET_DT879.jpg') center/cover;border:10px solid #eadcbd;box-shadow:5px 7px 0 #80634266;filter:sepia(.2)}.guardian-copy{padding:55px}.future{text-align:center;background:radial-gradient(ellipse at 50% 0,#f1e4c8,#cdb58b 75%)}.futurebox{max-width:850px;margin:auto;padding:48px 25px;border:1px solid #a88a5d;background:linear-gradient(135deg,#eee1c5,#d8c39b);box-shadow:6px 8px 0 #8e704b66,inset 0 1px #fff9e9;position:relative}.futurebox:before{content:"ARCHIVE • ASHUR • 2026";font-size:9px;letter-spacing:.2em;color:var(--rust)}.futurebox h2{font-size:clamp(35px,6vw,65px);line-height:1.05;margin:18px 0}.futurebox p{max-width:560px;margin:auto;color:#70583a}
-footer{padding:27px 0;background:#2a2118;color:#c8b18a;font-size:9px;letter-spacing:.13em;text-transform:uppercase}footer .wrap{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}footer strong{font:20px Cinzel;color:#e4d2ad}
-@media(max-width:900px){.links{display:none}.menu{display:block}.cards{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr;gap:30px}.archive-grid{grid-template-columns:1fr 1fr}.photo.large{grid-row:auto;grid-column:span 2}.photo.large img{min-height:380px}.portraits{grid-template-columns:repeat(3,1fr)}.guardian-copy{padding:35px 10px}.hero{background-position:60% center}.hero:before{background:linear-gradient(90deg,#eadcbe 0%,#e5d3afed 55%,#d6c09977 100%),linear-gradient(0deg,#c8b18a,transparent 20%)}}
-@media(max-width:600px){.wrap{width:calc(100% - 32px)}header{height:66px}.navbtn{padding:9px 10px;font-size:9px}.hero{min-height:730px;padding:120px 0 55px;background-position:58% center}.hero:before{background:linear-gradient(90deg,#eadcbe 0%,#e5d3afed 65%,#d6c09988 100%),linear-gradient(0deg,#c8b18a,transparent 25%)}.hero h1{font-size:66px}.hero-meta{gap:12px;margin-top:40px}.actions .btn{flex:1}section{padding:72px 0}.archive-grid{grid-template-columns:1fr}.photo.large{grid-column:auto}.photo.large img,.photo img{min-height:270px}.portraits{grid-template-columns:1fr 1fr}.portrait-art{height:210px}.cards,.marketgrid{grid-template-columns:1fr}.card{min-height:190px}.map-art{min-height:330px}.market{min-height:240px}.guardian-image{min-height:300px}.futurebox{padding:35px 18px}.quote{font-size:27px}}
-
-/* Ночная Ассирия: базальтовые стены, резьба и свет факелов */
-:root{--ink:#e8d9b9;--muted:#c0ad8c;--paper:#171a19;--paper2:#242a27;--edge:#77664b;--rust:#d18a45;--gold:#d3a45e;--dark:#090d0c;--shadow:rgba(0,0,0,.55)}
-html{background:#111614}main,footer{position:relative;z-index:1}
-body{color:var(--ink);background-color:#171b19;background-image:
-linear-gradient(180deg,rgba(5,9,8,.30),rgba(5,8,7,.62)),
-repeating-linear-gradient(0deg,transparent 0 57px,rgba(3,7,6,.65) 58px 62px,rgba(192,160,111,.12) 63px 64px),
-repeating-linear-gradient(90deg,transparent 0 118px,rgba(3,7,6,.7) 119px 124px,rgba(192,160,111,.12) 125px 126px),
-radial-gradient(ellipse at 50% 0%,#394039 0,#1b211e 52%,#0b100f 100%)}
-body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.20;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='180' viewBox='0 0 240 180'%3E%3Cg fill='none' stroke='%23c3a77b' stroke-opacity='.42' stroke-width='1'%3E%3Cpath d='M0 1H240M0 90H240M0 179H240M1 0V90M120 0V90M239 0V90M60 90V180M180 90V180'/%3E%3C/g%3E%3Cg fill='%23d0b78e' fill-opacity='.38'%3E%3Cpath d='M28 25l12 5-12 5 12 5-12 5M48 25l-8 5 8 5-8 5 8 5M151 25l12 5-12 5 12 5-12 5M174 25l-8 5 8 5-8 5 8 5M90 116l12 5-12 5 12 5-12 5M111 116l-8 5 8 5-8 5 8 5'/%3E%3C/g%3E%3C/svg%3E")}
-a{color:inherit}
-header{background:rgba(12,17,15,.94);border-bottom:1px solid #a8875a66;box-shadow:0 5px 22px #0009}
-.brand{color:#e9d8b5}.brand span{color:#dc9a52}
-.links a{color:#d7c6a4}.navbtn,.btn{background:#242a25;border-color:#96784f;color:#f0dfbd;box-shadow:3px 4px 0 #080c0b}
-.btn.primary{background:#8b4d2d;border-color:#c48a4b;color:#fff0d2;box-shadow:3px 4px 0 #090d0b}
-.hero{background:linear-gradient(90deg,rgba(8,13,12,.97) 0%,rgba(10,15,13,.90) 42%,rgba(8,12,11,.42) 100%),linear-gradient(0deg,#101513 0%,transparent 24%,transparent 80%,#101513 100%),url('https://commons.wikimedia.org/wiki/Special:FilePath/Human-headed_winged_bull_%28lamassu%29_MET_DT879.jpg') center right/cover no-repeat}
-.hero:before{background:linear-gradient(0deg,#101513 0,transparent 18%,transparent 82%,#101513 100%),repeating-linear-gradient(0deg,transparent 0 5px,#e6c38b08 6px)}
-.hero:after{border-color:#c39a6255}
-.hero h1{color:#f0dfbd;text-shadow:0 2px 2px #000,0 0 28px #d38a4144}
-.hero h1 small{color:#e0a05c}
-.hero p{color:#ead8b6;text-shadow:0 2px 7px #000}
-.hero .muted{color:#d0c0a1}
-.eyebrow{color:#e2a05c}
-.stamp{border-color:#d58a4d;color:#f0b06b;background:#0e1411bb}
-.hero-meta{color:#d4c29f}.hero-meta b{color:#e7a15a}
-section{color:var(--ink)}
-.intro,.archive,.people,.pantheon,.blueprint,.markets,.guardian,.future{background-color:transparent;background-image:linear-gradient(180deg,rgba(15,21,18,.94),rgba(22,28,24,.95));border-color:#9c805644}
-.intro{border-block:1px solid #96784f66}
-.section-head h2,.quote,.guardian h2,.futurebox h2{color:#f0dfbd}
-.section-head p,.muted{color:#c6b693}
-.quote em{color:#e6a05c}
-.paper-note{background:linear-gradient(145deg,#2d3028,#1d241f);border-color:#9a7a4d;box-shadow:5px 7px 0 #0009,inset 0 1px #f2dfb522;color:#e8d9b9}
-.paper-note:before{color:#e5a05c}
-.paper-note p{color:#e4d3b2}
-.paper-note:after{border-color:#d18a4566;background:repeating-linear-gradient(45deg,transparent 0 5px,#d18a4522 6px 7px)}
-.photo{background:#171c19;border-color:#292f29;box-shadow:4px 7px 0 #000a}
-.photo img{filter:brightness(.68) sepia(.22) contrast(1.12)}
-.photo figcaption{color:#fff0d2;background:linear-gradient(transparent,rgba(3,7,6,.97) 82%);text-shadow:0 2px 5px #000}
-.photo figcaption small{color:#e7b576}
-.portrait{background:linear-gradient(145deg,#2b3029,#191f1c);border-color:#8a714d;box-shadow:4px 5px 0 #0009}
-.portrait-art{background:radial-gradient(circle,#736246,#252c26);border-color:#9a7b50}
-.portrait h3{color:#f0dfbd}.portrait p{color:#c8b794}.portrait .tag{color:#e5a15d}
-.card{background:linear-gradient(145deg,#30352c,#1c231f);border-color:#88724f;box-shadow:4px 5px 0 #0009,inset 0 1px #f2dfb522}
-.card:before{border-color:#b18c5b66}
-.num,.role{color:#e3a15e}.card h3{color:#f1dfbd}.card p{color:#c7b693}
-.map-art{border-color:#252c27;box-shadow:5px 7px 0 #0009;filter:brightness(.7) sepia(.2)}
-.map-seal{background:#1b211dcc;color:#f0b06b;border-color:#d18a45;box-shadow:inset 0 0 0 7px #1b211d,inset 0 0 0 8px #d18a4566}
-.steps{border-color:#9a7a4d}.step h3{color:#ead9b8}.step p{color:#bfae8d}.step:before{background:#e19a53;box-shadow:0 0 0 4px #1c231f,0 0 0 5px #9a7a4d}
-.market{border-color:#252c27;box-shadow:5px 7px 0 #0009;background-blend-mode:normal}
-.market h3{color:#fff0d2;text-shadow:0 2px 7px #000}.market p{color:#e8d5b1;text-shadow:0 2px 5px #000}
-.guardian-image{border-color:#252c27;box-shadow:5px 7px 0 #0009;filter:brightness(.72) sepia(.18)}
-.guardian-copy{color:#e8d9b9}.guardian-copy .source-line{color:#bca984}
-.future{background:radial-gradient(ellipse at 50% 0%,#30372e,#121916 75%)}
-.futurebox{background:linear-gradient(135deg,#30352c,#1a211d);border-color:#94774e;box-shadow:6px 8px 0 #0009,inset 0 1px #f2dfb522}
-.futurebox:before{color:#e3a15e}.futurebox p{color:#c8b794}
-footer{background:#080d0b;color:#c9b894;border-top:1px solid #9b784c66}
-footer strong{color:#f0dfbd}
-.sources{position:relative;letter-spacing:normal;text-transform:none}
-.sources summary{cursor:pointer;color:#e8b06d;font:10px Manrope;letter-spacing:.12em;text-transform:uppercase;list-style:none;border:1px solid #8e704b;padding:8px 12px}
-.sources summary::-webkit-details-marker{display:none}
-.sources summary:before{content:"◉";margin-right:8px}
-.sources[open] summary{background:#202720}
-.source-list{position:absolute;right:0;bottom:42px;width:min(360px,85vw);padding:14px;background:#171e19;border:1px solid #98794e;box-shadow:0 8px 24px #000b;display:grid;gap:10px;z-index:5}
-.source-list a{font:11px/1.5 Manrope;color:#e4d2ae;text-decoration:underline;text-decoration-color:#98794e;text-underline-offset:3px}
-.source-list a:hover{color:#f5b36c}
-.torch{position:absolute;z-index:2;top:28%;width:28px;height:100px;pointer-events:none;filter:drop-shadow(0 0 16px #f49a37)}
-.torch-left{left:4.5%}.torch-right{right:5%}
-.torch:before{content:"";position:absolute;left:10px;top:42px;width:9px;height:58px;background:linear-gradient(90deg,#382419,#a66a35,#2c1a12);border:1px solid #b17a43;border-radius:3px}
-.torch:after{content:"";position:absolute;left:2px;top:0;width:27px;height:47px;background:radial-gradient(ellipse at 50% 75%,#fff2a3 0 12%,#ffbf51 25%,#ed6d25 48%,#9c3518 68%,transparent 72%);clip-path:polygon(50% 0,65% 30%,100% 55%,78% 100%,22% 100%,0 58%,38% 33%);animation:flame 1.8s ease-in-out infinite alternate}
-@keyframes flame{from{transform:rotate(-4deg) scale(.92);opacity:.82}to{transform:rotate(5deg) scale(1.08);opacity:1}}
-@media(max-width:900px){.hero{background:linear-gradient(90deg,rgba(8,13,12,.97),rgba(10,15,13,.86) 65%,rgba(8,12,11,.6)),url('https://commons.wikimedia.org/wiki/Special:FilePath/Human-headed_winged_bull_%28lamassu%29_MET_DT879.jpg') center/cover}.hero:before{background:linear-gradient(0deg,#101513,transparent 20%),linear-gradient(90deg,rgba(8,13,12,.15),rgba(8,13,12,.5))}}
-@media(max-width:600px){.hero{background:linear-gradient(90deg,rgba(8,13,12,.98),rgba(10,15,13,.88) 72%,rgba(8,12,11,.72)),url('https://commons.wikimedia.org/wiki/Special:FilePath/Human-headed_winged_bull_%28lamassu%29_MET_DT879.jpg') 58% center/cover}.hero:before{background:linear-gradient(0deg,#101513,transparent 25%)}.torch-right{right:2%;transform:scale(.75)}.torch-left{left:2%;transform:scale(.75)}.sources{width:100%}.source-list{left:0;right:auto}}
-
-
-/* Перестройка визуальной среды: разные стены и каменные орнаменты по залам */
-:root{--ink:#e7d8b9;--muted:#c8b897;--gold:#d9a15b;--rust:#bd7740}
-html,body{background:#111715;color:#e7d8b9}
-body{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;background-color:#121816;background-image:linear-gradient(180deg,#0b100f,#1b211d 45%,#0d1210)}
-h1,h2,h3,.brand,.quote,.serif{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;letter-spacing:.015em}
-.hero h1{font-size:clamp(76px,12vw,132px);font-weight:600;letter-spacing:.08em}
-.hero h1 small,.eyebrow,.stamp,.hero-meta,.links,.navbtn,.btn,.role,.tag,footer{font-family:Manrope,Arial,sans-serif}
-.hero{background-image:linear-gradient(90deg,rgba(5,10,9,.94) 0%,rgba(7,12,10,.82) 43%,rgba(6,10,9,.18) 100%),linear-gradient(0deg,#101614 0%,transparent 28%,transparent 80%,#101614 100%),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg');background-position:center right;background-size:cover}
-.hero:before{background:linear-gradient(0deg,#101614 0,transparent 22%,transparent 80%,#101614 100%),repeating-linear-gradient(0deg,transparent 0 5px,#e4c18a0b 6px)}
-.hero p{font:clamp(22px,2.5vw,28px)/1.4 'Cormorant Garamond',Georgia,serif;color:#f0e3c7;text-shadow:0 2px 9px #000}
-header{background:rgba(8,13,11,.96);border-color:#a47c4b66}
-.brand,.links a{color:#e8d7b5}.brand span{color:#df9a53}
-.navbtn,.btn{background:#252c25;border-color:#96784f;color:#f2e2c3}
-.btn.primary{background:#8b4d2d;color:#fff0d2}
-section{isolation:isolate;overflow:hidden}
-section:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.25}
-.intro{background-color:#171d19;background-image:linear-gradient(180deg,#131a17,#20251e);border-block:1px solid #92764e66}
-.intro:before{opacity:.35;background-image:repeating-linear-gradient(0deg,transparent 0 44px,#050907 45px 48px, #b9955d22 49px 50px),repeating-linear-gradient(90deg,transparent 0 112px,#050907 113px 117px,#b9955d22 118px 119px)}
-.archive{background:#171c19;background-image:linear-gradient(180deg,#141a17,#1d211c)}
-.archive:before{opacity:.24;background-image:repeating-linear-gradient(0deg,transparent 0 64px,#060a08 65px 69px,#c2a07133 70px 71px),repeating-linear-gradient(90deg,transparent 0 150px,#060a08 151px 155px,#c2a07133 156px 157px)}
-.people{background:#151b18;background-image:linear-gradient(180deg,#121816,#20241d)}
-.people:before{opacity:.24;background-image:repeating-linear-gradient(135deg,transparent 0 20px,#b78e5720 21px 22px,transparent 23px 42px),repeating-linear-gradient(45deg,transparent 0 20px,#b78e5718 21px 22px,transparent 23px 42px)}
-.pantheon{background:#1c211c}
-.pantheon:before{opacity:.26;background-image:repeating-linear-gradient(0deg,transparent 0 38px,#060b08 39px 42px,#b38c5a2c 43px 44px),repeating-linear-gradient(90deg,transparent 0 95px,#060b08 96px 100px,#b38c5a25 101px 102px)}
-.blueprint{background:#141a17}
-.blueprint:before{opacity:.23;background-image:repeating-linear-gradient(0deg,transparent 0 52px,#070c0a 53px 57px,#c19a6328 58px 59px),repeating-linear-gradient(90deg,transparent 0 130px,#070c0a 131px 135px,#c19a6328 136px 137px)}
-.markets{background:#1a201c}
-.markets:before{opacity:.25;background-image:repeating-linear-gradient(0deg,transparent 0 28px,#060a08 29px 31px,#b18c5a22 32px 33px),repeating-linear-gradient(60deg,transparent 0 75px,#b18c5a18 76px 77px,transparent 78px 150px)}
-.guardian{background:#121815}
-.guardian:before{opacity:.3;background-image:repeating-linear-gradient(0deg,transparent 0 70px,#070c09 71px 75px,#b58b5725 76px 77px),repeating-linear-gradient(90deg,transparent 0 180px,#070c09 181px 185px,#b58b5725 186px 187px)}
-.future{background:#111714}
-.future:before{opacity:.25;background-image:repeating-linear-gradient(0deg,transparent 0 46px,#070b09 47px 50px,#b58b5725 51px 52px),repeating-linear-gradient(90deg,transparent 0 115px,#070b09 116px 120px,#b58b5725 121px 122px)}
-.section-head h2,.quote,.guardian h2,.futurebox h2{color:#f1e1c2}
-.section-head p,.muted{color:#c7b795}
-.quote em,.eyebrow{color:#e2a15d}
-.paper-note,.card,.portrait,.futurebox{background:linear-gradient(145deg,#30372e,#1b231e);border-color:#92764e;color:#e8d8b8;box-shadow:5px 7px 0 #0009,inset 0 1px #e8d8b51c}
-.paper-note p,.card p,.portrait p,.futurebox p{color:#d1c09d}
-.paper-note:before,.num,.role,.tag{color:#e5a65f}
-.photo{background:#171d19;border:8px solid #2b3028;box-shadow:4px 7px 0 #000a}
-.photo img{filter:brightness(.82) contrast(1.08) sepia(.12)}
-.photo figcaption{background:linear-gradient(transparent,rgba(3,7,6,.96) 82%);color:#fff0d2;text-shadow:0 2px 6px #000}
-.photo figcaption small{color:#e5b777}
-.portraits{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.portrait{padding:12px;transition:.25s}
-.portrait:hover{transform:translateY(-4px)}
-.portrait-art{height:280px;background:#0c110f;border:1px solid #a17c4b;overflow:hidden}
-.portrait-art img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.85) contrast(1.08) sepia(.15)}
-.portrait h3{color:#f2e2c5;font-size:26px;margin:14px 5px 2px}
-.portrait p{font-size:17px;margin:0 5px 8px}
-.portrait .tag{font-size:10px;margin:0 5px 6px}
-.card{min-height:260px}
-.map-art{height:430px;min-height:430px;position:relative;margin:0;border:9px solid #2c322b;overflow:hidden;box-shadow:5px 7px 0 #0009}
-.map-art img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.76) sepia(.2)}
-.map-art figcaption{position:absolute;bottom:0;left:0;right:0;padding:22px;color:#fff0d2;background:linear-gradient(transparent,#050907e8);font:italic 19px 'Cormorant Garamond',Georgia,serif}
-.market{border-color:#252d27;box-shadow:5px 7px 0 #0009}
-.market h3{font:600 32px 'Cormorant Garamond',Georgia,serif;color:#fff0d2;text-shadow:0 2px 8px #000}
-.market p{font:18px 'Cormorant Garamond',Georgia,serif;color:#f0dfbf;text-shadow:0 2px 7px #000}
-.guardian-image{min-height:440px;border:9px solid #293129;box-shadow:5px 7px 0 #0009;overflow:hidden;filter:none}
-.guardian-image img{width:100%;height:100%;min-height:420px;display:block;object-fit:cover;filter:brightness(.78) sepia(.14)}
-.steps{border-color:#95754b}.step h3{color:#f1dfbe}.step p{color:#c8b794}
-footer{background:#080d0b;color:#d1c09d;border-color:#96754b66}
-.sources summary{color:#efb46e}
-.source-list{background:#171e19;border-color:#98794e}
-.source-list a{color:#f0dfc0}
-@media(max-width:900px){.portraits{grid-template-columns:repeat(2,1fr)}.hero{background-position:62% center}}
-@media(max-width:600px){body{font-size:18px}.hero{background-position:60% center}.hero h1{font-size:74px}.portrait-art{height:220px}.portraits{grid-template-columns:1fr}.map-art{height:320px;min-height:320px}.guardian-image,.guardian-image img{min-height:300px}.section-head h2{font-size:38px}}
-
-
-/* ASHUR — museum editorial redesign; original Russian copy is intentionally untouched */
-:root{--ink:#20272d;--muted:#625d52;--paper:#eee6d6;--paper2:#dacbad;--edge:#9b8056;--rust:#963f2d;--gold:#b58b48;--dark:#20272d}
-html{background:#e9e0cf;scroll-padding-top:84px}
-body{color:#20272d;background:#e9e0cf;background-image:radial-gradient(ellipse at 12% 0%,#fff9ea,transparent 46%),repeating-linear-gradient(0deg,#40321c0a 0 1px,transparent 1px 6px),linear-gradient(135deg,#eee7d9,#d8c9ab)}
-body:before{opacity:.10}
-header{height:82px;background:#eee7d9ed;border-bottom:1px solid #9b805688;box-shadow:0 5px 22px #28201418}
-.brand{color:#20272d;font-size:24px;letter-spacing:.24em}.brand span{color:#963f2d}
-.links a{color:#343a40}.links a:hover{color:#963f2d}
-.navbtn,.btn{background:#f4eddf;border-color:#9b8056;color:#262b30;box-shadow:3px 4px 0 #b49b72}
-.btn.primary{background:#963f2d;border-color:#733323;color:#fff3dc;box-shadow:3px 4px 0 #5f3426}
-.hero{min-height:800px;padding-top:160px;background:linear-gradient(90deg,#eee7d9f5 0%,#eee7d9e8 37%,#eee7d933 78%),linear-gradient(0deg,#e9e0cf 0,transparent 22%,transparent 84%,#e9e0cf 100%),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg') center right/cover no-repeat}
-.hero:before{background:linear-gradient(0deg,#e9e0cf 0,transparent 14%,transparent 90%,#e9e0cf 100%)}
-.hero:after{inset:22px;border-color:#8b714b66}.torch{display:none}
-.hero h1{color:#17202a;font-size:clamp(76px,12vw,142px);letter-spacing:.015em;text-shadow:2px 3px 0 #fff9e9,5px 7px 0 #8b714b44}
-.hero h1 small,.hero-meta b,.eyebrow{color:#963f2d}.hero p{color:#343b40;text-shadow:none}.hero .muted{color:#51534e}.hero-meta{color:#5f5545}
-.stamp{border-color:#963f2d;color:#963f2d;background:#f3ead9d9}
-section{padding:112px 0}
-.intro,.archive,.people,.pantheon,.blueprint,.markets,.guardian,.future{background:transparent;border-color:#9b825d55}
-.intro{background:linear-gradient(180deg,#f5efe2e0,#e4d8c1e0);border-block:1px solid #9b825d66}
-.section-head h2,.quote,.guardian h2,.futurebox h2{color:#1c2730}.section-head p,.muted{color:#5d5a52}.quote em{color:#963f2d}
-.paper-note{background:#f6efdf;border-color:#b49a70;box-shadow:5px 7px 0 #8e704b44,inset 0 1px #fff;color:#282c30}.paper-note p{color:#4d4436}.paper-note:before{color:#963f2d}
-.archive{background:linear-gradient(180deg,#e6dbc5,#d8c9ac)}
-.photo{border:9px solid #f4eddf;box-shadow:4px 7px 0 #6d5a3b44;background:#d6c7aa}.photo img{filter:none;transition:transform .7s}.photo:hover img{transform:scale(1.035)}
-.photo figcaption{background:linear-gradient(transparent,#171b22ef);color:#fff2d8}.photo figcaption small{color:#e8bf7d}
-.people{background:#eee7d8}.portrait{background:#f5eee0;border-color:#b39a70;box-shadow:4px 5px 0 #80634244}
-.portrait-art{background:#d5c5a6;border-color:#b39a70}.portrait-art img{width:100%;height:100%;object-fit:cover;filter:none}
-.portrait h3,.card h3{color:#222a30}.portrait p,.card p{color:#5d5a52}.portrait .tag,.role,.num{color:#963f2d}
-.pantheon{background:linear-gradient(180deg,#e2d6bf,#d3c19e)}
-.card{background:linear-gradient(145deg,#f7f0e2,#e6d8bd);border-color:#aa9066;box-shadow:4px 5px 0 #80634244,inset 0 1px #fff}.card:before{border-color:#a88a5d66}
-.blueprint{background:#eee7d8}.map-art{border:10px solid #f4eddf;box-shadow:5px 7px 0 #80634244;filter:none}
-.steps{border-color:#9b825d}.step h3{color:#242b30}.step p{color:#5d5a52}.step:before{background:#963f2d;box-shadow:0 0 0 4px #eee7d8,0 0 0 5px #9b825d}
-.markets{background:linear-gradient(180deg,#d8c9ac,#eee7d8)}.market{border:8px solid #f4eddf;box-shadow:5px 7px 0 #80634244}
-.guardian{background:linear-gradient(180deg,#e8deca,#d6c6a6)}.guardian-image{border:10px solid #f4eddf;box-shadow:5px 7px 0 #80634244;filter:none}
-.guardian-copy{color:#222a30}.guardian-copy .source-line{color:#71644e}
-.future{background:radial-gradient(ellipse at 50% 0,#f7f0e2,#d6c5a4 78%)}
-.futurebox{background:linear-gradient(135deg,#f7f0e2,#e4d5b7);border-color:#aa9066;box-shadow:6px 8px 0 #80634244,inset 0 1px #fff}.futurebox:before{color:#963f2d}.futurebox p{color:#5d5a52}
-footer{background:#20272c;color:#d9c9a8;border-top:3px solid #a8834e}footer strong{color:#f2e4c8}
-.sources summary{color:#f0c27e;border-color:#a8834e}.source-list{background:#20272c;border-color:#a8834e}.source-list a{color:#f0e1c2}
-@media(max-width:900px){.hero{background:linear-gradient(90deg,#eee7d9f5,#eee7d9e0 58%,#eee7d94d),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg') center/cover}.hero:before{background:linear-gradient(0deg,#e9e0cf,transparent 22%)}}
-@media(max-width:600px){.hero{min-height:720px;background:linear-gradient(90deg,#eee7d9fa,#eee7d9e8 70%,#eee7d988),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg') 58% center/cover}.hero h1{font-size:70px}section{padding:78px 0}.portrait-art{height:230px}}
-
-
-/* ASHUR — dark cinematic direction */
-:root{--ink:#e9e5dc;--muted:#aaa49a;--paper:#090a0c;--paper2:#111317;--edge:#393a3c;--rust:#c18b4b;--gold:#d1a15d;--dark:#050607;--shadow:rgba(0,0,0,.55)}
-html,body{background:#08090b!important;color:#e8e4dc!important}
-body{background-image:radial-gradient(ellipse at 50% -20%,#25201a 0,transparent 48%),repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 5px)!important}
-body:before{opacity:.13!important;filter:invert(1)}
-header{background:rgba(5,6,8,.91)!important;border-bottom:1px solid #b58a5144!important;box-shadow:0 8px 32px #0009!important;backdrop-filter:blur(16px)}
-.brand,.links a,.navbtn{color:#eee8dc!important}.brand span{color:#c99553!important}.links a:hover{color:#d6a45e!important}
-.navbtn{background:#111317!important;border:1px solid #705532!important;box-shadow:none!important}
-.hero{background:linear-gradient(90deg,#050608 0%,#050608ed 26%,#05060888 62%,#05060822 100%),linear-gradient(0deg,#08090b 0%,transparent 25%,transparent 78%,#08090b 100%),url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=2200&q=85') center/cover!important}
-.hero:before{background:linear-gradient(0deg,#08090b 0%,transparent 24%,transparent 85%,#08090b 100%)!important}
-.hero:after{border:1px solid #c0935540!important}
-.hero h1{color:#f2eee6!important;text-shadow:0 5px 35px #000!important;letter-spacing:.035em}
-.hero h1 small,.hero-meta b,.eyebrow{color:#c99a5b!important}
-.hero p,.hero-meta,.hero .muted{color:#d0c8b9!important;text-shadow:0 2px 12px #000!important}
-.stamp{background:#090a0caa!important;border-color:#c09355!important;color:#d8ad70!important}
-section,.intro,.archive,.people,.pantheon,.blueprint,.markets,.guardian,.future{background:#08090b!important;color:#e8e4dc!important;border-color:#ffffff16!important}
-.intro{background:linear-gradient(180deg,#101114,#090a0c)!important;border-block:1px solid #b58a5133!important}
-.section-head h2,.quote,.guardian h2,.futurebox h2,.portrait h3,.card h3,.step h3{color:#eee9df!important}
-.section-head p,.muted,.portrait p,.card p,.step p{color:#aaa49a!important}
-.quote em,.role,.num,.portrait .tag{color:#d0a064!important}
-.paper-note,.portrait,.card,.futurebox{background:linear-gradient(145deg,#17191c,#0e1013)!important;border:1px solid #9d794a66!important;color:#e9e4da!important;box-shadow:0 12px 38px #0008,inset 0 1px #ffffff0a!important}
-.paper-note p{color:#c4bdae!important}
-.archive{background:linear-gradient(180deg,#0d0f12,#08090b)!important}
-.photo,.map-art,.guardian-image,.market{border:1px solid #9d794a66!important;box-shadow:0 14px 42px #0009!important;background:#111317!important}
-.photo img,.portrait-art img,.guardian-image{filter:saturate(.82) contrast(1.08)!important}
-.photo figcaption{background:linear-gradient(transparent,#050607f2)!important;color:#f2eadc!important}
-.photo figcaption small{color:#d2a265!important}
-.portrait-art{background:#15171a!important;border-color:#8b6b42!important}
-.card:before{border-color:#b58a5140!important}
-.steps{border-color:#9b794d!important}
-.step:before{background:#c18b4b!important;box-shadow:0 0 0 4px #090a0c,0 0 0 5px #9b794d!important}
-.market h3,.market p{color:#f2eadc!important}
-.guardian{background:radial-gradient(ellipse at 75% 30%,#20180f,#08090b 70%)!important}
-.guardian-copy{color:#e8e1d5!important}
-.guardian-copy .source-line{color:#b9a88e!important}
-.future{background:radial-gradient(ellipse at 50% 0,#1b1711,#08090b 70%)!important}
-.futurebox{background:linear-gradient(135deg,#171513,#0c0d0f)!important;border-color:#b58a5166!important}
-.futurebox:before{color:#c18b4b!important}.futurebox p{color:#c2bbaf!important}
-.btn{background:#111317!important;border:1px solid #8c6a40!important;color:#eee7da!important;box-shadow:none!important}
-.btn.primary{background:#b17d42!important;border-color:#d2a363!important;color:#08090b!important}
-footer{background:#040506!important;color:#bcb4a7!important;border-top:1px solid #b58a5166!important}
-footer strong{color:#f0e6d4!important}
-.sources summary{color:#d3a363!important;border-color:#8b6b42!important}
-.source-list{background:#090a0c!important;border-color:#8b6b42!important;color:#d8d0c3!important}
-.source-list a{color:#d7a967!important}
-a{transition:color .25s,border-color .25s}
-::selection{background:#b17d42;color:#090a0c}
-@media(max-width:900px){.hero{background:linear-gradient(90deg,#050608f5,#050608d9 58%,#05060870),linear-gradient(0deg,#08090b,transparent 30%),url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1500&q=85') center/cover!important}}
-@media(max-width:600px){.hero{background:linear-gradient(90deg,#050608f5,#050608df 72%,#050608a6),url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1100&q=85') 58% center/cover!important}.hero h1{font-size:70px}}
-
-
-/* ASHUR PIXEL ARCHIVE — halftone / pixel-collage visual system */
-:root{
- --px-bg:#10131d;--px-surface:#1b2a4e;--px-surface2:#26365c;--px-ink:#f4eee0;--px-muted:#c8c3ba;
- --px-accent:#9a2a2a;--px-accent2:#d9a6a0;--px-line:#d9a6a066;--px-shadow:#05070dcc;
- --pixel:4px
-}
-html,body{background:var(--px-bg)!important;color:var(--px-ink)!important}
-body{font-family:'Courier New',monospace!important;letter-spacing:.015em;background-color:var(--px-bg)!important;
- background-image:radial-gradient(ellipse at 78% 6%,color-mix(in srgb,var(--px-accent) 23%,transparent),transparent 42%),
- repeating-linear-gradient(0deg,transparent 0 3px,#0002 4px),linear-gradient(135deg,var(--px-bg),var(--px-surface))!important}
-body:before{content:"";position:fixed;inset:0;z-index:30;pointer-events:none;opacity:.14;
- background-image:radial-gradient(var(--px-ink) .65px,transparent .8px);background-size:4px 4px;mix-blend-mode:screen}
-h1,h2,h3,.brand,.quote,.serif{font-family:'Courier New',monospace!important;font-weight:900!important;text-transform:uppercase;letter-spacing:-.045em!important}
-header{background:color-mix(in srgb,var(--px-bg) 94%,transparent)!important;border-bottom:2px solid var(--px-accent2)!important;box-shadow:0 5px 0 #0008!important;backdrop-filter:blur(8px)}
-.brand,.links a,.navbtn{color:var(--px-ink)!important}.brand span{color:var(--px-accent2)!important}
-.navbtn,.btn{border:2px solid var(--px-ink)!important;border-radius:0!important;background:var(--px-surface)!important;color:var(--px-ink)!important;
- box-shadow:4px 4px 0 var(--px-accent)!important;font:700 11px 'Courier New',monospace!important;letter-spacing:.06em!important}
-.btn.primary{background:var(--px-accent)!important;border-color:var(--px-ink)!important;color:#fff!important;box-shadow:4px 4px 0 var(--px-accent2)!important}
-.navbtn:hover,.btn:hover{transform:translate(3px,3px)!important;box-shadow:1px 1px 0 var(--px-accent2)!important}
-.hero{background-color:var(--px-bg)!important;background-image:linear-gradient(90deg,var(--px-bg) 0%,color-mix(in srgb,var(--px-bg) 88%,transparent) 45%,#0002 100%),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg')!important;
- background-position:center right!important;background-size:cover!important}
-.hero:before{background:repeating-linear-gradient(0deg,transparent 0 5px,#0005 6px),repeating-linear-gradient(90deg,transparent 0 5px,#0002 6px)!important;opacity:.35}
-.hero:after{inset:16px!important;border:2px solid var(--px-accent2)!important;box-shadow:inset 0 0 0 5px #0005}
-.hero h1{color:var(--px-ink)!important;text-shadow:4px 4px 0 var(--px-accent),8px 8px 0 #000!important;font-size:clamp(64px,11vw,130px)!important}
-.hero h1 small,.hero-meta b,.eyebrow,.stamp{color:var(--px-accent2)!important}
-.hero p,.hero-meta,.hero .muted{color:var(--px-ink)!important;text-shadow:2px 2px 0 #000!important}
-.stamp{border:2px solid var(--px-accent2)!important;background:var(--px-bg)!important;border-radius:0!important}
-section,.intro,.archive,.people,.pantheon,.blueprint,.markets,.guardian,.future{background:transparent!important;color:var(--px-ink)!important;border-color:var(--px-line)!important}
-section{isolation:isolate}
-section:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.18;
- background:repeating-linear-gradient(0deg,transparent 0 39px,var(--px-accent2) 40px 41px),repeating-linear-gradient(90deg,transparent 0 79px,var(--px-accent2) 80px 81px)}
-.section-head h2,.quote,.guardian h2,.futurebox h2,.portrait h3,.card h3,.step h3{color:var(--px-ink)!important}
-.section-head p,.muted,.portrait p,.card p,.step p{color:var(--px-muted)!important}
-.quote em,.role,.num,.portrait .tag{color:var(--px-accent2)!important}
-.paper-note,.portrait,.card,.futurebox{background:var(--px-surface)!important;border:2px solid var(--px-ink)!important;border-radius:0!important;
- box-shadow:5px 5px 0 var(--px-accent)!important;color:var(--px-ink)!important}
-.paper-note p,.card p,.portrait p,.futurebox p{color:var(--px-muted)!important}
-.photo,.map-art,.guardian-image,.market{border:3px solid var(--px-ink)!important;border-radius:0!important;box-shadow:6px 6px 0 var(--px-accent)!important;overflow:hidden}
-.photo img,.portrait-art img,.map-art img,.guardian-image img{filter:grayscale(1) contrast(1.55) brightness(1.08)!important}
-.photo:after,.portrait-art:after,.market:after,.guardian-image:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.32;
- background:repeating-linear-gradient(0deg,transparent 0 3px,#000 4px),radial-gradient(var(--px-bg) .7px,transparent 1px);background-size:auto,4px 4px;mix-blend-mode:multiply}
-.photo figcaption{background:linear-gradient(transparent,#000e)!important;color:#fff!important;font-family:'Courier New',monospace!important;text-transform:uppercase;font-style:normal!important}
-.photo figcaption small{color:var(--px-accent2)!important}
-.portrait-art{background:var(--px-bg)!important;border:2px solid var(--px-accent2)!important;position:relative}
-.card:before{border:1px dashed var(--px-accent2)!important}
-.map-art figcaption{background:linear-gradient(transparent,#000e)!important}
-.steps{border-color:var(--px-accent2)!important}.step:before{background:var(--px-accent)!important;box-shadow:0 0 0 4px var(--px-bg),0 0 0 6px var(--px-accent2)!important}
-.market{background-blend-mode:normal!important}
-.market h3,.market p{color:#fff!important;text-shadow:2px 2px #000!important}
-.guardian{background:transparent!important}.guardian-copy{color:var(--px-ink)!important}
-.future{background:transparent!important}.futurebox{background:var(--px-surface)!important}
-footer{background:var(--px-bg)!important;color:var(--px-muted)!important;border-top:2px solid var(--px-accent2)!important}
-footer strong{color:var(--px-ink)!important}
-.sources summary{color:var(--px-accent2)!important;border:2px solid var(--px-accent2)!important}
-.source-list{background:var(--px-surface)!important;border:2px solid var(--px-accent2)!important}
-.source-list a{color:var(--px-ink)!important}
-::selection{background:var(--px-accent2);color:var(--px-bg)}
-/* Research terminal */
-main .wrap{position:relative}
-.hero .statusline,.tag,.pill{border:1px solid var(--px-accent2)!important;border-radius:0!important;background:var(--px-surface)!important;color:var(--px-ink)!important}
-.panel,.metric,.compare-card,.note,.run,.table-wrap{background:var(--px-surface)!important;border:2px solid var(--px-ink)!important;border-radius:0!important;box-shadow:4px 4px 0 var(--px-accent)!important;color:var(--px-ink)!important}
-.panel h3,.metric .label,.compare-card h3{color:var(--px-accent2)!important;font-family:'Courier New',monospace!important;text-transform:uppercase}
-.sub,.hint,.note,.listitem p,.minirow,.disclaimer{color:var(--px-muted)!important}
-.metric .value,.big{color:var(--px-ink)!important}.positive{color:#9ed6a6!important}.negative{color:#f09a9a!important}
-.track{background:var(--px-bg)!important;border:1px solid var(--px-accent2)!important;border-radius:0!important}.fill{background:var(--px-accent2)!important}.fill.neg{background:var(--px-accent)!important}
-table{border-collapse:collapse!important;color:var(--px-ink)!important}th{background:var(--px-accent)!important;color:#fff!important;text-transform:uppercase;font-family:'Courier New',monospace!important}
-td,th{border:1px solid var(--px-accent2)!important}tbody tr:nth-child(odd){background:color-mix(in srgb,var(--px-surface2) 80%,transparent)!important}tbody tr:hover{background:color-mix(in srgb,var(--px-accent) 45%,var(--px-surface))!important}
-input.search{background:var(--px-surface)!important;color:var(--px-ink)!important;border:2px solid var(--px-accent2)!important;border-radius:0!important}
-.footer{border-top:2px solid var(--px-accent2)!important;color:var(--px-muted)!important}
-.pixel-canvas{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;filter:contrast(1.12) saturate(.72)}
-.palette-dock{position:relative;z-index:60;display:inline-flex;align-items:center;gap:6px;font:700 10px 'Courier New',monospace}
-.palette-trigger{border:2px solid var(--px-accent2);background:var(--px-surface);color:var(--px-ink);padding:9px 11px;box-shadow:3px 3px 0 var(--px-accent);cursor:pointer;font:700 10px 'Courier New',monospace;letter-spacing:.05em}
-.palette-menu{position:absolute;right:0;top:calc(100% + 9px);width:255px;padding:10px;background:var(--px-bg);border:2px solid var(--px-accent2);box-shadow:5px 5px 0 #000b;display:none;gap:6px}
-.palette-menu.open{display:grid}
-.palette-choice{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:9px;border:1px solid var(--px-line);background:var(--px-surface);color:var(--px-ink);cursor:pointer;font:700 10px 'Courier New',monospace}
-.palette-choice[aria-pressed=true]{outline:2px solid var(--px-accent2);outline-offset:-3px}
-.swatches{display:flex;gap:2px;margin-left:auto}.swatches i{width:12px;height:20px;border:1px solid #fff5;display:block}
-.palette-caption{font:9px/1.4 'Courier New',monospace;color:var(--px-muted);padding:4px}
-@media(max-width:700px){.palette-dock{position:absolute;right:0;top:72px}.palette-trigger{padding:7px 8px}.hero h1{font-size:clamp(58px,17vw,88px)!important}.hero{background-position:62% center!important}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-
-
-/* === ASHUR 8-BIT WORLD / v2: real pixel UI, not image pixelation === */
-
-:root{--px-bg:#10131d;--px-surface:#1b2a4e;--px-surface2:#26365c;--px-ink:#f4eee0;--px-muted:#c8c3ba;--px-accent:#9a2a2a;--px-accent2:#d9a6a0;--px-line:#d9a6a066;--px-shadow:#05070dcc}
-html,body{background:var(--px-bg)!important;color:var(--px-ink)!important}
-body{font-family:'VT323',monospace!important;font-size:21px;line-height:1.35;letter-spacing:.015em;background-color:var(--px-bg)!important;background-image:linear-gradient(90deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),linear-gradient(0deg,color-mix(in srgb,var(--px-accent2) 9%,transparent) 1px,transparent 1px),radial-gradient(ellipse at 50% 0%,var(--px-surface) 0%,var(--px-bg) 72%)!important;background-size:16px 16px,16px 16px,auto!important}
-body:before{display:none!important}
-h1,h2,h3,.brand,.quote,.serif{font-family:'Silkscreen','VT323',monospace!important;font-weight:700!important;text-transform:uppercase;letter-spacing:0!important}
-header{height:76px!important;background:var(--px-bg)!important;border-bottom:3px solid var(--px-accent2)!important;box-shadow:0 5px 0 #0008!important;backdrop-filter:none!important}
-.brand{font:700 18px 'Silkscreen',monospace!important;color:var(--px-ink)!important}
-.brand span{color:var(--px-accent2)!important}
-.links{gap:14px!important;font:14px 'Silkscreen',monospace!important;letter-spacing:0!important}
-.links a{color:var(--px-ink)!important;opacity:1!important}
-.links a:hover{color:var(--px-accent2)!important}
-.navbtn,.btn{border:2px solid var(--px-ink)!important;border-radius:0!important;background:var(--px-surface)!important;color:var(--px-ink)!important;box-shadow:4px 4px 0 var(--px-accent)!important;font:14px 'Silkscreen',monospace!important;letter-spacing:0!important;padding:11px 14px!important}
-.btn.primary{background:var(--px-accent)!important;border-color:var(--px-ink)!important;color:#fff!important;box-shadow:4px 4px 0 var(--px-accent2)!important}
-.navbtn:hover,.btn:hover{transform:translate(3px,3px)!important;box-shadow:1px 1px 0 var(--px-accent2)!important}
-.hero{min-height:760px!important;background-color:var(--px-bg)!important;background-blend-mode:normal,normal,luminosity!important;background-image:linear-gradient(90deg,var(--px-bg) 0%,color-mix(in srgb,var(--px-bg) 83%,transparent) 47%,#0003 100%),linear-gradient(0deg,var(--px-bg),transparent 24%,transparent 78%,var(--px-bg)),url('https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg')!important;background-position:center right!important;background-size:cover!important}
-.hero:before{background:linear-gradient(90deg,var(--px-bg) 0%,transparent 70%),linear-gradient(0deg,var(--px-bg),transparent 28%)!important;opacity:.82!important}
-.hero:after{inset:18px!important;border:3px solid var(--px-accent2)!important;box-shadow:inset 0 0 0 5px #0008!important}
-.hero h1{font:700 clamp(54px,10vw,112px)/1.15 'Press Start 2P','Silkscreen',monospace!important;color:var(--px-ink)!important;letter-spacing:-.07em!important;text-shadow:5px 5px 0 var(--px-accent),9px 9px 0 #000!important}
-.hero h1 small{font:700 14px 'Silkscreen',monospace!important;letter-spacing:0!important;color:var(--px-accent2)!important}
-.hero p{font:24px/1.35 'VT323',monospace!important;color:var(--px-ink)!important;text-shadow:2px 2px #000!important}
-.hero .muted{font:20px/1.35 'VT323',monospace!important;color:var(--px-muted)!important}
-.eyebrow,.stamp,.hero-meta,.role,.tag,.num{font-family:'Silkscreen',monospace!important;letter-spacing:0!important;color:var(--px-accent2)!important}
-.stamp{border:2px solid var(--px-accent2)!important;background:var(--px-bg)!important;border-radius:0!important;transform:none!important;padding:8px 10px!important}
-section,.intro,.archive,.people,.pantheon,.blueprint,.markets,.guardian,.future{background:transparent!important;color:var(--px-ink)!important;border-color:var(--px-line)!important}
-section{isolation:isolate}
-section:before{content:none!important;display:none!important}
-.section-head h2,.quote,.guardian h2,.futurebox h2,.portrait h3,.card h3,.step h3{color:var(--px-ink)!important}
-.section-head h2{font-size:clamp(22px,3vw,34px)!important}
-.section-head p,.muted,.portrait p,.card p,.step p{color:var(--px-muted)!important}
-.quote em,.role,.num,.portrait .tag{color:var(--px-accent2)!important}
-.paper-note,.portrait,.card,.futurebox{background:var(--px-surface)!important;border:3px solid var(--px-ink)!important;border-radius:0!important;box-shadow:6px 6px 0 var(--px-accent)!important;color:var(--px-ink)!important;transform:none!important}
-.paper-note p,.card p,.portrait p,.futurebox p{color:var(--px-muted)!important}
-.photo,.map-art,.guardian-image,.market{border:4px solid var(--px-ink)!important;border-radius:0!important;box-shadow:6px 6px 0 var(--px-accent)!important;overflow:hidden}
-.photo img,.portrait-art img,.map-art img,.guardian-image img{filter:grayscale(1) contrast(1.22) brightness(1.08)!important;image-rendering:auto!important}
-.photo:after,.portrait-art:after,.market:after,.guardian-image:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;background-image:radial-gradient(var(--px-ink) 1px,transparent 1.5px);background-size:5px 5px;mix-blend-mode:screen}
-.photo figcaption{background:linear-gradient(transparent,#000e)!important;color:#fff!important;font:18px 'VT323',monospace!important;text-transform:uppercase;font-style:normal!important}
-.photo figcaption small{color:var(--px-accent2)!important;font:12px 'Silkscreen',monospace!important}
-.portrait-art{background:var(--px-bg)!important;border:2px solid var(--px-accent2)!important;position:relative}
-.card:before{border:2px dashed var(--px-accent2)!important}
-.steps{border-color:var(--px-accent2)!important}.step:before{background:var(--px-accent)!important;box-shadow:0 0 0 4px var(--px-bg),0 0 0 6px var(--px-accent2)!important;border-radius:0!important}
-.market{background-blend-mode:normal,luminosity!important}
-.market h3,.market p{color:#fff!important;text-shadow:2px 2px #000!important}
-.guardian{background:transparent!important}.guardian-copy{color:var(--px-ink)!important}
-.future{background:transparent!important}.futurebox{background:var(--px-surface)!important}
-footer{background:var(--px-bg)!important;color:var(--px-muted)!important;border-top:3px solid var(--px-accent2)!important;font:14px 'Silkscreen',monospace!important}
-footer strong{color:var(--px-ink)!important;font:700 18px 'Silkscreen',monospace!important}
-.sources summary{color:var(--px-accent2)!important;border:2px solid var(--px-accent2)!important}
-.source-list{background:var(--px-surface)!important;border:2px solid var(--px-accent2)!important}
-.source-list a{color:var(--px-ink)!important}
-.palette-dock{position:relative;z-index:60;display:inline-flex;align-items:center;gap:6px;font:12px 'Silkscreen',monospace!important}
-.palette-trigger{border:2px solid var(--px-accent2)!important;background:var(--px-surface)!important;color:var(--px-ink)!important;padding:9px 11px!important;box-shadow:3px 3px 0 var(--px-accent)!important;cursor:pointer;font:12px 'Silkscreen',monospace!important;letter-spacing:0!important}
-.palette-menu{position:absolute;right:0;top:calc(100% + 9px);width:275px;padding:10px;background:var(--px-bg)!important;border:2px solid var(--px-accent2)!important;box-shadow:5px 5px 0 #000b;display:none;gap:6px}
-.palette-menu.open{display:grid}
-.palette-choice{display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:9px;border:1px solid var(--px-line)!important;background:var(--px-surface)!important;color:var(--px-ink)!important;cursor:pointer;font:12px 'Silkscreen',monospace!important}
-.palette-choice small{font:12px 'VT323',monospace!important}
-.palette-choice[aria-pressed=true]{outline:2px solid var(--px-accent2);outline-offset:-3px}
-.palette-caption{font:15px/1.25 'VT323',monospace!important;color:var(--px-muted)!important;padding:4px}
-::selection{background:var(--px-accent2);color:var(--px-bg)}
-@media(max-width:900px){.links{display:flex!important;gap:8px!important;flex-wrap:wrap}.links a{font-size:10px}.nav{gap:8px}.navbtn{display:none!important}}
-@media(max-width:700px){.mobile-research{display:inline-flex!important;position:absolute;right:12px;top:76px;font-size:10px!important;padding:7px 9px!important}header{height:70px!important}.links{display:none!important}.palette-dock{position:absolute;right:0;top:73px}.palette-trigger{padding:7px 8px!important}.hero h1{font-size:clamp(34px,10vw,68px)!important}.hero{min-height:680px!important;background-position:62% center!important}.hero:after{inset:8px!important}.wrap{width:calc(100% - 28px)!important}.hero-meta{gap:10px!important}.actions .btn{flex:1}.cards{grid-template-columns:1fr 1fr!important}.portraits{grid-template-columns:1fr 1fr!important}}
-@media(max-width:420px){.cards,.portraits,.marketgrid{grid-template-columns:1fr!important}.hero h1{font-size:32px!important}.brand{font-size:14px!important}}
-
-</style>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#101820;--panel:#1b2b38;--panel2:#263b49;--ink:#f4edcf;--muted:#b5c0ad;--gold:#f4c95d;--orange:#e98245;--green:#9bbc0f;--red:#d95763;--line:#647d78;--shadow:#080d12}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px;background:var(--bg)}
+body{margin:0;background-color:var(--bg);background-image:linear-gradient(90deg,transparent 95%,#243442 95%),linear-gradient(0deg,transparent 95%,#243442 95%);background-size:32px 32px;color:var(--ink);font-family:'VT323',monospace;font-size:23px;line-height:1.25;image-rendering:pixelated}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+.wrap{width:min(1120px,calc(100% - 36px));margin:auto}
+.pixel,.brand,.nav a,.eyebrow,.btn,.hud-label,.panel-title,.level-no,.tag,.tiny,.footer-mark{font-family:'Press Start 2P',monospace}
+header{height:68px;position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:4px solid var(--gold);box-shadow:0 5px 0 var(--shadow)}
+.nav{height:100%;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{font-size:15px;letter-spacing:1px;color:var(--gold);white-space:nowrap}
+.brand span{color:var(--ink)}
+.links{display:flex;gap:20px;align-items:center}
+.links a{font-size:9px;color:var(--muted)}
+.links a:hover{color:var(--gold)}
+.nav-start{font:9px 'Press Start 2P';padding:11px 12px;border:3px solid var(--gold);background:var(--orange);color:#17212a;box-shadow:4px 4px 0 #080d12}
+.hero{padding:38px 0 30px;min-height:590px;position:relative;overflow:hidden;background:#142330;border-bottom:5px solid var(--gold)}
+.hero:before{content:"";position:absolute;inset:0;opacity:.24;background:repeating-linear-gradient(0deg,transparent 0 7px,#a9c1b0 8px 9px),repeating-linear-gradient(90deg,transparent 0 7px,#a9c1b0 8px 9px);background-size:16px 16px;pointer-events:none}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:center}
+.hero-copy{padding:26px 0}
+.eyebrow{font-size:9px;line-height:1.8;color:var(--gold);letter-spacing:1px}
+h1,h2,h3,p{margin-top:0}
+h1{font:clamp(28px,5vw,54px)/1.35 'Press Start 2P';color:var(--gold);margin:22px 0;text-shadow:4px 4px 0 #8b482e}
+h1 span{display:block;color:var(--ink);font-size:.38em;line-height:2.4;margin-top:12px;text-shadow:none}
+.hero-copy p{max-width:570px;color:var(--muted);font-size:29px;line-height:1.2}
+.actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 16px;font-size:10px;line-height:1.6;border:3px solid var(--gold);background:var(--gold);color:#17212a;box-shadow:5px 5px 0 var(--shadow);cursor:pointer;transition:transform .08s steps(2)}
+.btn:hover{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--shadow)}
+.btn.secondary{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.scene{min-height:340px;border:5px solid var(--gold);background:#182a35;box-shadow:8px 8px 0 var(--shadow);position:relative;overflow:hidden;display:flex;align-items:end}
+.scene svg{width:100%;height:auto;display:block;image-rendering:pixelated;shape-rendering:crispEdges}
+.scene-label{position:absolute;top:12px;left:12px;padding:8px 10px;background:#101820;border:2px solid var(--gold);font:8px 'Press Start 2P';color:var(--gold)}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:24px;position:relative}
+.hud-box{padding:13px 14px;background:var(--panel);border:3px solid var(--line);box-shadow:4px 4px 0 var(--shadow);min-height:75px}
+.hud-label{font-size:8px;color:var(--muted);display:block;margin-bottom:10px}
+.hud-value{font:25px 'VT323';color:var(--gold)}
+section{padding:76px 0;border-bottom:4px solid #40565b}
+.section-head{max-width:760px;margin-bottom:30px}
+.section-head .eyebrow{margin-bottom:15px}
+h2{font:clamp(18px,3vw,27px)/1.65 'Press Start 2P';color:var(--gold);margin-bottom:18px}
+.section-head p{font-size:27px;color:var(--muted);max-width:690px}
+.panel{background:var(--panel);border:4px solid var(--line);box-shadow:7px 7px 0 var(--shadow);padding:22px;position:relative}
+.panel:before{content:"";position:absolute;inset:6px;border:1px dashed #6f8880;pointer-events:none}
+.panel-title{font-size:10px;color:var(--gold);margin-bottom:18px;position:relative}
+.intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dialogue{font-size:29px;color:var(--ink);line-height:1.28;position:relative}
+.dialogue strong{color:var(--gold);font-weight:normal}
+.pixel-list{list-style:none;margin:18px 0 0;padding:0;position:relative}
+.pixel-list li{padding:8px 0 8px 24px;color:var(--muted);font-size:24px;position:relative}
+.pixel-list li:before{content:"▶";position:absolute;left:0;color:var(--orange);font-size:14px;top:12px}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.level{min-height:255px;display:flex;flex-direction:column;gap:12px}
+.level-no{font-size:9px;color:var(--orange)}
+.level h3{font:13px/1.8 'Press Start 2P';color:var(--ink);margin:4px 0}
+.level p{font-size:24px;color:var(--muted);margin:0}
+.level .status{margin-top:auto;padding-top:12px;border-top:2px dashed var(--line);font:8px 'Press Start 2P';color:var(--green);line-height:1.8}
+.level.locked{opacity:.62}
+.level.locked .status{color:var(--muted)}
+.level.active{border-color:var(--gold);background:#283b42}
+.level.active:after{content:"";position:absolute;right:18px;top:18px;width:10px;height:10px;background:var(--green);box-shadow:0 0 0 4px #9bbc0f33}
+.paper-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.stat-line{display:flex;justify-content:space-between;gap:10px;border-bottom:2px dashed var(--line);padding:10px 0;color:var(--muted);font-size:23px}
+.stat-line b{color:var(--gold);font-weight:normal}
+.warning{border-color:var(--orange)}
+.warning .panel-title{color:var(--orange)}
+.progress{height:18px;border:3px solid var(--line);background:#101820;margin:18px 0 8px;padding:2px}
+.progress span{display:block;width:18%;height:100%;background:var(--green)}
+.controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.controls .btn{font-size:8px}
+.wall-link{display:flex;align-items:center;justify-content:space-between;gap:20px;text-decoration:none}
+.wall-link:hover h3{color:var(--gold)}
+.wall-link h3{font:12px/1.8 'Press Start 2P';margin:0 0 10px}
+.wall-link p{color:var(--muted);font-size:23px;margin:0}
+.arrow{font:28px 'Press Start 2P';color:var(--gold)}
+footer{padding:25px 0;background:#0b1118;border-top:4px solid var(--gold);color:var(--muted)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.footer-mark{color:var(--gold);font-size:10px}
+footer small{font:8px 'Press Start 2P';line-height:1.8}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+@media(max-width:850px){.hero-grid{grid-template-columns:1fr}.scene{max-width:650px;min-height:0}.levels{grid-template-columns:1fr 1fr}.links{gap:10px}.links a{font-size:7px}.nav-start{display:none}}
+@media(max-width:600px){.wrap{width:calc(100% - 24px)}header{height:auto;min-height:62px}.nav{padding:12px 0;flex-wrap:wrap}.brand{font-size:12px}.links{order:3;width:100%;justify-content:space-between;gap:5px;padding:8px 0 2px}.links a{font-size:6px}.hero{padding:26px 0}.hero-grid{gap:18px}.hero-copy{padding:10px 0}.hero-copy p{font-size:25px}h1{font-size:clamp(23px,8vw,38px)}.scene{min-height:0}.hud{grid-template-columns:1fr 1fr}.hud-box{min-height:65px;padding:10px}.hud-label{font-size:7px}.intro-grid,.paper-grid{grid-template-columns:1fr}.levels{grid-template-columns:1fr}section{padding:55px 0}h2{font-size:17px}.section-head p{font-size:24px}.panel{padding:17px}.dialogue{font-size:26px}.wall-link h3{font-size:10px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
 </head>
 <body>
-<header><div class="wrap nav"><a class="brand" href="#top">𒀭 <span>ASHUR</span></a><nav class="links"><a href="#vision">Летопись</a><a href="#archive">Стены</a><a href="#pantheon">Стражи</a><a href="#expedition">Путь</a><a href="#markets">Территории</a><a href="research.html">Исследования</a></nav><a class="navbtn" href="#archive">Открыть врата ↗</a><a class="navbtn mobile-research" href="research.html">RESEARCH ↗</a><button class="menu" aria-label="Прокрутить к архиву" onclick="document.querySelector('#archive').scrollIntoView({behavior:'smooth'})">☰</button></div></header>
+<header><div class="wrap nav">
+<a class="brand" href="#top">𒀭 <span>ASHUR</span></a>
+<nav class="links"><a href="#game">ИГРА</a><a href="#levels">УРОВНИ</a><a href="#paper">ПРАВИЛА</a><a href="wall.html">СТЕНА</a></nav>
+<a class="nav-start" href="#levels">START GAME</a>
+</div></header>
 <main id="top">
-<section class="hero"><div class="torch torch-left" aria-hidden="true"></div><div class="torch torch-right" aria-hidden="true"></div><div class="wrap hero-copy"><div class="stamp">Ночной дозор · Месопотамия</div><div class="eyebrow">ПОЛЕВОЙ ДНЕВНИК / 001 · ПОТЕРЯННАЯ ИМПЕРИЯ</div><h1>ASHUR<small>ИМПЕРИЯ ИНТЕЛЛЕКТА</small></h1><p>«Камень помнит голоса царей. Мы научились слышать их сквозь тысячелетия». </p><p class="muted" style="font:14px Manrope;max-width:490px">Ночь опустилась на Ниневию. Между чёрными стенами горят факелы, а на камне проступают знаки давно исчезнувших царей. Мы идём по их следу — строим новую империю из данных, алгоритмов и точных решений.</p><div class="actions"><a class="btn primary" href="#vision">Войти в город</a><a class="btn" href="#pantheon">Узнать стражей</a></div><div class="hero-meta"><span><b>01</b> Исследование</span><span><b>02</b> Знание</span><span><b>03</b> Торговля</span><span><b>𒀭</b> Ассирия</span></div></div></section>
-<section class="intro" id="vision"><div class="wrap two"><div><div class="eyebrow">01 / Надпись на внутренней стене</div><div class="quote">«Из пепла поднимается город. Из наблюдений рождается знание. <em>Из знания — сила.</em>»</div><p class="muted">Под сводами дворца шепчут писцы, на глиняных табличках сходятся числа, а за воротами меняются цены и судьбы. Так рождается ASHUR — модульная алгоритмическая система на Python: она собирает рыночные данные, исследует закономерности, проверяет гипотезы и действует только под строгим надзором риска.</p><p class="muted">Её имя взято у древнего города и бога-покровителя Ассирии. Пять стражей держат порядок внутри цифровых стен: каждый знает свою задачу и не покидает пост.</p></div><aside class="paper-note"><p>«Не доверяй первому знаку на стене. Сверь его с другими. Не верь пророчеству, пока не проверишь числа. И не открывай ворота, пока страж не подтвердит безопасность». </p><p class="script">— Из летописи ночного дозора</p></aside></div></section>
-<section class="archive" id="archive"><div class="wrap"><div class="section-head"><div class="eyebrow">02 / Стены раскопок</div><h2>Город, высеченный в камне</h2><p class="muted">В свете факелов проступают стены Ниневии: рельефы охот, крылатые стражи и царские надписи. Пыль оседает на камне, но резец древнего мастера всё ещё оставляет тень.</p></div><div class="archive-grid">
-<figure class="photo large"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Ashurbanipal_wall_relief%2C_7th_century_BC%2C_from_Nineveh%2C_the_British_Museum.jpg/1280px-Ashurbanipal_wall_relief%2C_7th_century_BC%2C_from_Nineveh%2C_the_British_Museum.jpg" alt="Художественное изображение раскопок древней Ниневии в 1852 году"><figcaption>Ниневия. Город, который не сумел исчезнуть.<small>Фредерик Чарльз Купер · 1852 год</small></figcaption></figure>
-<figure class="photo"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Assyrian_Relief_Garden_of_Ashurbanipal_Nineveh_Gypsum_N_Palace_Ashurbanipal_British_Museum_AG_02.jpg/1280px-Assyrian_Relief_Garden_of_Ashurbanipal_Nineveh_Gypsum_N_Palace_Ashurbanipal_British_Museum_AG_02.jpg" alt="Историческая гравюра археологических раскопок Хорсабада"><figcaption>Путь в Хорсабад.<small>Гравюра · 1861 год</small></figcaption></figure>
-<figure class="photo"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Tablet_with_Cuneiform_Writing.jpg/500px-Tablet_with_Cuneiform_Writing.jpg" alt="Раскопки Ниневии Остином Генри Лэйардом"><figcaption>Когда камень заговорил.<small>Ниневия · около 1852 года</small></figcaption></figure>
-</div><p class="source-line"></p></div></section>
-<section class="people" id="faces"><div class="wrap"><div class="section-head"><div class="eyebrow">03 / Лики и знаки города</div><h2>Летопись на камне и глине</h2><p class="muted">Цари оставляли себя в рельефах, писцы — в глине, а стражи — у ворот дворцов. Здесь не придуманные персонажи, а подлинные изображения древнего мира.</p></div><div class="portraits">
-<article class="portrait"><div class="portrait-art"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Ashurbanipal_wall_relief%2C_7th_century_BC%2C_from_Nineveh%2C_the_British_Museum.jpg/1280px-Ashurbanipal_wall_relief%2C_7th_century_BC%2C_from_Nineveh%2C_the_British_Museum.jpg" alt="Фотография ассирийского рельефа с изображением царя Ашшурбанипала"/></div><h3>Царь и его свита</h3><p>Рельеф из Северного дворца в Ниневии, VII век до н. э.</p><div class="tag">Каменная летопись</div></article>
-<article class="portrait"><div class="portrait-art"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Tablet_with_Cuneiform_Writing.jpg/500px-Tablet_with_Cuneiform_Writing.jpg" alt="Фотография древней ассирийской таблички с клинописью"/></div><h3>Глиняная табличка</h3><p>Клинописный текст Новоассирийского периода, VII век до н. э.</p><div class="tag">Архив писцов</div></article>
-<article class="portrait"><div class="portrait-art"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg" alt="Фотография пары ассирийских ламассу у ворот дворца"/></div><h3>Стражи дворца</h3><p>Пара ламассу из тронного зала дворца в Нимруде, IX век до н. э.</p><div class="tag">Крылатые хранители</div></article>
-</div></div></section>
-<section class="pantheon" id="pantheon"><div class="wrap"><div class="section-head"><div class="eyebrow">04 / Стражи системы</div><h2>Пять имён. Один город.</h2><p class="muted">Каждому стражу доверена часть города. Один хранит порядок, другой читает знаки, третий управляет движением, четвёртый защищает казну, пятый следит, чтобы закон был един для всех.</p></div><div class="cards">
-<article class="card"><div class="num">I — ЦЕНТР</div><h3>ASHUR</h3><div class="role">Хранитель системы</div><p>Главный дворец. Связывает все части системы и следит за их согласованной работой.</p></article>
-<article class="card"><div class="num">II — МУДРОСТЬ</div><h3>NABU</h3><div class="role">Исследование и знание</div><p>Читает рыночные знаки, сопоставляет данные и ищет закономерности.</p></article>
-<article class="card"><div class="num">III — СИЛА</div><h3>MARDUK</h3><div class="role">Торговый механизм</div><p>Превращает проверенные решения в торговые действия.</p></article>
-<article class="card"><div class="num">IV — ЩИТ</div><h3>ISHTAR</h3><div class="role">Защита капитала</div><p>Следит за казной, ограничивает потери и не допускает опасного риска.</p></article>
-<article class="card"><div class="num">V — ЗАКОН</div><h3>SHAMASH</h3><div class="role">Независимая проверка</div><p>Проверяет каждое действие и не позволяет системе забыть собственные правила.</p></article>
-</div></div></section>
-<section class="blueprint" id="expedition"><div class="wrap two"><div><div class="section-head"><div class="eyebrow">05 / Дорога сквозь ночной город</div><h2>Город будущего строится по древнему плану.</h2><p class="muted">Сначала прокладываем улицы данных, затем возводим лабораторию, испытываем механизмы и лишь после этого открываем главные ворота. Ни один ярус не держится на обещаниях — только на проверке.</p></div><figure class="map-art"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Assyrian_Relief_Garden_of_Ashurbanipal_Nineveh_Gypsum_N_Palace_Ashurbanipal_British_Museum_AG_02.jpg/1280px-Assyrian_Relief_Garden_of_Ashurbanipal_Nineveh_Gypsum_N_Palace_Ashurbanipal_British_Museum_AG_02.jpg" alt="Ассирийский дворцовый рельеф с изображением священного дерева и придворного"/><figcaption>Рельеф Северного дворца Ашшурбанипала · Ниневия</figcaption></figure></div><div class="steps">
-<div class="step"><h3>Основание города</h3><p>Архитектура на Python, источники данных, надёжное хранение и проверка качества.</p></div>
-<div class="step"><h3>Дом писцов и вычислений</h3><p>Проверка гипотез, испытание стратегий на исторических данных и оценка результатов.</p></div>
-<div class="step"><h3>Испытание без риска</h3><p>Проверка алгоритмов на живом рынке без использования реального капитала.</p></div>
-<div class="step"><h3>Открытие главных ворот</h3><p>Подключение бирж и брокеров, управление позициями и независимый надзор.</p></div>
-<div class="step"><h3>Новые ярусы</h3><p>Наблюдение за результатами, поиск причин ошибок и осторожное улучшение стратегий.</p></div>
-</div></div></section>
-<section class="markets" id="markets"><div class="wrap"><div class="section-head"><div class="eyebrow">06 / За стенами города</div><h2>Два рынка. Единая дисциплина.</h2><p class="muted">За городскими стенами лежат разные земли. Мы исследуем их разными инструментами, но подчиняем одной дисциплине: сначала проверка, затем действие.</p></div><div class="marketgrid"><article class="market"><div><h3>Криптовалютные рынки</h3><p>Спотовая торговля без плеча. Наблюдение за волатильностью, ликвидностью и движением цены.</p></div></article><article class="market"><div><h3>Американские акции</h3><p>Исследование фондового рынка и испытание алгоритмов на акциях компаний США.</p></div></article></div></div></section>
-<section class="guardian"><div class="wrap two"><div class="guardian-image"><img loading="lazy" src="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f4/A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg/1280px-A_pair_of_lamassus_from_the_Throne_Room%2C_Room_B%2C_of_the_North-West_Palace_at_Nimrud%2C_Iraq%2C_9th_century_BC._The_British_Museum.jpg" alt="Пара ламассу у входа в ассирийский дворец"/></div><div class="guardian-copy"><div class="eyebrow">07 / Каменный страж</div><h2 class="serif" style="font-size:clamp(31px,4vw,48px);line-height:1.15">Страж у ворот цифрового города.</h2><p class="muted">У ворот ассирийских дворцов стояли ламассу — крылатые быки с человеческим лицом. Их неподвижный взгляд встречал каждого, кто входил в город. В ASHUR стражем стал код: правила риска, независимая проверка и контроль каждого действия.</p><p class="muted">Если механизм ошибся, ворота должны закрыться. Система обязана остановить опасный процесс и объяснить, почему стратегия перестала работать. Здесь нет пророчеств о лёгком золоте — только инженерия, статистика и дисциплина.</p><a class="btn" href="#future">За пределы возможного ↗</a><p class="source-line"></p></div></div></section>
-<section class="future" id="future"><div class="wrap"><div class="section-head" style="margin:0 auto 38px"><div class="eyebrow">08 / Последняя надпись</div><h2>Каждая империя начинается с первого камня.</h2><p class="muted">Сегодня мы закладываем основание. Завтра на этих камнях вырастет система, способная исследовать, учиться на проверках и развиваться без потери контроля.</p></div><div class="futurebox"><h2>СТРОИТЬ. ИЗУЧАТЬ.<br>ПРОВЕРЯТЬ. РАЗВИВАТЬ.</h2><p>Создать собственную технологию. Проверять каждое решение. Беречь капитал. Возводить город шаг за шагом.</p></div></div></section>
+<section class="hero" id="game"><div class="wrap">
+<div class="hero-grid">
+<div class="hero-copy">
+<div class="eyebrow">CARTRIDGE 001 · MESOPOTAMIA EDITION</div>
+<h1>ASHUR<span>THE MARKET QUEST</span></h1>
+<p>Большая биржевая игра. Маленькие шаги. Сначала учимся побеждать на бумаге — и только потом рискуем настоящими монетами.</p>
+<div class="actions"><a class="btn" href="#levels">▶ НАЧАТЬ ИГРУ</a><a class="btn secondary" href="#paper">КАК ЭТО РАБОТАЕТ?</a></div>
+</div>
+<div class="scene" aria-label="Пиксельный город древней Ассирии">
+<div class="scene-label">WORLD 01 — ASSUR</div>
+<svg viewBox="0 0 384 256" role="img" aria-label="Пиксельный город, зиккурат и восходящее солнце">
+<rect width="384" height="256" fill="#182a35"/>
+<rect x="0" y="0" width="384" height="112" fill="#203b4a"/>
+<path d="M0 94h384v8H0z" fill="#345566"/>
+<rect x="25" y="35" width="22" height="22" fill="#f4c95d"/><rect x="18" y="42" width="36" height="8" fill="#f4c95d"/><rect x="32" y="28" width="8" height="36" fill="#f4c95d"/>
+<path d="M0 156h384v100H0z" fill="#8b482e"/>
+<path d="M0 149h384v12H0z" fill="#d58a45"/>
+<path d="M62 149V99h18V83h18V67h54v16h18v16h18v50z" fill="#d9a75c"/>
+<path d="M82 149v-34h18v-16h18V83h34v16h18v16h18v34z" fill="#b66b3d"/>
+<rect x="118" y="111" width="18" height="38" fill="#203b4a"/><rect x="146" y="111" width="18" height="38" fill="#203b4a"/>
+<path d="M224 149V91h14V77h14V63h52v14h14v14h14v58z" fill="#d9a75c"/>
+<rect x="246" y="110" width="18" height="39" fill="#203b4a"/><rect x="280" y="110" width="18" height="39" fill="#203b4a"/>
+<path d="M0 178h384v78H0z" fill="#536b4c"/>
+<path d="M0 178h384v8H0z" fill="#9bbc0f"/>
+<g fill="#e98245"><rect x="38" y="184" width="8" height="8"/><rect x="54" y="200" width="8" height="8"/><rect x="330" y="190" width="8" height="8"/><rect x="348" y="210" width="8" height="8"/></g>
+<g fill="#17212a"><rect x="190" y="183" width="12" height="24"/><rect x="184" y="190" width="24" height="8"/><rect x="194" y="207" width="4" height="13"/></g>
+<g fill="#f4c95d"><rect x="188" y="179" width="16" height="4"/><rect x="192" y="174" width="8" height="5"/></g>
+<g fill="#b5c0ad"><rect x="12" y="230" width="16" height="4"/><rect x="42" y="239" width="22" height="4"/><rect x="300" y="230" width="24" height="4"/></g>
+<path d="M0 248h384v8H0z" fill="#263b49"/>
+</svg>
+</div>
+</div>
+<div class="hud">
+<div class="hud-box"><span class="hud-label">PLAYER</span><span class="hud-value">ROOKIE</span></div>
+<div class="hud-box"><span class="hud-label">LEVEL</span><span class="hud-value">01 / 05</span></div>
+<div class="hud-box"><span class="hud-label">MODE</span><span class="hud-value">PAPER</span></div>
+<div class="hud-box"><span class="hud-label">RISK</span><span class="hud-value">0 COINS</span></div>
+</div>
+</div></section>
+<section id="levels"><div class="wrap">
+<div class="section-head"><div class="eyebrow">SELECT YOUR QUEST</div><h2>ПЯТЬ УРОВНЕЙ ДО БИРЖИ</h2><p>Каждый уровень открывается после проверки предыдущего. Никаких прыжков через пропасть с мешком денег.</p></div>
+<div class="levels">
+<article class="panel level active"><div class="level-no">LEVEL 01 · AVAILABLE</div><h3>УЧЕБНЫЙ РЫНОК</h3><p>Знакомимся с котировками, заявками и движением цены. Играем виртуальными деньгами.</p><div class="status">▶ ТЕКУЩИЙ УРОВЕНЬ</div></article>
+<article class="panel level"><div class="level-no">LEVEL 02 · LOCKED</div><h3>ПЕРВЫЕ СТРАТЕГИИ</h3><p>Проверяем идеи на истории, учимся видеть комиссии, просадки и статистику.</p><div class="status">🔒 ОТКРОЕТСЯ ПОСЛЕ LEVEL 01</div></article>
+<article class="panel level"><div class="level-no">LEVEL 03 · LOCKED</div><h3>БУМАЖНЫЙ БОЙ</h3><p>Торговля на реальном рынке без реальных денег. Проверка алгоритма вживую.</p><div class="status">🔒 ВПЕРЕДИ</div></article>
+<article class="panel level"><div class="level-no">LEVEL 04 · LOCKED</div><h3>СТРАЖ КАПИТАЛА</h3><p>Лимиты риска, защита от ошибок, контроль каждой сделки и остановка системы.</p><div class="status">🔒 ВПЕРЕДИ</div></article>
+<article class="panel level"><div class="level-no">LEVEL 05 · LOCKED</div><h3>РЕАЛЬНЫЙ КАПИТАЛ</h3><p>Подключение собственных средств — только после прохождения испытаний и ручного решения.</p><div class="status">🔒 НЕ ДОСТУПЕН НА СТАРТЕ</div></article>
+<article class="panel level"><div class="level-no">BONUS STAGE</div><h3>НОВЫЕ МИРЫ</h3><p>Новые рынки, инструменты, стратегии и испытания. Расширяем игру без потери контроля.</p><div class="status">★ БУДУЩЕЕ ОБНОВЛЕНИЕ</div></article>
+</div>
+</div></section>
+<section id="paper"><div class="wrap">
+<div class="section-head"><div class="eyebrow">HOW TO PLAY</div><h2>СНАЧАЛА ТРЕНИРУЕМСЯ. ПОТОМ РЕШАЕМ.</h2><p>На старте система не получает доступ к твоим деньгам. Первый этап — исследование и бумажная торговля.</p></div>
+<div class="paper-grid">
+<div class="panel"><div class="panel-title">MISSION BRIEFING</div><div class="dialogue">«Писец, прежде чем открыть казну, докажи, что умеешь считать. <strong>Сначала знания. Потом монеты.</strong>»</div><ul class="pixel-list"><li>Исторические данные и тестирование стратегий.</li><li>Виртуальные сделки без реального капитала.</li><li>Сбор статистики: прибыль, просадка, комиссии.</li><li>Проверка стабильности и ограничений риска.</li></ul></div>
+<div class="panel warning"><div class="panel-title">CAPITAL SAFETY SYSTEM</div>
+<div class="stat-line"><span>РЕАЛЬНЫЕ ДЕНЬГИ</span><b>НЕ ПОДКЛЮЧЕНЫ</b></div>
+<div class="stat-line"><span>РЕЖИМ НА СТАРТЕ</span><b>PAPER</b></div>
+<div class="stat-line"><span>ПЛЕЧО</span><b>НЕТ</b></div>
+<div class="stat-line"><span>ДОПУСК К КАПИТАЛУ</span><b>ВРУЧНУЮ</b></div>
+<div class="progress"><span></span></div><div class="tiny" style="font:8px 'Press Start 2P';color:var(--muted);line-height:1.8">ПРОГРЕСС ИГРЫ: КОНЦЕПЦИЯ / LEVEL 01</div>
+</div>
+</div>
+</div></section>
+<section><div class="wrap">
+<a class="panel wall-link" href="wall.html"><div><div class="eyebrow">WORLD MAP · KNOWLEDGE BASE</div><h3>СТЕНА ASHUR</h3><p>Хроника исследований, экспериментов, результатов и новых открытий.</p></div><span class="arrow">▶</span></a>
+</div></section>
 </main>
-<footer><div class="wrap"><strong>𒀭 ASHUR</strong><span>НОЧНОЙ АРХИВ · АССИРИЯ</span><span>Проектная летопись · 2026</span><details class="sources"><summary>◉ Источники изображений</summary><div class="source-list"><p style="margin:0;color:#d9c9a8;font:11px/1.6 Manrope">Изображения музейных предметов и исторических материалов. Права, лицензия и требования к атрибуции указаны на страницах оригиналов; проверяйте их перед повторным и коммерческим использованием. Для всех будущих сайтов ASHUR: у каждого внешнего изображения будет источник и сведения о правах в раскрывающемся блоке футера.</p><a href="https://commons.wikimedia.org/wiki/File:Ashurbanipal_wall_relief,_7th_century_BC,_from_Nineveh,_the_British_Museum.jpg" target="_blank" rel="noopener">Рельеф Ашшурбанипала — Британский музей / Wikimedia Commons</a><a href="https://commons.wikimedia.org/wiki/File:Assyrian_Relief_Garden_of_Ashurbanipal_Nineveh_Gypsum_N_Palace_Ashurbanipal_British_Museum_AG_02.jpg" target="_blank" rel="noopener">Садовый рельеф Ашшурбанипала — Wikimedia Commons</a><a href="https://commons.wikimedia.org/wiki/File:Tablet_with_Cuneiform_Writing.jpg" target="_blank" rel="noopener">Клинописная табличка — Музей искусств Уолтерса / Wikimedia Commons</a><a href="https://www.metmuseum.org/art/collection/search/322608" target="_blank" rel="noopener">Крылатый бык ламассу, объект 32.143.1 — Метрополитен-музей (CC0)</a><a href="https://commons.wikimedia.org/wiki/File:A_pair_of_lamassus_from_the_Throne_Room,_Room_B,_of_the_North-West_Palace_at_Nimrud,_Iraq,_9th_century_BC._The_British_Museum.jpg" target="_blank" rel="noopener">Пара ламассу из Нимруда — Британский музей / Wikimedia Commons</a><a href="https://commons.wikimedia.org/wiki/File:Assyrian_lion_hunt_scene.jpg" target="_blank" rel="noopener">Сцена царской охоты на львов — Wikimedia Commons</a></div></details></div></footer>
-<script>
-document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const target=document.querySelector(a.getAttribute('href'));if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth'});}}));
-</script>
-<script>
-
-(function(){
- const palettes=[
-  {id:'kurenai-kon',name:'Kurenai · Kon · Gofun',label:'Heian / Crimson & Navy',bg:'#101827',surface:'#1B2A4E',surface2:'#26395F',ink:'#F4EEE0',muted:'#D2C9B8',accent:'#9A2A2A',accent2:'#D8A5A0'},
-  {id:'sakura-wakatake',name:'Sakura · Wakatake',label:'Heian / Cherry Blossom & Bamboo',bg:'#26382D',surface:'#4C5D3F',surface2:'#647653',ink:'#F8F4E9',muted:'#D7D8C6',accent:'#F9D5E0',accent2:'#A3C293'},
-  {id:'fuji-ai',name:'Fuji · Ai · Gofun',label:'Heian / Wisteria & Indigo',bg:'#101E2B',surface:'#1C3D5A',surface2:'#315775',ink:'#F4EEE0',muted:'#C7C6D0',accent:'#B5A6C9',accent2:'#8E7DAA'},
-  {id:'sumi-sakura',name:'Sumi · Sakura',label:'Pixel Shop / ink & blossom',bg:'#151113',surface:'#2A1C20',surface2:'#3A252B',ink:'#F2DCD7',muted:'#CDB9B4',accent:'#E7AFA7',accent2:'#F4D7D1'}
- ];
- const root=document.documentElement;
- function apply(p,save){root.style.setProperty('--px-bg',p.bg);root.style.setProperty('--px-surface',p.surface);root.style.setProperty('--px-surface2',p.surface2);root.style.setProperty('--px-ink',p.ink);root.style.setProperty('--px-muted',p.muted);root.style.setProperty('--px-accent',p.accent);root.style.setProperty('--px-accent2',p.accent2);document.querySelectorAll('.palette-choice').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.palette===p.id)));if(save){try{localStorage.setItem('ashur-pixel-palette',p.id)}catch(e){}}}
- function mount(){
-  const host=document.querySelector('header .wrap')||document.querySelector('header');
-  if(host&&!document.querySelector('.palette-dock')){
-   const dock=document.createElement('div');dock.className='palette-dock';
-   const trigger=document.createElement('button');trigger.className='palette-trigger';trigger.type='button';trigger.textContent='◐ COLOR / PALETTE';trigger.setAttribute('aria-expanded','false');
-   const menu=document.createElement('div');menu.className='palette-menu';
-   palettes.forEach(p=>{const b=document.createElement('button');b.type='button';b.className='palette-choice';b.dataset.palette=p.id;b.setAttribute('aria-pressed','false');b.innerHTML='<span>'+p.name+'<br><small>'+p.label+'</small></span><span class="swatches"><i style="background:'+p.bg+'"></i><i style="background:'+p.surface+'"></i><i style="background:'+p.accent+'"></i><i style="background:'+p.ink+'"></i></span>';b.addEventListener('click',()=>{apply(p,true);menu.classList.remove('open');trigger.setAttribute('aria-expanded','false')});menu.appendChild(b)});
-   const cap=document.createElement('div');cap.className='palette-caption';cap.textContent='Палитры по мотивам японских цветовых сочетаний. Выбор сохраняется на этом устройстве.';menu.appendChild(cap);
-   trigger.addEventListener('click',()=>{menu.classList.toggle('open');trigger.setAttribute('aria-expanded',String(menu.classList.contains('open')))});
-   dock.append(trigger,menu);host.appendChild(dock);
-   document.addEventListener('click',e=>{if(!dock.contains(e.target)){menu.classList.remove('open');trigger.setAttribute('aria-expanded','false')}});
-  }
-  let saved='kurenai-kon';try{saved=localStorage.getItem('ashur-pixel-palette')||saved}catch(e){}
-  apply(palettes.find(p=>p.id===saved)||palettes[0],false);
- }
- function pixelateImages(){ /* Source imagery stays crisp; pixel-art treatment is applied to the whole interface. */ }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{mount();pixelateImages()});else{mount();pixelateImages()}
-})();
-
-</script>
-</body></html>
+<footer><div class="wrap foot"><span class="footer-mark">𒀭 ASHUR · CARTRIDGE 001</span><small>ИГРА НАЧИНАЕТСЯ С ПРОВЕРКИ<br>© 2026 · PAPER MODE FIRST</small><span class="blink">PRESS START _</span></div></footer>
+</body>
+</html>
