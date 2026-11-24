@@ -41,7 +41,7 @@
 
 ## Camera, observers and title sequence
 
-- Mobile portrait and landscape cameras follow the traveler in world coordinates; portrait uses a 1.25× zoom, landscape a 1.1× zoom, and both shift the vertical framing toward the street while preserving the 320×224 framebuffer and nearest-neighbor pixel rendering. The 480×336 world floor fills the full framebuffer, with no unused lower strip.
+- Mobile portrait and landscape cameras follow the traveler in world coordinates; portrait uses a 1.25× zoom, landscape a 1.125× zoom, and both shift the vertical framing toward the street while preserving the 320×224 framebuffer and nearest-neighbor pixel rendering. The 480×336 world floor fills the full framebuffer, with no unused lower strip.
 - Four separate observer silhouettes stand around the central market lane. On the fall beat they stop, turn toward the traveler and raise/point an arm.
 - Opening text appears first, fades out completely, cuneiform appears alone, then fades before the KI.LAM mark.
 - GitHub Pages deploy workflow is triggered by pushes to `game-dev`; `main` remains untouched.
