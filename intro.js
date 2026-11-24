@@ -306,10 +306,11 @@
   ];
   function drawTraveler(x,y,scale=2,fallen=false){
     if(fallen){
+      // Rotate around the sprite's actual center; keep the exhausted body on the street.
       ctx.save();
-      ctx.translate(x+16*scale,y+10*scale);
+      ctx.translate(x+8*scale,y+15*scale);
       ctx.rotate(Math.PI/2);
-      drawTraveler(-16*scale,-10*scale,scale,false);
+      drawTraveler(-8*scale,-10.5*scale,scale,false);
       ctx.restore();
       return;
     }
