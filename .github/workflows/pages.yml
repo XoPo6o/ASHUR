@@ -2,7 +2,7 @@ name: Deploy ASHUR to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["game-dev"]
   workflow_dispatch:
 
 permissions:
