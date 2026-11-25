@@ -544,6 +544,12 @@ def open_position(conn, s, price, atr):
            VALUES(?,?)""",
         (s["id"], cursor_ms),
     )
+    conn.execute(
+        """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
+           VALUES(?,?,NULL,NULL) ON CONFLICT(strategy_id) DO UPDATE SET
+           last_success_at=excluded.last_success_at,last_error=NULL,last_error_at=NULL""",
+        (s["id"], now()),
+    )
     event(conn,s["id"],"OPEN",f"paper BUY; qty={qty:.8f}; entry={fill:.6f}; SL={stop:.6f}; TP={target:.6f}")
 
 def export_status(conn, worker_errors=0, successful_strategies=None):
