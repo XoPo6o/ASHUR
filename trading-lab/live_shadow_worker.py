@@ -235,7 +235,7 @@ def _fetch_execution_pages(symbol, since_ms, cutoff_ms, source):
         page_count += 1
         if page_count > (MAX_INTRABAR_RECOVERY_MINUTES // EXECUTION_KLINE_PAGE_SIZE) + 2:
             raise RuntimeError("1m recovery exceeded pagination safety limit")
-        page_end = min(int(cutoff_ms), cursor + EXECUTION_KLINE_PAGE_SIZE * 60000)
+        page_end = min(int(cutoff_ms), cursor + (EXECUTION_KLINE_PAGE_SIZE - 1) * 60000)
         if source == "bybit":
             query = urllib.parse.urlencode({
                 "category": "spot", "symbol": market_symbol, "interval": "1",
@@ -265,8 +265,6 @@ def _fetch_execution_pages(symbol, since_ms, cutoff_ms, source):
         if next_cursor <= cursor:
             raise RuntimeError("1m recovery pagination did not advance")
         cursor = next_cursor
-        if len(frame) < EXECUTION_KLINE_PAGE_SIZE:
-            break
 
     combined = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=columns)
     combined = combined.drop_duplicates(subset=["timestamp"]).sort_values("timestamp").reset_index(drop=True)
