@@ -102,7 +102,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     <article class="panel metric"><div class="label">TOTAL EQUITY</div><div class="value" id="total-equity">6,000.00</div><div class="foot" id="equity-foot">USDT · 6 isolated accounts · baseline</div></article>
     <article class="panel metric"><div class="label">NET P&amp;L SINCE BASELINE</div><div class="value positive" id="net-pnl">+0.00</div><div class="foot" id="pnl-foot">0.00% · starting point</div></article>
     <article class="panel metric"><div class="label">CLOSED TRADES</div><div class="value" id="closed-trades">0</div><div class="foot" id="trades-foot">No closed trades yet</div></article>
-    <article class="panel metric"><div class="label">MAX DRAWDOWN</div><div class="value">—</div><div class="foot">Not measurable at baseline</div></article>
+    <article class="panel metric"><div class="label">MAX DRAWDOWN</div><div class="value" id="top-max-drawdown">—</div><div class="foot">Observed since baseline</div></article>
   </section>
   <section class="grid twocol">
     <article class="panel">
@@ -303,6 +303,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       set('history-samples', String(history.sample_count));
       set('history-range-label', 'UTC · ' + history.range_days + '-day history · ' + history.returned_point_count + ' plotted points');
       set('history-drawdown', percent(history.summary.max_drawdown_pct));
+      set('top-max-drawdown', percent(history.summary.max_drawdown_pct));
       setTone(byId('history-drawdown'), history.summary.max_drawdown_pct);
       const latestDay = history.daily[history.daily.length - 1];
       if (history.sample_count < 2 || !latestDay || latestDay.snapshots < 2) {
