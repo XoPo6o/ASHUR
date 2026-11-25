@@ -33,3 +33,15 @@ jobs:
           python-version: "3.12"
       - name: Run dashboard unit tests
         run: python -m unittest discover -s tests -p "test_dashboard_*.py" -v
+      - name: Check dashboard JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("wall-preview.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one dashboard script, found {len(scripts)}")
+          Path("/tmp/ashur-dashboard.js").write_text(scripts[0], encoding="utf-8")
+          PY
+          node --check /tmp/ashur-dashboard.js
