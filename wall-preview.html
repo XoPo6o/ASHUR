@@ -304,11 +304,11 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       set('history-range-label', 'UTC · ' + history.range_days + '-day history · ' + history.returned_point_count + ' plotted points');
       set('history-drawdown', percent(history.summary.max_drawdown_pct));
       setTone(byId('history-drawdown'), history.summary.max_drawdown_pct);
-      if (history.sample_count < 2) {
+      const latestDay = history.daily[history.daily.length - 1];
+      if (history.sample_count < 2 || !latestDay || latestDay.snapshots < 2) {
         set('history-daily-pnl', 'Not enough data');
-        set('history-note', 'One validated snapshot is stored. The equity curve and intraday P&L will become meaningful after the next worker cycle (normally 5 minutes).');
+        set('history-note', 'History is based on ' + history.sample_count + ' validated snapshot(s). Intraday P&L becomes measurable after at least two observations in the same UTC day.');
       } else {
-        const latestDay = history.daily[history.daily.length - 1];
         set('history-daily-pnl', signed(latestDay.pnl) + ' USDT');
         setTone(byId('history-daily-pnl'), latestDay.pnl);
         set('history-note', 'History is based on ' + history.sample_count + ' validated worker snapshots. Daily P&L is measured between the first and last observed snapshot of each UTC day.');
