@@ -63,3 +63,5 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Updated `trading-lab/ashur_supervisor.py` to start the optional listener only when `SERVER_PORT` is supplied. The HTTP listener runs in a daemon thread; listener failure does not interrupt Paper/Shadow supervision.
 - Added `tests/test_dashboard_http_server.py` and `.github/workflows/dashboard-checks.yml`. The workflow has been committed, but a successful CI run has not yet been confirmed.
 - The endpoint remains isolated in `ashur-pixel-terminal-ui`; nothing has been merged or deployed. Silly Development's public app port is plain HTTP, so HTTPS tunnel/reverse-proxy setup must be resolved before connecting a production HTTPS website.
+
+- Initial dashboard unit suite is green; broader calculation checks against live runtime exports, timezone boundaries, responsive browser rendering and production host verification remain for stage 9.
