@@ -109,16 +109,16 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
             try:
                 days = int(query.get("days", ["30"])[0])
                 result = read_history(HISTORY_DB, days=days)
-            except ValueError:
-                self._json(400, {
-                    "status": "INVALID_RANGE",
-                    "message": "days must be one of 1, 7, 30 or 90.",
-                }, origin)
-                return
             except HistoryUnavailable:
                 self._json(503, {
                     "status": "HISTORY_UNAVAILABLE",
                     "message": "Historical snapshots are not available yet.",
+                }, origin)
+                return
+            except ValueError:
+                self._json(400, {
+                    "status": "INVALID_RANGE",
+                    "message": "days must be one of 1, 7, 30 or 90.",
                 }, origin)
                 return
             self._json(200, result, origin)
