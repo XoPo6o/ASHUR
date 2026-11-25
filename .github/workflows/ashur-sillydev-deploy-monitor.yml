@@ -143,12 +143,18 @@ jobs:
               raise SystemExit(1)
           if not h.get("all_strategies_ok") or h.get("error_count")!=0 or h.get("successful_strategies")!=6:
               raise SystemExit(1)
+          if h.get("all_protections_ok") is not True or h.get("protection_degraded_positions")!=0:
+              raise SystemExit(1)
+          for account in d.get("accounts",[]):
+              position=account.get("position")
+              if position and position.get("protection_status")!="OK":
+                  raise SystemExit(1)
           if not stamp:
               raise SystemExit(1)
           age=(datetime.now(timezone.utc)-datetime.fromisoformat(stamp.replace("Z","+00:00"))).total_seconds()
           if age>900 or age<0:
               raise SystemExit(1)
-          print("MODE=PAPER_ONLY STRATEGIES=6 WORKER_ERRORS=0 HEARTBEAT_AGE_SECONDS="+str(int(age)))
+          print("MODE=PAPER_ONLY STRATEGIES=6 WORKER_ERRORS=0 PROTECTION=OK HEARTBEAT_AGE_SECONDS="+str(int(age)))
           PY
               then
                 HEALTHY=true
