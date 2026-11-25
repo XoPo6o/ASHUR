@@ -481,6 +481,41 @@ class TestAshurRuntime(unittest.TestCase):
         self.assertLessEqual(modeled_loss, cash * worker.RISK + 1e-9)
         self.assertLessEqual(qty * entry * (1 + worker.FEE), cash * worker.MAX_NOTIONAL + 1e-9)
 
+    def test_protection_circuit_breaker_requires_recovery_probe_before_entries(self):
+        import pandas as pd
+
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        worker.init_db(conn)
+        strategy = next(s for s in worker.STRATEGIES if s["id"] == "BNB_15M_EMA_TREND")
+        conn.execute(
+            """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
+               VALUES(?,?,?,?)""",
+            (strategy["id"], "2026-11-25T00:00:00+00:00", "minute API unavailable",
+             "2026-11-25T00:05:00+00:00"),
+        )
+        conn.commit()
+        good_candle = pd.DataFrame([{
+            "timestamp": worker.minute_cursor_for_now() - 60000,
+            "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1.0,
+        }])
+        with patch.object(worker, "fetch_execution_klines", return_value=good_candle) as fetch:
+            self.assertFalse(worker.probe_intrabar_recovery(conn, strategy))
+            fetch.assert_called_once()
+        health = conn.execute(
+            "SELECT last_success_at,last_error FROM shadow_intrabar_health WHERE strategy_id=?",
+            (strategy["id"],),
+        ).fetchone()
+        self.assertIsNone(health["last_error"])
+        self.assertEqual(
+            conn.execute("SELECT event FROM shadow_events WHERE strategy_id=? ORDER BY id DESC",
+                         (strategy["id"],)).fetchone()["event"],
+            "PROTECTION_RECOVERED",
+        )
+        # The following worker cycle sees a cleared breaker and may evaluate entries.
+        self.assertTrue(worker.probe_intrabar_recovery(conn, strategy))
+        conn.close()
+
     def test_new_paper_position_starts_with_healthy_intrabar_protection(self):
         import tempfile
         import json
