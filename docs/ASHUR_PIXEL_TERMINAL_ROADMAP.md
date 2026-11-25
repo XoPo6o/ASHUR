@@ -124,3 +124,11 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - GitHub Actions run #45624863868 passed the unit suite, responsive Chromium smoke test and JavaScript syntax check on the current UI branch head.
 - Stage 8 browser baseline verification is complete; further visual/accessibility polish remains. Stage 9 remains IN PROGRESS for timezone-boundary, broader accessibility, live-host and runtime checks.
 - This work remains isolated in `ashur-pixel-terminal-ui`. No merge, deployment, strategy changes, order access or trading database writes were performed.
+
+
+## Progress update — 2026-11-25 (UTC boundary and accessibility checks)
+- Added a history regression test using +07:00 timestamps that cross local midnight; daily buckets must still use the normalized UTC date returned by the API.
+- Expanded the Chromium smoke test with basic accessibility checks for page landmarks, labelled navigation and chart graphics, live status announcements, visible keyboard focus and reduced-motion behavior.
+- GitHub Actions run #45625381278 passed the expanded dashboard unit suite, Chromium desktop/tablet/mobile and accessibility smoke checks, and JavaScript syntax validation on UI branch head `26f4f349d51aef24341d105fec296d98dc8f9cdf`.
+- Stage 9 remains IN PROGRESS: automated browser and UTC-boundary baselines are covered; broader screen-reader/contrast review and live host/runtime verification remain open.
+- HTTPS reverse-proxy configuration, persistent-volume backup/retention decisions and any production rollout remain pending. No merge or deployment was performed.
