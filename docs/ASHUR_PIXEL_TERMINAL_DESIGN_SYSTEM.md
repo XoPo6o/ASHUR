@@ -59,10 +59,17 @@ Color is semantic, not decorative: green only means positive/healthy, coral only
 - No animation may obscure a changing financial value or system warning.
 
 ## First prototype
-`wall-preview.html` is the first visual composition. It uses the verified 30-day baseline (6 x 1,000 USDT), a single baseline marker, and explicit empty states. It is not connected to live data and must not be treated as a production dashboard.
+`wall-preview.html` is the isolated-branch Command Center implementation. It uses the verified 30-day baseline (6 × 1,000 USDT), live values from the read-only Paper/Shadow status API, and observed equity/six-strategy history from the separate append-only history API. It is not deployed or verified on the production host.
 
 
 ## Visual refinement v0.2 (2026-11-25)
 - The dashboard brand mark now uses the same eight-point yellow/pink star SVG as the current production landing page (`index.html` on `main`); the former cuneiform glyph is no longer used as the header logo.
 - The page canvas uses layered, low-contrast turquoise and warm-gold radial light over a deep midnight gradient. The tiled grid overlay has been removed entirely.
 - Keep the background atmospheric and quiet: no grid, graph paper, repeating lines, or high-frequency texture behind the analytics. Charts may retain their own data gridlines inside chart panels.
+
+
+## Data visualization refinement (2026-11-25)
+- Portfolio equity curve renders only validated stored observations; no interpolated or synthetic history is created.
+- Strategy comparison chart uses each of the six accounts' actual return percentage relative to its 1,000 USDT baseline.
+- Daily report values are observed first-to-last UTC-day deltas; they remain unavailable until at least two snapshots exist in the same UTC day.
+- Maximum drawdown is calculated from chronological running equity peaks; intraday drawdown uses chronological high-water marks within each UTC day.
