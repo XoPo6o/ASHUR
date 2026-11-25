@@ -267,8 +267,9 @@ def main():
     for symbol, timeframe, interval_ms, strategy_ids in DATASETS:
         print(f"FETCH {symbol} {timeframe}", flush=True)
         raw = lab.fetch_history(symbol, timeframe, interval_ms)
+        # pandas datetime64 stores nanoseconds, while interval_ms is milliseconds.
         timestamps = raw.timestamp.astype("int64").to_numpy()
-        if len(timestamps) > 1 and (timestamps[1:] - timestamps[:-1] != interval_ms).any():
+        if len(timestamps) > 1 and (timestamps[1:] - timestamps[:-1] != interval_ms * 1_000_000).any():
             raise RuntimeError(f"Non-contiguous history: {symbol} {timeframe}")
         frame = add_live_signals(lab.indicators(raw))
         n = len(frame)
