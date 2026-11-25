@@ -21,6 +21,7 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn("window.setInterval(refreshDashboard, 60000)", HTML)
         self.assertIn("fetch('/api/dashboard/v1/history?days=30'", HTML)
         self.assertIn("window.setInterval(refreshHistory, 60000)", HTML)
+        self.assertIn('id="top-max-drawdown"', HTML)
 
     def test_history_dependent_panels_are_not_faked(self):
         self.assertIn('id="history-status">COLLECTING', HTML)
