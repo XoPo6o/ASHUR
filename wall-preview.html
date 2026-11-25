@@ -108,16 +108,8 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     <article class="panel">
       <div class="panelhead"><div class="paneltitle">EQUITY CURVE / 30 DAYS</div><span class="tag">BASELINE</span></div>
       <div class="panelbody">
-        <svg class="chart" viewBox="0 0 720 245" role="img" aria-label="Equity baseline at 6000 USDT; no historical series yet">
-          <line class="gridline" x1="50" y1="35" x2="700" y2="35"/><line class="gridline" x1="50" y1="85" x2="700" y2="85"/><line class="gridline" x1="50" y1="135" x2="700" y2="135"/><line class="gridline" x1="50" y1="185" x2="700" y2="185"/>
-          <line class="axis" x1="50" y1="20" x2="50" y2="205"/><line class="axis" x1="50" y1="205" x2="700" y2="205"/>
-          <text x="6" y="38">6,000</text><text x="6" y="88">—</text><text x="6" y="138">—</text><text x="6" y="188">—</text>
-          <line class="baseline" x1="50" y1="85" x2="88" y2="85" stroke-dasharray="4 4"/>
-          <circle cx="50" cy="85" r="5" fill="#e4b86a" stroke="#0b141d" stroke-width="2"/>
-          <text class="empty" x="100" y="68">ONLY CONFIRMED OBSERVATION · 6,000.00 USDT</text>
-          <text x="50" y="225">25 NOV · START</text><text x="650" y="225">25 DEC · TARGET</text>
-        </svg>
-        <div class="legend"><span><b>━━</b> Confirmed starting equity</span><span>Historical curve appears after snapshot collection starts.</span></div>
+        <svg class="chart" id="equity-chart" viewBox="0 0 720 245" role="img" aria-label="Historical portfolio equity snapshots"></svg>
+        <div class="legend"><span><b>━━</b> Observed portfolio equity</span><span id="history-range-label">UTC · 30-day history</span></div>
       </div>
     </article>
     <article class="panel">
@@ -155,7 +147,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       <div class="allocation-foot"><span>Equal starting allocation</span><strong>100% · 6,000 USDT</strong></div>
       <div class="kpi-strip"><div class="kpi-mini"><span>PER ACCOUNT</span><b>16.67%</b></div><div class="kpi-mini"><span>ACCOUNTS</span><b>06 / 06</b></div><div class="kpi-mini"><span>BASELINE</span><b>V2 LOCKED</b></div></div>
     </div></div></article>
-    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag">HISTORY PENDING</span></div><div class="panelbody"><div class="emptybox"><b>WAITING FOR FIRST OBSERVATIONS</b>Daily P&amp;L, drawdown and trade distribution require a historical snapshot series. The live feed currently provides current state only; no synthetic performance data is displayed.</div><div class="notice">The current screen shows confirmed baseline allocation, not a live health guarantee. Current worker status must be fetched from the runtime read-only feed.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag" id="history-status">COLLECTING</span></div><div class="panelbody"><div class="dailyrow"><span>Stored observations</span><strong id="history-samples">0</strong></div><div class="dailyrow"><span>Max observed drawdown</span><strong id="history-drawdown">—</strong></div><div class="dailyrow"><span>Latest intraday P&amp;L</span><strong id="history-daily-pnl">Not enough data</strong></div><div class="notice" id="history-note">The independent history collector is waiting for the first validated worker snapshot. No synthetic performance data is displayed.</div></div></article>
   </section>
   <section id="archive" class="grid bottomgrid">
     <article class="panel"><div class="panelhead"><div class="paneltitle">EXPERIMENT ARCHIVE</div><span class="tag">30 DAYS</span></div><div class="panelbody"><div class="heat" aria-label="30-day archive has not accumulated daily reports"><span>01</span><span class="future">02</span><span class="future">03</span><span class="future">04</span><span class="future">05</span><span class="future">06</span><span class="future">07</span><span class="future">08</span><span class="future">09</span><span class="future">10</span><span class="future">11</span><span class="future">12</span><span class="future">13</span><span class="future">14</span><span class="future">15</span><span class="future">16</span><span class="future">17</span><span class="future">18</span><span class="future">19</span><span class="future">20</span><span class="future">21</span><span class="future">22</span><span class="future">23</span><span class="future">24</span><span class="future">25</span><span class="future">26</span><span class="future">27</span><span class="future">28</span><span class="future">29</span><span class="future">30</span></div><div class="smallprint">Day 01 marks the confirmed baseline. Future cells remain empty until a daily report is actually saved.</div></div></article>
@@ -218,7 +210,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       set('integrity-errors', String(data.worker_health.error_count));
       set('worker-health', data.worker_health.all_strategies_ok ? 'ALL STRATEGIES OK' : 'CHECK REQUIRED');
       set('protection-health', data.worker_health.all_protections_ok ? 'OK' : 'DEGRADED');
-      set('feed-note', 'Live worker snapshot received at ' + localTime(data.source_updated_at) + '. Historical equity and drawdown remain unavailable until the history collector is added.');
+      set('feed-note', 'Live worker snapshot received at ' + localTime(data.source_updated_at) + '. Historical analytics are supplied by the separate append-only collector.');
       set('snapshot-note', 'Source freshness: ' + data.freshness + '. This is a current worker snapshot, not a completed 24-hour report.');
 
       const accounts = new Map(data.accounts.map(account => [account.strategy_id, account]));
@@ -246,6 +238,94 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     }
   }
 
+  const svgNS = 'http://www.w3.org/2000/svg';
+  function svgNode(name, attrs, label) {
+    const node = document.createElementNS(svgNS, name);
+    Object.entries(attrs || {}).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    if (label !== undefined) node.textContent = label;
+    return node;
+  }
+
+  function drawEquityChart(points) {
+    const svg = byId('equity-chart');
+    if (!svg) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const left = 72, right = 700, top = 24, bottom = 198;
+    [0, 1, 2, 3].forEach(index => {
+      const y = top + index * (bottom - top) / 3;
+      svg.appendChild(svgNode('line', {x1:left, y1:y, x2:right, y2:y, class:'gridline'}));
+    });
+    svg.appendChild(svgNode('line', {x1:left, y1:top, x2:left, y2:bottom, class:'axis'}));
+    svg.appendChild(svgNode('line', {x1:left, y1:bottom, x2:right, y2:bottom, class:'axis'}));
+    if (!points.length) {
+      svg.appendChild(svgNode('text', {x:100, y:100, class:'empty'}, 'WAITING FOR FIRST VALIDATED SNAPSHOT'));
+      return;
+    }
+    const values = points.map(point => number(point.equity));
+    let min = Math.min(...values), max = Math.max(...values);
+    if (max === min) { min -= 1; max += 1; }
+    const pad = (max - min) * 0.12;
+    min -= pad; max += pad;
+    const coords = points.map((point, index) => {
+      const x = points.length === 1 ? left : left + index * (right - left) / (points.length - 1);
+      const y = bottom - (number(point.equity) - min) / (max - min) * (bottom - top);
+      return {x, y, equity:number(point.equity)};
+    });
+    [0, 1, 2, 3].forEach(index => {
+      const value = max - index * (max - min) / 3;
+      const y = top + index * (bottom - top) / 3;
+      svg.appendChild(svgNode('text', {x:4, y:y + 4}, money(value)));
+    });
+    if (coords.length > 1) {
+      svg.appendChild(svgNode('polyline', {
+        points:coords.map(point => point.x.toFixed(2) + ',' + point.y.toFixed(2)).join(' '),
+        fill:'none', stroke:'#65d8d0', 'stroke-width':2.6, 'stroke-linejoin':'round', 'stroke-linecap':'round'
+      }));
+    }
+    const last = coords[coords.length - 1];
+    svg.appendChild(svgNode('circle', {cx:last.x, cy:last.y, r:4.5, fill:'#e4b86a', stroke:'#0b141d', 'stroke-width':2}));
+    svg.appendChild(svgNode('text', {x:left, y:225}, points[0].at.slice(0, 10)));
+    svg.appendChild(svgNode('text', {x:right - 78, y:225}, points[points.length - 1].at.slice(0, 10)));
+    if (coords.length === 1) {
+      svg.appendChild(svgNode('text', {x:100, y:Math.max(18, last.y - 16), class:'empty'}, 'ONE OBSERVATION · ' + money(last.equity) + ' USDT'));
+    }
+  }
+
+  async function refreshHistory() {
+    try {
+      const response = await fetch('/api/dashboard/v1/history?days=30', {
+        method:'GET', headers:{Accept:'application/json'}, cache:'no-store', credentials:'same-origin'
+      });
+      if (!response.ok) throw new Error('history_' + response.status);
+      const history = await response.json();
+      drawEquityChart(history.equity_curve || []);
+      set('history-status', 'HISTORY · ' + history.range_days + 'D');
+      set('history-samples', String(history.sample_count));
+      set('history-range-label', 'UTC · ' + history.range_days + '-day history · ' + history.returned_point_count + ' plotted points');
+      set('history-drawdown', percent(history.summary.max_drawdown_pct));
+      setTone(byId('history-drawdown'), history.summary.max_drawdown_pct);
+      if (history.sample_count < 2) {
+        set('history-daily-pnl', 'Not enough data');
+        set('history-note', 'One validated snapshot is stored. The equity curve and intraday P&L will become meaningful after the next worker cycle (normally 5 minutes).');
+      } else {
+        const latestDay = history.daily[history.daily.length - 1];
+        set('history-daily-pnl', signed(latestDay.pnl) + ' USDT');
+        setTone(byId('history-daily-pnl'), latestDay.pnl);
+        set('history-note', 'History is based on ' + history.sample_count + ' validated worker snapshots. Daily P&L is measured between the first and last observed snapshot of each UTC day.');
+      }
+    } catch (error) {
+      drawEquityChart([]);
+      set('history-status', 'COLLECTING');
+      set('history-samples', '0');
+      set('history-drawdown', '—');
+      set('history-daily-pnl', 'Not enough data');
+      set('history-range-label', 'UTC · 30-day history');
+      set('history-note', 'Historical snapshots are not available yet. The collector starts independently and records only fresh, validated Paper/Shadow status.');
+    }
+  }
+
+  refreshHistory();
+  window.setInterval(refreshHistory, 60000);
   refreshDashboard();
   window.setInterval(refreshDashboard, 60000);
 })();
