@@ -7,6 +7,7 @@ on:
     paths:
       - "dashboard/**"
       - "scripts/dashboard_runtime_smoke.py"
+      - "scripts/backup_dashboard_history.py"
       - "tests/**"
       - "wall-preview.html"
       - "trading-lab/ashur_supervisor.py"
