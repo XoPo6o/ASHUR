@@ -267,17 +267,16 @@ def main():
     for symbol, timeframe, interval_ms, strategy_ids in DATASETS:
         print(f"FETCH {symbol} {timeframe}", flush=True)
         raw = lab.fetch_history(symbol, timeframe, interval_ms)
-        # pandas datetime64 stores nanoseconds, while interval_ms is milliseconds.
-        timestamps = raw.timestamp.astype("int64").to_numpy()
-        gaps = timestamps[1:] - timestamps[:-1]
-        bad = (gaps != interval_ms * 1_000_000).nonzero()[0]
+        # Compare timedeltas in seconds; pandas datetime storage units vary by version.
+        gaps_seconds = raw.timestamp.diff().dt.total_seconds().dropna().to_numpy()
+        bad = (gaps_seconds != interval_ms / 1000).nonzero()[0]
         if len(bad):
             details = []
             for index in bad[:5]:
                 details.append({
                     "previous": raw.timestamp.iloc[int(index)].isoformat(),
                     "next": raw.timestamp.iloc[int(index) + 1].isoformat(),
-                    "gap_minutes": int(gaps[int(index)] // 60_000_000_000),
+                    "gap_minutes": gaps_seconds[int(index)] / 60,
                 })
             raise RuntimeError(
                 f"Non-contiguous history: {symbol} {timeframe}; "
