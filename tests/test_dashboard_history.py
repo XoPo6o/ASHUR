@@ -26,7 +26,7 @@ class DashboardHistoryTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
-    def make_status(self, stamp, equities):
+    def make_status(self, stamp, equities, trade_counts=None, win_counts=None):
         accounts = []
         for strategy_id, equity in zip(sorted(STRATEGY_IDS), equities):
             delta = equity - 1000.0
@@ -44,8 +44,8 @@ class DashboardHistoryTests(unittest.TestCase):
                 "realized_pnl": delta,
                 "unrealized_pnl": 0.0,
                 "return_pct": delta / 1000.0 * 100,
-                "trades": 0,
-                "wins": 0,
+                "trades": (trade_counts or {}).get(strategy_id, 0),
+                "wins": (win_counts or {}).get(strategy_id, 0),
                 "win_rate_pct": 0,
                 "profit_factor": None,
                 "fees": 0.0,
@@ -105,6 +105,35 @@ class DashboardHistoryTests(unittest.TestCase):
         self.assertEqual(result["daily"][0]["closed_trades"], 0)
         self.assertEqual(result["daily"][0]["fees"], 0.0)
         self.assertAlmostEqual(result["daily"][0]["max_drawdown_pct"], (6060 / 6100 - 1) * 100, places=3)
+
+    def test_strategy_trade_stats_report_observed_wins_and_losses(self):
+        first_counts = {strategy_id: 0 for strategy_id in STRATEGY_IDS}
+        first_wins = dict(first_counts)
+        last_counts = dict(first_counts)
+        last_wins = dict(first_wins)
+        strategy_ids = sorted(STRATEGY_IDS)
+        last_counts[strategy_ids[0]] = 5
+        last_wins[strategy_ids[0]] = 3
+        last_counts[strategy_ids[1]] = 2
+        last_wins[strategy_ids[1]] = 2
+
+        observations = [
+            (self.start, [1000] * 6, first_counts, first_wins),
+            (self.start + timedelta(minutes=5), [1005] * 6, last_counts, last_wins),
+        ]
+        for stamp, equities, trades, wins in observations:
+            self.save_status(self.make_status(stamp, equities, trades, wins))
+            self.assertTrue(collect_once(self.status_file, self.history_db, now=stamp))
+
+        result = read_history(self.history_db, days=30, now=self.start + timedelta(minutes=6))
+        stats = {item["strategy_id"]: item for item in result["strategy_trade_stats"]}
+        self.assertEqual(stats[strategy_ids[0]]["closed_trades"], 5)
+        self.assertEqual(stats[strategy_ids[0]]["wins"], 3)
+        self.assertEqual(stats[strategy_ids[0]]["losses"], 2)
+        self.assertEqual(stats[strategy_ids[1]]["closed_trades"], 2)
+        self.assertEqual(stats[strategy_ids[1]]["wins"], 2)
+        self.assertEqual(stats[strategy_ids[1]]["losses"], 0)
+        self.assertEqual(len(stats), 6)
 
     def test_rolling_24h_uses_snapshot_at_or_before_boundary(self):
         observations = [
