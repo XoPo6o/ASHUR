@@ -39,7 +39,14 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin")
         if not origin:
             return True
-        return origin.rstrip("/") in _allowed_origins()
+        normalized = origin.rstrip("/")
+        if normalized in _allowed_origins():
+            return True
+        # The dashboard and API are served from this same listener by default.
+        # Accept either scheme for the exact Host so an HTTPS tunnel/reverse proxy
+        # can preserve same-origin requests without opening CORS to other sites.
+        host = self.headers.get("Host", "").lower()
+        return bool(host) and normalized in {f"http://{host}", f"https://{host}"}
 
     def _send(self, status: int, body: bytes, content_type: str, origin: str | None = None):
         self.send_response(status)
@@ -50,7 +57,7 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Frame-Options", "DENY")
-        if origin and origin.rstrip("/") in _allowed_origins():
+        if origin and self._origin_ok():
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
         self.end_headers()
