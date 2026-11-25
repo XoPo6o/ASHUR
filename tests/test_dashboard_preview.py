@@ -51,6 +51,16 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn("last validated snapshot at or before the 24-hour boundary", HTML)
         self.assertIn("Not enough data", HTML)
 
+    def test_performance_charts_use_observed_history_payloads(self):
+        self.assertIn('id="daily-pnl-chart"', HTML)
+        self.assertIn('id="drawdown-chart"', HTML)
+        self.assertIn('id="trade-distribution-chart"', HTML)
+        self.assertIn("drawDailyPnlChart(history.daily || [])", HTML)
+        self.assertIn("drawDrawdownChart(history.equity_curve || [])", HTML)
+        self.assertIn("drawTradeDistribution(history.strategy_trade_stats || [])", HTML)
+        self.assertIn("at least two validated snapshots in a UTC day", HTML)
+        self.assertIn("Open positions are not counted as wins or losses", HTML)
+
     def test_mobile_touch_navigation_and_accessibility_rules(self):
         self.assertIn("min-height:44px", HTML)
         self.assertIn("overflow-x:auto", HTML)
