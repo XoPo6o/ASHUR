@@ -97,7 +97,7 @@ jobs:
           }, sort_keys=True))
 
           print("=== STARTUP ===")
-          safe_values = {"MAIN_FILE", "SERVER_PORT", "ASHUR_DATA_DIR", "ASHUR_DASHBOARD_ALLOWED_ORIGINS"}
+          safe_values = {"MAIN_FILE", "PY_FILE", "SERVER_PORT", "ASHUR_DATA_DIR", "ASHUR_DASHBOARD_ALLOWED_ORIGINS"}
           variable_report = []
           for item in records(startup_data):
               name = item.get("env_variable", "")
