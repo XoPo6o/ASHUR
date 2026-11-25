@@ -45,9 +45,7 @@ sudo bash trading-lab/deploy/install_oci.sh
 
 The installer creates a dedicated Linux user, Python virtual environment, systemd service and a separate GitHub SSH deploy key. It starts the daemon immediately and then repeats the paper worker every 300 seconds.
 
-5. The installer prints a **public** SSH deploy key. In GitHub, open:
-   `XoPo6o/ASHUR → Settings → Deploy keys → Add deploy key`.
-   Paste that public key and enable **Allow write access**. This allows the VM to publish its paper ledger (SQLite DB + JSON status) back to branch `ashur-live-shadow`. Never share the private key from `/home/ashur/.ssh/id_ed25519`.
+5. No GitHub deploy key is required. The worker reads public market data and keeps its SQLite ledger and JSON status on the server's persistent filesystem. It does not push runtime state to GitHub.
 6. Check the service:
 
 ```bash
@@ -55,7 +53,7 @@ sudo systemctl status ashur-live-shadow
 sudo journalctl -u ashur-live-shadow -f
 ```
 
-Expected log lines include `WORKER_CYCLE_START`, six strategy results, and `LEDGER_PUBLISHED to ashur-live-shadow`.
+Expected log lines include `ASHUR_SUPERVISOR START`, `ASHUR paper daemon started`, `WORKER_CYCLE_START`, six strategy results, and `WORKER_SUMMARY strategies=6 errors=0`.
 
 ## Operations
 
@@ -64,12 +62,12 @@ Expected log lines include `WORKER_CYCLE_START`, six strategy results, and `LEDG
 - Restart: `sudo systemctl restart ashur-live-shadow`
 - Logs: `sudo journalctl -u ashur-live-shadow --since "1 hour ago"`
 
-Do not disable the existing GitHub Actions schedule until the VM has been verified to publish several consecutive five-minute updates. Once the VM is confirmed, disable the GitHub cron to prevent two writers from updating the same SQLite ledger.
+The Enzonic service is the sole writer of the persistent SQLite ledger. The GitHub Actions Paper/Shadow worker is manual-only and must not be run while Enzonic is active, because both would write separate ledgers and produce incomparable results.
 
 ## Safety
 
 - Paper-only. No exchange credentials, order endpoints or leverage.
-- The SQLite ledger remains on the VM and is published to the repository branch.
+- The SQLite ledger and status JSON remain on the server's persistent filesystem; they are not published to GitHub. A separate GitHub Actions watchdog checks server health every 15 minutes and saves a daily status snapshot for the 30-day review.
 - A GitHub deploy key is used only for this repository; keep its private half on the VM.
 - Oracle Always Free has no uptime SLA and can reclaim sufficiently idle compute instances. Check OCI usage/alerts periodically.
 
