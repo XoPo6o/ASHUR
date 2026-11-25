@@ -40,6 +40,33 @@ def main():
                 if result["minNavLinkHeight"] < 44:
                     raise AssertionError("Mobile navigation targets are smaller than 44px")
 
+        page.set_viewport_size({"width": 390, "height": 844})
+        accessibility = page.evaluate("""() => ({
+            header: Boolean(document.querySelector('header')),
+            main: Boolean(document.querySelector('main')),
+            footer: Boolean(document.querySelector('footer')),
+            labelledNavigation: Boolean(document.querySelector('nav[aria-label]')),
+            headingCount: document.querySelectorAll('h1').length,
+            labelledCharts: [...document.querySelectorAll('svg.chart')].every(
+                chart => chart.getAttribute('role') === 'img' && Boolean(chart.getAttribute('aria-label'))
+            ),
+            liveStatus: Boolean(document.querySelector('[role="status"][aria-live="polite"]'))
+        })""")
+        if not all(accessibility.values()):
+            raise AssertionError(f"Accessibility baseline failed: {accessibility}")
+
+        page.keyboard.press("Tab")
+        focus_style = page.evaluate("""() => {
+            const style = getComputedStyle(document.activeElement);
+            return {outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth};
+        }""")
+        if focus_style["outlineStyle"] == "none" or focus_style["outlineWidth"] == "0px":
+            raise AssertionError("Keyboard focus indicator is not visible")
+
+        page.emulate_media(reduced_motion="reduce")
+        if page.evaluate("getComputedStyle(document.documentElement).scrollBehavior") != "auto":
+            raise AssertionError("Reduced-motion preference is not respected")
+
         browser.close()
 
     if page_errors:
