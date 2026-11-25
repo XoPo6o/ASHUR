@@ -35,11 +35,12 @@ jobs:
       - name: Install ASHUR dependencies
         run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Compile launcher, daemon, worker and news collector
-        run: python -m py_compile ashur_sillydev_start.py trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py trading-lab/news_intelligence.py
+        run: python -m py_compile ashur_sillydev_start.py trading-lab/ashur_supervisor.py trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py trading-lab/news_intelligence.py trading-lab/test_ashur_supervisor.py
       - name: Run offline regression tests
         run: |
           python trading-lab/test_ashur_daemon.py
           python trading-lab/test_news_intelligence.py
+          python trading-lab/test_ashur_supervisor.py
 
   deploy:
     needs: check

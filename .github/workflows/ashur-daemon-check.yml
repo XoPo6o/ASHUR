@@ -10,6 +10,9 @@ on:
       - "trading-lab/news_intelligence.py"
       - "trading-lab/test_ashur_daemon.py"
       - "trading-lab/test_news_intelligence.py"
+      - "trading-lab/ashur_supervisor.py"
+      - "trading-lab/test_ashur_supervisor.py"
+      - "ashur_sillydev_start.py"
       - "requirements.txt"
       - ".github/workflows/ashur-daemon-check.yml"
   workflow_dispatch:
@@ -33,8 +36,10 @@ jobs:
       - name: Install pinned runtime dependencies
         run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Compile worker, daemon, and news sidecar
-        run: python -m py_compile trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py trading-lab/news_intelligence.py
+        run: python -m py_compile ashur_sillydev_start.py trading-lab/ashur_supervisor.py trading-lab/ashur_daemon.py trading-lab/live_shadow_worker.py trading-lab/news_intelligence.py trading-lab/test_ashur_supervisor.py
       - name: Test persistent-state migration and no Git ledger publishing
         run: python trading-lab/test_ashur_daemon.py
+      - name: Test supervisor heartbeat recovery
+        run: python trading-lab/test_ashur_supervisor.py
       - name: Test News Intelligence and counterfactual tracking
         run: python trading-lab/test_news_intelligence.py

@@ -123,7 +123,7 @@ jobs:
 
           echo "Exact commit deployed. Waiting for ASHUR runtime health..."
           HEALTHY=false
-          for attempt in $(seq 1 40); do
+          for attempt in $(seq 1 60); do
             STATE="$(curl --fail-with-body --silent --show-error \
               "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" | \
               python -c 'import json,sys; print(json.load(sys.stdin)["attributes"].get("current_state","unknown"))')"
