@@ -140,7 +140,28 @@ jobs:
                   FROM shadow_intrabar_health ORDER BY strategy_id"""):
                   print("-"," | ".join(str(value) if value is not None else "none" for value in health_row))
           print()
-          print("## Closed paper trades")
+          print()
+          print("## BNB 15m loss-window worker continuity")
+          loss_start="2026-11-19T09:00:00+00:00"
+          loss_end="2026-11-21T13:30:00+00:00"
+          loss_checks=c.execute("""SELECT created_at FROM shadow_events
+              WHERE strategy_id='BNB_15M_EMA_TREND' AND event='CHECK'
+              AND created_at>=? AND created_at<=? ORDER BY id""",(loss_start,loss_end)).fetchall()
+          loss_errors=c.execute("""SELECT created_at,event,details FROM shadow_events
+              WHERE strategy_id='BNB_15M_EMA_TREND'
+              AND event IN ('ERROR','INTRABAR_DATA_WARNING','INTRABAR_GAP_RESET','INTRABAR_EXIT')
+              AND created_at>=? AND created_at<=? ORDER BY id""",(loss_start,loss_end)).fetchall()
+          print("Closed-candle checks in loss window:",len(loss_checks))
+          if loss_checks:
+              check_times=[datetime.fromisoformat(row[0].replace("Z","+00:00")) for row in loss_checks]
+              gaps=[(b-a).total_seconds()/60 for a,b in zip(check_times,check_times[1:])]
+              print("First/last check:",check_times[0].isoformat(),"|",check_times[-1].isoformat())
+              print("Largest check gap, minutes:",round(max(gaps),1) if gaps else 0)
+              print("Largest gaps, minutes:",[round(g,1) for g in sorted(gaps,reverse=True)[:10]])
+          print("Worker errors / intrabar warnings in loss window:")
+          for row in loss_errors:
+              print("-"," | ".join(str(value) for value in row))
+                    print("## Closed paper trades")
           rows=c.execute("SELECT strategy_id,symbol,entry,exit,qty,fees,pnl,reason,opened_at,closed_at FROM shadow_trades ORDER BY id").fetchall()
           if not rows: print("No closed trades yet.")
           for x in rows: print("-"," | ".join(map(str,x)))
