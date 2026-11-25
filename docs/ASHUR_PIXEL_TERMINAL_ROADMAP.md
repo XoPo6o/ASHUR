@@ -114,3 +114,13 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Open positions are never counted as closed wins or losses. Daily P&L bars exclude incomplete UTC days with fewer than two validated snapshots. Drawdown uses observed equity snapshots only.
 - Added history calculation tests and preview data-wiring tests. GitHub Actions run #45623638372 passed dashboard unit tests and JavaScript syntax validation.
 - No trading logic, strategy configuration, order execution, exchange access, or production deployment was changed. Stage 6 analytics implementation is progressing; responsive browser verification and final deployment checks remain open.
+
+
+## Progress update — 2026-11-25 (independent report states and browser smoke coverage)
+- Corrected the Daily Report UI so an incomplete current UTC day no longer hides a separately available rolling 24-hour report. Rolling-window availability and same-day intraday availability are evaluated independently.
+- Hardened failure states: a failed status refresh now warns that displayed balances may be stale instead of incorrectly relabelling previously received live values as the starting baseline. A failed history refresh clears both rolling 24-hour and intraday metrics rather than leaving old values visible.
+- Added regression coverage for the independent report states and stale-data handling. The dashboard unit suite now contains 29 tests.
+- Added a Chromium browser smoke test to GitHub Actions. It opens the actual preview at desktop, tablet and two mobile widths (1440, 768, 390 and 360 px), checking horizontal overflow, chart visibility, scrollable mobile navigation and 44 px touch targets.
+- GitHub Actions run #45624863868 passed the unit suite, responsive Chromium smoke test and JavaScript syntax check on the current UI branch head.
+- Stage 8 browser baseline verification is complete; further visual/accessibility polish remains. Stage 9 remains IN PROGRESS for timezone-boundary, broader accessibility, live-host and runtime checks.
+- This work remains isolated in `ashur-pixel-terminal-ui`. No merge, deployment, strategy changes, order access or trading database writes were performed.
