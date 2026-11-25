@@ -22,10 +22,10 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 1. Audit current site, runtime, status export, deployment and existing UI. DONE (initial repository audit; see audit findings below).
 2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive. DONE (initial IA and read-only data contract documented).
 3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules. BASELINE V0.1 DONE (tokens, typography, component rules and first responsive components documented; detailed component inventory continues during implementation).
-4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health. IN PROGRESS (first screen composition and verified baseline allocation visualization implemented; runtime values and full chart series await data integration).
-5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap.
+4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health. IN PROGRESS (current values and six strategy states wired to the validated read-only status API; live equity history chart now consumes the separate snapshot API).
+5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap. IN PROGRESS (append-only history collector, portfolio and six strategy time series, UTC daily summaries and observed drawdown calculation implemented; CI verification pending).
 6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons.
-7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data. IN PROGRESS (runtime export audited; strict read model and standard-library HTTP endpoint implemented on the isolated branch; HTTPS access, live host verification and front-end wiring remain pending).
+7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data. IN PROGRESS (status and history endpoints implemented and wired to the UI on the isolated branch; live host/HTTPS verification remains pending).
 8. Implement mobile layouts and touch-friendly navigation.
 9. Test calculations against SQLite/exported status, empty states, timezone boundaries, stale data, all six strategies, accessibility and responsive layouts.
 10. Deploy only after review, keeping the existing landing page and trading runtime stable; verify production and record the release commit.
@@ -44,7 +44,7 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Stage 2 initial information architecture and read-only data contract completed; see `docs/ASHUR_PIXEL_TERMINAL_DATA_CONTRACT.md`.
 - Stage 3 baseline v0.1 completed: design tokens and visual rules documented in `docs/ASHUR_PIXEL_TERMINAL_DESIGN_SYSTEM.md`.
 - Stage 4 in progress: `wall-preview.html` now includes the main dashboard composition, six unique strategy cards, verified 6 × 1,000 USDT capital-allocation visualization, responsive layout, and an equity-curve baseline marker that does not imply fabricated flat performance. It remains a static preview, not connected to production data.
-- Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.\n- Runtime adapter milestone: `dashboard/read_model.py` projects the worker's actual JSON export through a strict allowlist, validates the active baseline and six 1,000 USDT accounts, derives portfolio aggregates, and labels stale/offline data. `tests/test_dashboard_read_model.py` covers baseline, mode, duplicate-account, freshness and secret/path non-leakage guards. Tests have been authored but not executed in this environment; no endpoint or live connection is deployed.
+- Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.\n- Runtime adapter milestone: `dashboard/read_model.py` projects the worker's actual JSON export through a strict allowlist, validates the active baseline and six 1,000 USDT accounts, derives portfolio aggregates, and labels stale/offline data. The status and history endpoints are covered by GitHub Actions; the live host has not yet been verified.
 
 ## First implementation deliverables
 - `wall-preview.html`: standalone visual prototype using only verified baseline facts and explicit empty states.
@@ -54,15 +54,15 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 ## Progress update — 2026-11-25 (visual refinement)
 - Updated `wall-preview.html` to use the exact eight-point star SVG mark from the current `main/index.html` brand.
 - Removed the full-page grid overlay and replaced it with a restrained layered midnight gradient with soft turquoise and warm-gold ambient light.
-- Stage 4 remains IN PROGRESS. This is a design refinement only: the preview is still static, and live runtime integration, history collection, automated test execution, and review are not complete.
+- Stage 4 remains IN PROGRESS. Visual identity is refined and the page consumes current runtime data; history collection and analytics are tracked separately.
 
 
 ## Progress update — 2026-11-25 (read-only HTTP adapter)
 - Added `dashboard/http_server.py`: same-origin dashboard page at `/`, `/healthz`, and `GET /api/dashboard/v1/status`; the API returns only the validated `project_status()` allowlist and never serves the raw worker JSON or SQLite database.
 - Added bounded source-file handling, `no-store` response headers, exact CORS allowlisting, same-origin support for an HTTPS reverse proxy, and safe 503 behavior for missing/invalid/offline status.
 - Updated `trading-lab/ashur_supervisor.py` to start the optional listener only when `SERVER_PORT` is supplied. The HTTP listener runs in a daemon thread; listener failure does not interrupt Paper/Shadow supervision.
-- Added `tests/test_dashboard_http_server.py` and `.github/workflows/dashboard-checks.yml`. The workflow has been committed, but a successful CI run has not yet been confirmed.
-- The endpoint remains isolated in `ashur-pixel-terminal-ui`; nothing has been merged or deployed. Silly Development's public app port is plain HTTP, so HTTPS tunnel/reverse-proxy setup must be resolved before connecting a production HTTPS website.
+- Added HTTP adapter tests and `.github/workflows/dashboard-checks.yml`; the initial CI run passed.
+- The endpoint remains isolated in `ashur-pixel-terminal-ui`; nothing has been merged or deployed. Silly Development's public app port is plain HTTP, so HTTPS tunnel/reverse-proxy setup must be resolved before production use.
 
 - Initial dashboard unit suite is green; broader calculation checks against live runtime exports, timezone boundaries, responsive browser rendering and production host verification remain for stage 9.
 
@@ -70,5 +70,16 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 ## Progress update — 2026-11-25 (browser data wiring)
 - Connected the Command Center to the same-origin read-only status API. The page polls every 60 seconds with `cache: no-store` and updates portfolio equity, net P&L/return, closed trades, worker health, source freshness and six strategy balances/statuses.
 - Failure state explicitly labels displayed values as baseline reference only; it does not present the last static baseline as current performance.
-- Equity history, daily P&L history and drawdown remain empty until the separate append-only history collector exists; no synthetic chart series is drawn.
-- Added preview integrity tests for the six strategy IDs, feed route, baseline-only failure behavior and the new official star/no-grid design. CI run #14 is in progress at this update; final result must be checked before calling this milestone green.
+- Equity history, daily P&L history and drawdown are now backed by a separate append-only history collector; the UI displays an explicit collecting state until real observations arrive.
+- Added preview integrity tests for the six strategy IDs, status/history routes, baseline-only failure behavior and the official star/no-grid design. Initial CI run #18 passed (13 tests); history-store tests are added in the current milestone and await their CI result.
+
+
+## Progress update — 2026-11-25 (append-only history collection)
+- Added `dashboard/history_store.py`, a separate SQLite database at `ASHUR_DATA_DIR/ashur_dashboard_history.sqlite3`. It stores one portfolio snapshot and six account snapshots for each unique worker `updated_at` timestamp.
+- Collector reads only the validated worker JSON export through `project_status()`; it records only FRESH observations and ignores stale, offline, invalid-baseline and duplicate exports.
+- The history store is separate from the trading database. No worker strategy, order path, trading table or exchange access was changed.
+- `ashur_supervisor.py` starts the collector as an independent daemon thread, including when no dashboard HTTP port is configured. The collector polls every 30 seconds; normal worker cadence is five minutes.
+- Added read-only `GET /api/dashboard/v1/history?days=1|7|30|90`. It returns chronological portfolio equity, baseline-relative P&L/return, drawdown from the running high-water mark, six per-strategy equity series and UTC intraday daily summaries. History reads use SQLite read-only mode and `no-store`.
+- Updated `wall-preview.html` to draw the actual observed equity curve and display history collection status, sample count, maximum observed drawdown and intraday P&L. Daily P&L remains “Not enough data” until at least two observations exist within the same UTC day.
+- No synthetic chart points are generated. The API and UI show an explicit collecting/empty state until actual worker snapshots have accumulated.
+- Added history collector, read-only API and UI integrity tests. CI result is pending.
