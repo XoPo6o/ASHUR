@@ -12,15 +12,14 @@
 :root{--bg:#0b141d;--bg2:#101e2a;--panel:#142633;--panel2:#1b3340;--line:#365564;--gold:#e4b86a;--gold2:#9c7746;--cyan:#65d8d0;--green:#65d69a;--red:#ed7774;--ink:#e9e5d6;--muted:#9ab0b6;--pixel:'Press Start 2P',monospace;--mono:'IBM Plex Mono',monospace;--shadow:#050a0e}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:82px}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 Inter,Arial,sans-serif;background-image:linear-gradient(180deg,#0a131c 0%,#101e29 55%,#0b141d 100%);min-height:100vh}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;z-index:-1;background-image:linear-gradient(90deg,transparent 96%,#6e9a9a 97%),linear-gradient(0deg,transparent 96%,#6e9a9a 97%);background-size:32px 32px}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 Inter,Arial,sans-serif;min-height:100vh;background-image:radial-gradient(ellipse at 14% 0%,rgba(101,216,208,.12) 0,transparent 38%),radial-gradient(ellipse at 88% 12%,rgba(228,184,106,.13) 0,transparent 32%),radial-gradient(ellipse at 50% 100%,rgba(49,87,103,.18) 0,transparent 46%),linear-gradient(145deg,#09121a 0%,#101e2a 48%,#0b141d 100%);background-attachment:fixed}
 a{color:inherit;text-decoration:none}
 button{font:inherit}
 .shell{width:min(1440px,calc(100% - 36px));margin:auto}
 .topbar{position:sticky;top:0;z-index:20;background:#0b151eee;border-bottom:2px solid #3a5963;box-shadow:0 5px 0 #050a0e}
 .topinner{height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .brand{display:flex;align-items:center;gap:13px}
-.sig{width:38px;height:38px;display:grid;place-items:center;color:var(--gold);font-size:24px;border:2px solid var(--gold2);box-shadow:3px 3px 0 #050a0e;background:#1b2c34}
+.sig{width:42px;height:42px;display:grid;place-items:center;flex:0 0 42px;border:0;background:transparent;box-shadow:none}.sig svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 10px #ff397d55)}
 .brandname{font:15px var(--pixel);letter-spacing:.04em;color:#f4d99d}
 .brandname small{display:block;margin-top:8px;font:9px var(--mono);letter-spacing:.18em;color:var(--muted)}
 .nav{display:flex;gap:7px;flex-wrap:wrap}
@@ -90,13 +89,13 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
 </head>
 <body>
 <header class="topbar"><div class="shell topinner">
-  <a class="brand" href="#top"><span class="sig">𒀭</span><span class="brandname">ASHUR<small>PIXEL TRADING TERMINAL</small></span></a>
+  <a class="brand" href="#top"><span class="sig"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1l5 10 11-5-5 11 8 3-8 4 5 11-11-5-5 9-5-9-11 5 5-11-8-4 8-3-5-11 11 5z" fill="#ffe45c" stroke="#fff0c2" stroke-width="2"/><path d="M20 9l4 8 8 3-8 4-4 8-4-8-8-4 8-3z" fill="#ff397d"/></svg></span><span class="brandname">ASHUR<small>PIXEL TRADING TERMINAL</small></span></a>
   <nav class="nav" aria-label="Навигация"><a class="active" href="#overview">COMMAND CENTER</a><a href="#strategies">STRATEGY ROOM</a><a href="#daily">DAILY REPORT</a><a href="#archive">ARCHIVE</a></nav>
   <div class="live"><i class="dot"></i> PAPER ONLY</div>
 </div></header>
 <main id="top" class="shell">
   <div class="hero" id="overview">
-    <div><div class="eyebrow">𒀭 THE WALL / RESEARCH DASHBOARD</div><h1>СТЕНА<br>ТОРГОВОЙ ИМПЕРИИ</h1><div class="subtitle">30-DAY PAPER EXPERIMENT · BASELINE V2 · READ-ONLY VIEW</div></div>
+    <div><div class="eyebrow">ASHUR / THE WALL / RESEARCH DASHBOARD</div><h1>СТЕНА<br>ТОРГОВОЙ ИМПЕРИИ</h1><div class="subtitle">30-DAY PAPER EXPERIMENT · BASELINE V2 · READ-ONLY VIEW</div></div>
     <div class="hero-art" aria-hidden="true"><svg viewBox="0 0 240 170" role="img"><g opacity=".7"><rect x="12" y="105" width="30" height="25" fill="#243c43"/><rect x="18" y="93" width="18" height="12" fill="#385c61"/><rect x="190" y="96" width="34" height="34" fill="#243c43"/><rect x="198" y="84" width="18" height="12" fill="#385c61"/><rect x="50" y="112" width="140" height="18" fill="#5d705e"/></g><g><rect x="58" y="63" width="12" height="10" fill="#d2a45f"/><rect x="70" y="55" width="12" height="10" fill="#d2a45f"/><rect x="82" y="47" width="12" height="10" fill="#e4b86a"/><rect x="94" y="43" width="12" height="10" fill="#e4b86a"/><rect x="106" y="47" width="12" height="10" fill="#d2a45f"/><rect x="118" y="55" width="12" height="10" fill="#d2a45f"/><rect x="130" y="63" width="12" height="10" fill="#b18a52"/><rect x="66" y="73" width="12" height="9" fill="#d2a45f"/><rect x="78" y="65" width="12" height="9" fill="#e4b86a"/><rect x="90" y="61" width="12" height="9" fill="#e4b86a"/><rect x="102" y="65" width="12" height="9" fill="#d2a45f"/><rect x="114" y="73" width="12" height="9" fill="#b18a52"/><rect x="76" y="83" width="90" height="33" fill="#b18a52"/><rect x="86" y="77" width="72" height="8" fill="#e4b86a"/><rect x="130" y="66" width="28" height="24" fill="#d2a45f"/><rect x="145" y="40" width="34" height="32" fill="#d2a45f"/><rect x="151" y="33" width="8" height="9" fill="#e4b86a"/><rect x="167" y="33" width="8" height="9" fill="#e4b86a"/><rect x="146" y="28" width="7" height="8" fill="#e4b86a"/><rect x="174" y="28" width="7" height="8" fill="#e4b86a"/><rect x="157" y="49" width="6" height="6" fill="#0b141d"/><rect x="172" y="49" width="6" height="6" fill="#65d8d0"/><rect x="151" y="72" width="18" height="13" fill="#8b633d"/><rect x="160" y="84" width="12" height="9" fill="#e4b86a"/><rect x="86" y="113" width="13" height="23" fill="#b18a52"/><rect x="110" y="113" width="13" height="23" fill="#b18a52"/><rect x="143" y="113" width="13" height="23" fill="#b18a52"/><rect x="161" y="113" width="13" height="23" fill="#b18a52"/><rect x="82" y="134" width="19" height="8" fill="#0b141d"/><rect x="106" y="134" width="19" height="8" fill="#0b141d"/><rect x="139" y="134" width="19" height="8" fill="#0b141d"/><rect x="157" y="134" width="19" height="8" fill="#0b141d"/><rect x="70" y="91" width="8" height="8" fill="#65d8d0"/><rect x="127" y="91" width="8" height="8" fill="#65d8d0"/><rect x="179" y="55" width="8" height="8" fill="#e4b86a"/><rect x="187" y="47" width="8" height="8" fill="#e4b86a"/></g></svg></div><div class="daystamp"><strong>DAY 01 / 30</strong><span>25 NOV 2026 · BASELINE LOCKED</span></div>
   </div>
   <section class="grid metrics" aria-label="Ключевые показатели">
@@ -135,7 +134,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     </article>
   </section>
   <section id="strategies">
-    <div class="hero"><div><div class="eyebrow">𒀭 SIX GUARDIANS / SIX ACCOUNTS</div><h1>STRATEGY ROOM</h1><div class="subtitle">Each strategy owns an isolated virtual account · 1,000 USDT starting equity</div></div></div>
+    <div class="hero"><div><div class="eyebrow">SIX GUARDIANS / SIX ACCOUNTS</div><h1>STRATEGY ROOM</h1><div class="subtitle">Each strategy owns an isolated virtual account · 1,000 USDT starting equity</div></div></div>
     <div class="grid strategies">
       <article class="panel strategy"><div class="strategytop"><div class="strategyname">BNB 4H KELTNER ADX</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
       <article class="panel strategy"><div class="strategytop"><div class="strategyname">BNB 4H ADX TREND</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
