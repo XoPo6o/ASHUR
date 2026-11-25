@@ -143,10 +143,12 @@ jobs:
               raise SystemExit(1)
           if not h.get("all_strategies_ok") or h.get("error_count")!=0 or h.get("successful_strategies")!=6:
               raise SystemExit(1)
-          if h.get("all_protections_ok") is not True or h.get("protection_degraded_positions")!=0:
+          if h.get("all_protections_ok") is not True or h.get("protection_degraded_positions")!=0 or h.get("protection_degraded_strategies")!=0:
               raise SystemExit(1)
           for account in d.get("accounts",[]):
               position=account.get("position")
+              if account.get("protection_status")=="DEGRADED":
+                  raise SystemExit(1)
               if position and position.get("protection_status")!="OK":
                   raise SystemExit(1)
           if not stamp:
