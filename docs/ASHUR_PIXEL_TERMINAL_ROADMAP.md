@@ -87,3 +87,13 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 
 - Daily report panel now shows observed intraday P&L, realized P&L, closed-trade delta, fees and intraday drawdown. Values remain unavailable until two observations exist within the same UTC day.
 - Added six-strategy historical return comparison chart using the six per-account time series returned by the history API.
+
+
+## Progress update — 2026-11-25 (dated archive and CI recovery)
+- Corrected the preview integrity test so it accepts accessible role and aria-live attributes on the history-status badge; the rendered markup itself was already correct.
+- Replaced the static 30-day placeholder calendar with a live archive view built only from history.daily returned by the read-only history API.
+- The 30-day UTC heatmap now distinguishes complete positive, negative, partial/collecting and empty days. It never fills gaps with estimated values.
+- Added a compact list of up to seven latest complete daily summaries with observed P&L, realized P&L, closed-trade delta, fees, intraday drawdown and snapshot count. A report is complete only when at least two validated snapshots exist for that UTC day.
+- Added archive rendering coverage. GitHub Actions runs for the current PR head passed both the dashboard unit tests and JavaScript syntax check.
+- Stage 6 remains IN PROGRESS: the dated archive view is implemented, while full 24-hour boundary reporting and additional report validation remain.
+- No merge, deployment, trading database writes, order access or strategy changes were performed.
