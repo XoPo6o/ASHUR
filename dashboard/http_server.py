@@ -11,8 +11,9 @@ import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
+from dashboard.history_store import HISTORY_DB, HistoryUnavailable, read_history
 from dashboard.read_model import StatusUnavailable, project_status
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -101,6 +102,26 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
 
         if path == "/healthz":
             self._json(200, {"status": "ok"}, origin)
+            return
+
+        if path == "/api/dashboard/v1/history":
+            query = parse_qs(urlsplit(self.path).query)
+            try:
+                days = int(query.get("days", ["30"])[0])
+                result = read_history(HISTORY_DB, days=days)
+            except ValueError:
+                self._json(400, {
+                    "status": "INVALID_RANGE",
+                    "message": "days must be one of 1, 7, 30 or 90.",
+                }, origin)
+                return
+            except HistoryUnavailable:
+                self._json(503, {
+                    "status": "HISTORY_UNAVAILABLE",
+                    "message": "Historical snapshots are not available yet.",
+                }, origin)
+                return
+            self._json(200, result, origin)
             return
 
         if path != "/api/dashboard/v1/status":
