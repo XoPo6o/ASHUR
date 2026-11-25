@@ -106,3 +106,11 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Wired the rolling 24-hour values into Daily Report alongside the separate UTC intraday summary; the UI labels the actual observed hours rather than implying an exact clock boundary.
 - Dashboard unit tests and JavaScript syntax checks passed for the implementation commits. The latest CI run is completing its final job bookkeeping.
 - Stage 6 remains IN PROGRESS: the 30-day dated archive and rolling 24-hour metrics are now present; deeper report validation and mobile/browser verification remain.
+
+
+## Progress update — 2026-11-25 (performance analytics charts)
+- Added three data-backed performance charts to the Command Center: completed UTC-day P&L bars, portfolio drawdown from the observed high-water mark, and per-strategy winning/losing closed-trade distribution.
+- Extended the read-only history response with per-strategy closed-trade, win and loss counter deltas. These are computed from the first and last validated account snapshots in the selected range; missing/invalid counter deltas remain unavailable.
+- Open positions are never counted as closed wins or losses. Daily P&L bars exclude incomplete UTC days with fewer than two validated snapshots. Drawdown uses observed equity snapshots only.
+- Added history calculation tests and preview data-wiring tests. GitHub Actions run #45623638372 passed dashboard unit tests and JavaScript syntax validation.
+- No trading logic, strategy configuration, order execution, exchange access, or production deployment was changed. Stage 6 analytics implementation is progressing; responsive browser verification and final deployment checks remain open.
