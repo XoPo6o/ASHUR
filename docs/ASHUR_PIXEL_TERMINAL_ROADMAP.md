@@ -49,3 +49,9 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 ## First implementation deliverables
 - `wall-preview.html`: standalone visual prototype using only verified baseline facts and explicit empty states.
 - This roadmap document: project scope, audit findings, safety constraints and stage tracking.
+
+
+## Progress update — 2026-11-25 (visual refinement)
+- Updated `wall-preview.html` to use the exact eight-point star SVG mark from the current `main/index.html` brand.
+- Removed the full-page grid overlay and replaced it with a restrained layered midnight gradient with soft turquoise and warm-gold ambient light.
+- Stage 4 remains IN PROGRESS. This is a design refinement only: the preview is still static, and live runtime integration, history collection, automated test execution, and review are not complete.
