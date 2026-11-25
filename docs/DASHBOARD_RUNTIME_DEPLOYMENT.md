@@ -188,3 +188,22 @@ checks. Do not overwrite the live history database.
 Do not enable lifecycle deletion until a successful restore test exists and a
 retention period has been explicitly approved. Keep the bucket private; do not
 enable public access or create public object URLs.
+
+
+### Disposable restore verification
+
+After downloading the uploaded database object and its JSON manifest to a disposable
+directory, verify them without opening or modifying the live database:
+
+```bash
+python scripts/verify_dashboard_history_restore.py \
+  --backup "/tmp/ashur-restore-test/<BACKUP_FILENAME>.sqlite3" \
+  --manifest "/tmp/ashur-restore-test/<BACKUP_FILENAME>.sqlite3.json" \
+  --expected-strategies 6
+```
+
+The verifier checks the manifest filename, size and SHA-256, opens SQLite read-only,
+runs `PRAGMA integrity_check` and `PRAGMA foreign_key_check`, checks both required
+history tables, and confirms exactly six strategy observations per portfolio
+snapshot. A successful result is necessary evidence for a restore test, but it
+does not authorize replacing the live database.
