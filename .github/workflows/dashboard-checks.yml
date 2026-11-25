@@ -23,6 +23,7 @@ on:
       - "scripts/dashboard_runtime_smoke.py"
       - "scripts/backup_dashboard_history.py"
       - "scripts/upload_dashboard_history_backup.py"
+      - "scripts/verify_dashboard_history_restore.py"
       - "scripts/requirements-dashboard-backup.txt"
       - "tests/test_dashboard_*.py"
       - "wall-preview.html"
