@@ -529,7 +529,13 @@ class TestAshurRuntime(unittest.TestCase):
                 conn.row_factory = sqlite3.Row
                 worker.init_db(conn)
                 strategy = next(s for s in worker.STRATEGIES if s["id"] == "BNB_15M_EMA_TREND")
-                worker.open_position(conn, strategy, 100.0, 1.0)
+                with patch.object(worker, "minute_cursor_for_now", return_value=600000):
+                    worker.open_position(conn, strategy, 100.0, 1.0)
+                cursor = conn.execute(
+                    "SELECT last_checked_open_ms FROM shadow_intrabar_state WHERE strategy_id=?",
+                    (strategy["id"],),
+                ).fetchone()
+                self.assertEqual(cursor["last_checked_open_ms"], 540000)
                 health = conn.execute(
                     "SELECT last_success_at,last_error FROM shadow_intrabar_health WHERE strategy_id=?",
                     (strategy["id"],),
