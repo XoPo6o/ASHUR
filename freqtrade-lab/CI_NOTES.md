@@ -1,0 +1,1 @@
+The CI runner uses the official image's bundled ftuser (the executable lives in that user's home directory). The workflow leaves the container's user unchanged, then normalizes generated artifact ownership on the runner before summary/upload. This avoids both executable-permission and artifact-write failures.
