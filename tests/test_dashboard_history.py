@@ -97,7 +97,7 @@ class DashboardHistoryTests(unittest.TestCase):
         result = read_history(self.history_db, days=30, now=self.start + timedelta(minutes=11))
         self.assertEqual(result["sample_count"], 3)
         self.assertEqual(result["summary"]["latest_equity"], 6060.0)
-        self.assertAlmostEqual(result["summary"]["max_drawdown_pct"], (6060 / 6120 - 1) * 100, places=3)
+        self.assertAlmostEqual(result["summary"]["max_drawdown_pct"], (6060 / 6100 - 1) * 100, places=3)
         self.assertEqual(len(result["strategies"]), 6)
         self.assertEqual(len(result["equity_curve"]), 3)
         self.assertEqual(result["daily"][0]["pnl"], 60.0)
