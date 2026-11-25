@@ -138,6 +138,11 @@ def project_status(raw: Mapping[str, Any], now: datetime | None = None) -> dict[
                 "opened_at": _timestamp(position.get("opened_at"), f"{sid}.position.opened_at").isoformat(),
                 "protection_status": str(position.get("protection_status", "UNKNOWN"))[:24],
             }
+        pf = source.get("profit_factor")
+        if pf not in (None, "inf"):
+            pf = _number(pf, f"{sid}.profit_factor")
+            if pf < 0:
+                raise StatusUnavailable(f"{sid}: negative profit factor")
         accounts.append({
             "strategy_id": sid,
             "label": str(source.get("label", sid))[:80],
@@ -156,7 +161,7 @@ def project_status(raw: Mapping[str, Any], now: datetime | None = None) -> dict[
             "wins": wins,
             # Worker exports 0 for zero trades; dashboard represents this as unknown.
             "win_rate_pct": (wins / trades * 100) if trades else None,
-            "profit_factor": source.get("profit_factor"),
+            "profit_factor": pf,
             "fees": _number(source.get("fees"), f"{sid}.fees"),
             "last_price": _number(source.get("last_price"), f"{sid}.last_price", nullable=True),
             "last_price_at": (_timestamp(source["last_price_at"], f"{sid}.last_price_at").isoformat()
