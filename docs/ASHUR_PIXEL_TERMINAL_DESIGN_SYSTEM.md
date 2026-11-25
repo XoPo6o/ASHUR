@@ -1,4 +1,4 @@
-# ASHUR Pixel Trading Terminal — design system v0.1
+# ASHUR Pixel Trading Terminal — design system v0.2
 
 ## Art direction
 A deliberate blend of:
@@ -60,3 +60,9 @@ Color is semantic, not decorative: green only means positive/healthy, coral only
 
 ## First prototype
 `wall-preview.html` is the first visual composition. It uses the verified 30-day baseline (6 x 1,000 USDT), a single baseline marker, and explicit empty states. It is not connected to live data and must not be treated as a production dashboard.
+
+
+## Visual refinement v0.2 (2026-11-25)
+- The dashboard brand mark now uses the same eight-point yellow/pink star SVG as the current production landing page (`index.html` on `main`); the former cuneiform glyph is no longer used as the header logo.
+- The page canvas uses layered, low-contrast turquoise and warm-gold radial light over a deep midnight gradient. The tiled grid overlay has been removed entirely.
+- Keep the background atmospheric and quiet: no grid, graph paper, repeating lines, or high-frequency texture behind the analytics. Charts may retain their own data gridlines inside chart panels.
