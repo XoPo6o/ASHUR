@@ -35,9 +35,9 @@ Do not guess the port. Read the actual `SERVER_PORT` value from the hosting pane
 3. Configure the tunnel ingress to forward the hostname to the dashboard listener on loopback, using the actual application port:
    `http://127.0.0.1:<SERVER_PORT>`
 4. Configure a final catch-all ingress rule to return 404.
-5. Run `cloudflared` as a supervised sidecar. It must restart independently and must not replace or wrap the trading supervisor in a way that changes worker lifecycle. Confirm the host permits a second supervised process and that the pinned `cloudflared` binary matches the container architecture before enabling it.
-6. Enable HTTPS at the Cloudflare edge, redirect HTTP to HTTPS, and enable HSTS only after HTTPS has been verified.
-7. Restrict access to the dashboard hostname with Cloudflare Access or an equivalent identity-aware access policy. The dashboard currently has no application login.
+5. Use an HTTPS tunnel or reverse proxy only if a genuinely no-cost option is already available and its terms have been checked. Confirm the host permits the required supervised process and that the client matches the container architecture before enabling it.
+6. Enable HTTPS, redirect HTTP to HTTPS, and enable HSTS only after HTTPS has been verified.
+7. Restrict access to the dashboard hostname with an identity-aware access policy that adds no paid subscription or payment requirement. The dashboard currently has no application login. If no suitable free option is available, keep the dashboard private and do not publish it.
 
 A tunnel token is a secret. Do not paste it into chat, source control, logs, or a command line that is persisted in process listings.
 
