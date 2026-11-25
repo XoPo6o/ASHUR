@@ -82,4 +82,4 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Added read-only `GET /api/dashboard/v1/history?days=1|7|30|90`. It returns chronological portfolio equity, baseline-relative P&L/return, drawdown from the running high-water mark, six per-strategy equity series and UTC intraday daily summaries. History reads use SQLite read-only mode and `no-store`.
 - Updated `wall-preview.html` to draw the actual observed equity curve and display history collection status, sample count, maximum observed drawdown and intraday P&L. Daily P&L remains “Not enough data” until at least two observations exist within the same UTC day.
 - No synthetic chart points are generated. The API and UI show an explicit collecting/empty state until actual worker snapshots have accumulated.
-- Added history collector, read-only API and UI integrity tests. CI result is pending.
+- Added history collector, read-only API and UI integrity tests. GitHub Actions run #53 passed: 19 unit tests and the dashboard JavaScript syntax check both succeeded.
