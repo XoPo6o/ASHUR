@@ -123,6 +123,12 @@ class DashboardHTTPTests(unittest.TestCase):
         self.assertEqual(payload["status"], "UNAVAILABLE")
         self.assertNotIn("private_path", json.dumps(payload))
 
+    def test_same_origin_request_is_allowed_without_cors_configuration(self):
+        origin = self.base_url
+        with self.request("/healthz", origin=origin) as response:
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.headers["Access-Control-Allow-Origin"], origin)
+
     def test_origin_allowlist_and_method_restriction(self):
         with patch.dict(os.environ, {"ASHUR_DASHBOARD_ALLOWED_ORIGINS": "https://ashur.example"}):
             with self.request("/healthz", origin="https://ashur.example") as response:
