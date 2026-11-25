@@ -39,3 +39,16 @@ The endpoint and browser data wiring are implemented only on `ashur-pixel-termin
 - The Command Center updates portfolio equity, baseline-relative P&L, closed-trade count, source timestamp/freshness, worker health, protection state and all six strategy account equities.
 - If the endpoint is unavailable, the UI labels the screen as a baseline preview and explicitly warns that the displayed baseline values are not current balances.
 - Historical equity, daily P&L series and drawdown remain intentionally unavailable until the append-only history collector is implemented.
+
+
+## Append-only history collector (2026-11-25)
+`dashboard/history_store.py` owns a separate `ashur_dashboard_history.sqlite3` database in the configured persistent `ASHUR_DATA_DIR`.
+- Polls the active worker JSON export every 30 seconds.
+- Validates the full status through `project_status()`; persists only FRESH data and ignores duplicate `updated_at` values.
+- Writes portfolio and six per-strategy observations in one SQLite transaction.
+- Does not import or open the trading SQLite database and has no strategy/order logic.
+- Starts from the supervisor as a daemon thread, even when the HTTP dashboard port is absent.
+
+The HTTP adapter exposes `GET /api/dashboard/v1/history?days=1|7|30|90`. It opens the history database with SQLite `mode=ro`, calculates the running high-water drawdown and UTC daily first-to-last observed P&L, and returns bounded chart series. No-history and invalid-range states are explicit. `wall-preview.html` polls the endpoint and draws only actual observations.
+
+The history database is append-only at the application layer and currently has no pruning. A persistent-volume backup and retention policy are still required before production deployment. The new history collector/API/UI tests are awaiting CI confirmation.
