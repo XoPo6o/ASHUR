@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 from unittest.mock import patch
 
 from dashboard import http_server
+from dashboard.history_store import collect_once
 from dashboard.read_model import BASELINE_ID, STRATEGY_IDS
 
 
@@ -19,6 +20,7 @@ class DashboardHTTPTests(unittest.TestCase):
         self.directory = Path(self.temp.name)
         self.status_file = self.directory / "ashur_shadow_status.json"
         self.preview_file = self.directory / "wall-preview.html"
+        self.history_db = self.directory / "ashur_dashboard_history.sqlite3"
         self.preview_file.write_text("<h1>ASHUR TEST PREVIEW</h1>", encoding="utf-8")
         self.now = datetime.now(timezone.utc)
         self.raw = {
@@ -73,8 +75,10 @@ class DashboardHTTPTests(unittest.TestCase):
         self.status_file.write_text(json.dumps(self.raw), encoding="utf-8")
         self.old_status_file = http_server.STATUS_FILE
         self.old_preview_file = http_server.PREVIEW_FILE
+        self.old_history_db = http_server.HISTORY_DB
         http_server.STATUS_FILE = self.status_file
         http_server.PREVIEW_FILE = self.preview_file
+        http_server.HISTORY_DB = self.history_db
         self.server = http_server.make_server()
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -86,6 +90,7 @@ class DashboardHTTPTests(unittest.TestCase):
         self.thread.join(timeout=2)
         http_server.STATUS_FILE = self.old_status_file
         http_server.PREVIEW_FILE = self.old_preview_file
+        http_server.HISTORY_DB = self.old_history_db
         self.temp.cleanup()
 
     def request(self, path, method="GET", origin=None):
@@ -122,6 +127,27 @@ class DashboardHTTPTests(unittest.TestCase):
         payload = json.loads(caught.exception.read().decode("utf-8"))
         self.assertEqual(payload["status"], "UNAVAILABLE")
         self.assertNotIn("private_path", json.dumps(payload))
+
+    def test_history_endpoint_returns_collected_read_only_series(self):
+        self.assertTrue(collect_once(self.status_file, self.history_db, now=self.now))
+        with self.request("/api/dashboard/v1/history?days=7") as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            self.assertEqual(response.status, 200)
+        self.assertEqual(payload["range_days"], 7)
+        self.assertEqual(payload["sample_count"], 1)
+        self.assertEqual(payload["summary"]["latest_equity"], 6000.0)
+        self.assertEqual(len(payload["strategies"]), 6)
+        self.assertEqual(payload["timezone"], "UTC")
+
+    def test_history_endpoint_has_explicit_empty_and_invalid_states(self):
+        with self.assertRaises(HTTPError) as caught:
+            self.request("/api/dashboard/v1/history?days=7")
+        self.assertEqual(caught.exception.code, 503)
+        payload = json.loads(caught.exception.read().decode("utf-8"))
+        self.assertEqual(payload["status"], "HISTORY_UNAVAILABLE")
+        with self.assertRaises(HTTPError) as caught:
+            self.request("/api/dashboard/v1/history?days=2")
+        self.assertEqual(caught.exception.code, 400)
 
     def test_same_origin_request_is_allowed_without_cors_configuration(self):
         origin = self.base_url
