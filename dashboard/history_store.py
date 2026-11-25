@@ -187,7 +187,8 @@ def read_history(
                 raise HistoryUnavailable("no snapshots collected in the requested range")
 
             account_rows = conn.execute(
-                """SELECT a.snapshot_id, a.strategy_id, a.equity, a.net_pnl, a.return_pct
+                """SELECT a.snapshot_id, a.strategy_id, a.equity, a.net_pnl, a.return_pct,
+                          a.trades, a.wins, a.fees
                    FROM dashboard_account_snapshots AS a
                    JOIN dashboard_snapshots AS s ON s.id=a.snapshot_id
                    WHERE s.baseline_id=? AND s.captured_at>=?
@@ -220,6 +221,9 @@ def read_history(
             "equity": round(float(row["equity"]), 4),
             "net_pnl": round(float(row["net_pnl"]), 4),
             "return_pct": round(float(row["return_pct"]), 4),
+            "trades": int(row["trades"]),
+            "wins": int(row["wins"]),
+            "fees": round(float(row["fees"]), 4),
         })
 
     curve = []
@@ -272,6 +276,31 @@ def read_history(
             "fees": round(float(last["fees"]) - float(first["fees"]), 4),
             "max_drawdown_pct": round(day_drawdown, 4),
             "snapshots": len(observations),
+        })
+
+    strategy_trade_stats = []
+    for strategy_id in sorted(strategy_points):
+        observed = [
+            next(item for item in account_by_snapshot[snapshot_id] if item["strategy_id"] == strategy_id)
+            for snapshot_id in sorted(account_by_snapshot)
+            if any(item["strategy_id"] == strategy_id for item in account_by_snapshot[snapshot_id])
+        ]
+        if len(observed) < 2:
+            strategy_trade_stats.append({
+                "strategy_id": strategy_id, "available": False,
+                "closed_trades": 0, "wins": 0, "losses": 0,
+            })
+            continue
+        first_stats, last_stats = observed[0], observed[-1]
+        trades_delta = last_stats["trades"] - first_stats["trades"]
+        wins_delta = last_stats["wins"] - first_stats["wins"]
+        valid = trades_delta >= 0 and wins_delta >= 0 and wins_delta <= trades_delta
+        strategy_trade_stats.append({
+            "strategy_id": strategy_id,
+            "available": valid,
+            "closed_trades": trades_delta if valid else 0,
+            "wins": wins_delta if valid else 0,
+            "losses": trades_delta - wins_delta if valid else 0,
         })
 
     rolling_24h: dict[str, Any] = {
@@ -328,6 +357,7 @@ def read_history(
         },
         "equity_curve": sampled_curve,
         "strategies": sampled_strategies,
+        "strategy_trade_stats": strategy_trade_stats,
         "daily": daily,
         "rolling_24h": rolling_24h,
     }
