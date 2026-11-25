@@ -26,7 +26,7 @@ jobs:
           import json
           import os
           from urllib.error import HTTPError, URLError
-          from urllib.request import Request, urlopen
+          from urllib.request import Request, urlopen\n          from urllib.parse import urlencode
 
           key = os.environ.get("SILLYDEV_API_KEY", "")
           server = os.environ.get("SILLYDEV_SERVER_ID", "")
@@ -37,12 +37,14 @@ jobs:
           base = "https://sillydev.co.uk/panel/api/client"
           headers = {"Authorization": f"Bearer {key}", "Accept": "application/json"}
 
-          def get(path):
+          def get(path, optional=False):
               request = Request(base + path, headers=headers, method="GET")
               try:
                   with urlopen(request, timeout=20) as response:
                       return json.loads(response.read().decode("utf-8"))
               except HTTPError as exc:
+                  if optional and exc.code in (403, 404):
+                      return None
                   print(f"AUDIT_API_ERROR endpoint={path} http={exc.code}")
                   raise SystemExit(1)
               except (URLError, TimeoutError, OSError, ValueError) as exc:
@@ -62,6 +64,9 @@ jobs:
           startup_data = get(f"/servers/{server}/startup")
           startup_meta = startup_data.get("meta", {})
           git_data = get(f"/servers/{server}/git")
+          status_path = "/.local/share/ashur/ashur_shadow_status.json"
+          worker_status = get(f"/servers/{server}/files/contents?{urlencode({'file': status_path})}", optional=True)
+          backup_data = get(f"/servers/{server}/backups", optional=True)
 
           relationships = server_attrs.get("relationships", {})
           allocation_data = relationships.get("allocations", {}).get("data", [])
@@ -143,6 +148,39 @@ jobs:
               "sillydev_config": {k: config.get(k) for k in config_fields if k in config},
               "recent_deployments": safe_deploys,
           }, ensure_ascii=False, sort_keys=True))
+
+          print("=== PAPER WORKER EXPORT ===")
+          if isinstance(worker_status, dict):
+              health = worker_status.get("worker_health", {})
+              accounts = worker_status.get("accounts", [])
+              print(json.dumps({
+                  "status_file_present": True,
+                  "mode": worker_status.get("mode"),
+                  "updated_at": worker_status.get("updated_at"),
+                  "strategy_accounts": len(accounts) if isinstance(accounts, list) else None,
+                  "all_strategies_ok": health.get("all_strategies_ok"),
+                  "successful_strategies": health.get("successful_strategies"),
+                  "error_count": health.get("error_count"),
+                  "all_protections_ok": health.get("all_protections_ok"),
+                  "protection_degraded_positions": health.get("protection_degraded_positions"),
+                  "protection_degraded_strategies": health.get("protection_degraded_strategies"),
+              }, ensure_ascii=False, sort_keys=True))
+          else:
+              print(json.dumps({"status_file_present": False, "path": status_path}))
+
+          print("=== BACKUPS ===")
+          if isinstance(backup_data, dict):
+              backup_items = records(backup_data)
+              print(json.dumps({
+                  "backup_slots": server_attrs.get("feature_limits", {}).get("backups"),
+                  "existing_backups": len(backup_items),
+                  "successful_backups": sum(1 for item in backup_items if item.get("is_successful") is True),
+              }, sort_keys=True))
+          else:
+              print(json.dumps({
+                  "backup_slots": server_attrs.get("feature_limits", {}).get("backups"),
+                  "backup_list_available": False,
+              }, sort_keys=True))
 
           print("=== AUDIT SAFETY ===")
           print("READ_ONLY=true")
