@@ -150,7 +150,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       <div class="allocation-foot"><span>Equal starting allocation</span><strong>100% · 6,000 USDT</strong></div>
       <div class="kpi-strip"><div class="kpi-mini"><span>PER ACCOUNT</span><b>16.67%</b></div><div class="kpi-mini"><span>ACCOUNTS</span><b>06 / 06</b></div><div class="kpi-mini"><span>BASELINE</span><b>V2 LOCKED</b></div></div>
     </div></div></article>
-    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag" id="history-status" role="status" aria-live="polite">COLLECTING</span></div><div class="panelbody"><div class="dailyrow"><span>Stored observations</span><strong id="history-samples">0</strong></div><div class="dailyrow"><span>Max observed drawdown</span><strong id="history-drawdown">—</strong></div><div class="dailyrow"><span>Latest intraday P&amp;L</span><strong id="history-daily-pnl">Not enough data</strong></div><div class="dailyrow"><span>Realized P&amp;L observed</span><strong id="history-realized-pnl">—</strong></div><div class="dailyrow"><span>Closed trades observed</span><strong id="history-daily-trades">—</strong></div><div class="dailyrow"><span>Fees observed</span><strong id="history-daily-fees">—</strong></div><div class="dailyrow"><span>Intraday drawdown</span><strong id="history-intraday-drawdown">—</strong></div><div class="notice" id="history-note">The independent history collector is waiting for the first validated worker snapshot. No synthetic performance data is displayed.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag" id="history-status" role="status" aria-live="polite">COLLECTING</span></div><div class="panelbody"><div class="dailyrow"><span>Stored observations</span><strong id="history-samples">0</strong></div><div class="dailyrow"><span>Max observed drawdown</span><strong id="history-drawdown">—</strong></div><div class="dailyrow"><span>Rolling 24h P&amp;L</span><strong id="history-24h-pnl">Not enough data</strong></div><div class="dailyrow"><span>24h realized P&amp;L</span><strong id="history-24h-realized">Not enough data</strong></div><div class="dailyrow"><span>24h closed trades</span><strong id="history-24h-trades">Not enough data</strong></div><div class="dailyrow"><span>24h fees</span><strong id="history-24h-fees">Not enough data</strong></div><div class="dailyrow"><span>24h drawdown</span><strong id="history-24h-drawdown">Not enough data</strong></div><div class="dailyrow"><span>Latest intraday P&amp;L</span><strong id="history-daily-pnl">Not enough data</strong></div><div class="dailyrow"><span>Realized P&amp;L observed</span><strong id="history-realized-pnl">—</strong></div><div class="dailyrow"><span>Closed trades observed</span><strong id="history-daily-trades">—</strong></div><div class="dailyrow"><span>Fees observed</span><strong id="history-daily-fees">—</strong></div><div class="dailyrow"><span>Intraday drawdown</span><strong id="history-intraday-drawdown">—</strong></div><div class="notice" id="history-note">The independent history collector is waiting for the first validated worker snapshot. No synthetic performance data is displayed.</div></div></article>
   </section>
   <section id="archive" class="grid bottomgrid">
     <article class="panel"><div class="panelhead"><div class="paneltitle">EXPERIMENT ARCHIVE</div><span class="tag" id="archive-count">0 REPORTS</span></div><div class="panelbody"><div class="heat" id="archive-heatmap" role="list" aria-label="Observed daily Paper and Shadow summaries"><span class="future">—</span></div><div class="smallprint" id="archive-note">Daily summaries appear only when validated worker snapshots are available. A complete daily report requires at least two observations in the same UTC day.</div><div class="dailylist" id="archive-reports" aria-live="polite"><div class="emptybox">No complete daily reports yet.</div></div></div></article>
@@ -437,6 +437,19 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       if (!response.ok) throw new Error('history_' + response.status);
       const history = await response.json();
       renderArchive(history.daily || [], history.last_snapshot_at);
+      const rolling = history.rolling_24h || {};
+      if (!rolling.available) {
+        ['history-24h-pnl','history-24h-realized','history-24h-trades','history-24h-fees','history-24h-drawdown'].forEach(id => set(id, 'Not enough data'));
+      } else {
+        set('history-24h-pnl', signed(rolling.pnl) + ' USDT');
+        set('history-24h-realized', signed(rolling.realized_pnl) + ' USDT');
+        set('history-24h-trades', String(rolling.closed_trades));
+        set('history-24h-fees', money(rolling.fees) + ' USDT');
+        set('history-24h-drawdown', percent(rolling.max_drawdown_pct));
+        setTone(byId('history-24h-pnl'), rolling.pnl);
+        setTone(byId('history-24h-realized'), rolling.realized_pnl);
+        setTone(byId('history-24h-drawdown'), rolling.max_drawdown_pct);
+      }
       drawEquityChart(history.equity_curve || []);
       drawStrategyChart(history.strategies || []);
       set('strategy-note', history.sample_count < 2 ? 'One validated observation per strategy is stored. Comparison curves appear after the next worker cycle.' : 'Six strategy return series from the same validated portfolio snapshots; returns are measured against each account’s 1,000 USDT baseline.');
@@ -448,7 +461,8 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       setTone(byId('history-drawdown'), history.summary.max_drawdown_pct);
       const latestDay = history.daily[history.daily.length - 1];
       if (history.sample_count < 2 || !latestDay || latestDay.snapshots < 2) {
-        set('history-daily-pnl', 'Not enough data');
+        ['history-24h-pnl','history-24h-realized','history-24h-trades','history-24h-fees','history-24h-drawdown'].forEach(id => set(id, 'Not enough data'));
+      set('history-daily-pnl', 'Not enough data');
         set('history-realized-pnl', 'Not enough data');
         set('history-daily-trades', 'Not enough data');
         set('history-daily-fees', 'Not enough data');
@@ -463,7 +477,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
         setTone(byId('history-daily-pnl'), latestDay.pnl);
         setTone(byId('history-realized-pnl'), latestDay.realized_pnl);
         setTone(byId('history-intraday-drawdown'), latestDay.max_drawdown_pct);
-        set('history-note', 'Daily metrics compare the first and last observed snapshots of the latest UTC day; they are not represented as a complete 24-hour report.');
+        set('history-note', 'Rolling 24h metrics compare the latest snapshot with the last validated snapshot at or before the 24-hour boundary (' + rolling.elapsed_hours + ' observed hours). Intraday metrics separately compare the first and last snapshots of the latest UTC day.');
       }
     } catch (error) {
       renderArchive([], null);
