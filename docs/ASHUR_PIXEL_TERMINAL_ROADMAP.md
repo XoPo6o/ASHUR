@@ -19,8 +19,8 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - The UI must consume a safe read-only projection of the live worker status. Do not expose the SQLite file or worker's private data directory to the browser.
 
 ## Ten-stage delivery plan
-1. Audit current site, runtime, status export, deployment and existing UI. DONE (initial repository audit).
-2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive.
+1. Audit current site, runtime, status export, deployment and existing UI. DONE (initial repository audit; see audit findings below).
+2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive. IN PROGRESS (information architecture set; data contract documented separately).
 3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules.
 4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health.
 5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap.
@@ -38,6 +38,12 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - No fabricated performance series. With no observations, show a baseline marker and an explicit empty state.
 - Do not use legacy `ashur_paper.db` or the checked-in stale `ashur_shadow_status.json` as current experiment data.
 - Do not merge into the live branch or deploy until the preview and data contract are reviewed.
+
+## Progress on 2026-11-25
+- Stage 1 audit completed.
+- Stage 2 information architecture drafted; read-only data contract drafted in `docs/ASHUR_PIXEL_TERMINAL_DATA_CONTRACT.md`.
+- Stage 3 started: standalone `wall-preview.html` contains the first pixel-art/Retro Pixel UI composition. It is a static design prototype and is not connected to production data.
+- Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.
 
 ## First implementation deliverables
 - `wall-preview.html`: standalone visual prototype using only verified baseline facts and explicit empty states.
