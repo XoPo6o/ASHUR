@@ -536,7 +536,9 @@ def open_position(conn, s, price, atr):
       (strategy_id,symbol,qty,entry,entry_fee,stop,target,opened_at)
       VALUES(?,?,?,?,?,?,?,?)""",
       (s["id"],s["symbol"],qty,fill,fee,stop,target,now()))
-    cursor_ms = minute_cursor_for_now()
+    # Persist the last fully closed minute. The current minute may still be forming
+    # and must be fetched after it closes, otherwise the first post-entry slice is skipped.
+    cursor_ms = minute_cursor_for_now() - 60000
     conn.execute(
         """INSERT OR REPLACE INTO shadow_intrabar_state(strategy_id,last_checked_open_ms)
            VALUES(?,?)""",
