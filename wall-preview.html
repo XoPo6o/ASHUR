@@ -238,8 +238,8 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
         }
       });
     } catch (error) {
-      set('feed-status-text', 'PAPER ONLY · FEED UNAVAILABLE');
-      set('feed-connection', 'FEED UNAVAILABLE');
+      set('feed-status-text', 'PAPER ONLY · LAST SNAPSHOT UNAVAILABLE');
+      set('feed-connection', 'LAST SNAPSHOT UNAVAILABLE');
       set('footer-state', 'READ-ONLY · LIVE DATA UNAVAILABLE');
       ['total-equity','net-pnl','closed-trades','source-updated','healthy-strategies',
        'snapshot-trades','realized-pnl','worker-errors','integrity-errors'].forEach(id => set(id, '—'));
