@@ -56,6 +56,11 @@ jobs:
           h=d.get("worker_health",{})
           if d.get("mode") != "PAPER_ONLY":
               raise SystemExit("UNSAFE_MODE mode="+str(d.get("mode")))
+          experiment=d.get("experiment",{})
+          if experiment.get("baseline_id") != "ashur-paper-30d-2026-11-25-v2" or not experiment.get("baseline_at"):
+              raise SystemExit("CLEAN_30D_BASELINE_NOT_CONFIRMED "+json.dumps(experiment))
+          if float(experiment.get("starting_equity_per_strategy",0)) != 1000.0 or experiment.get("strategy_count") != 6:
+              raise SystemExit("INVALID_EXPERIMENT_BASELINE "+json.dumps(experiment))
           stamp=d.get("updated_at")
           if not stamp:
               raise SystemExit("MISSING_WORKER_HEARTBEAT")
@@ -77,6 +82,9 @@ jobs:
               f"- Server: {state}",
               f"- Worker heartbeat age: {int(age)} seconds",
               f"- Mode: {d['mode']}",
+              f"- Experiment baseline: {experiment['baseline_id']}",
+              f"- Baseline at: {experiment['baseline_at']}",
+              f"- Starting equity per strategy: {experiment['starting_equity_per_strategy']:.2f} USDT",
               f"- Strategies healthy: {h.get('successful_strategies')}/6",
               f"- Worker errors: {h.get('error_count')}",
               f"- Intrabar protections: {h.get('all_protections_ok')}",
