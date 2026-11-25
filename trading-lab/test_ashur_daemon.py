@@ -481,6 +481,36 @@ class TestAshurRuntime(unittest.TestCase):
         self.assertLessEqual(modeled_loss, cash * worker.RISK + 1e-9)
         self.assertLessEqual(qty * entry * (1 + worker.FEE), cash * worker.MAX_NOTIONAL + 1e-9)
 
+    def test_new_paper_position_starts_with_healthy_intrabar_protection(self):
+        import tempfile
+        import json
+
+        with tempfile.TemporaryDirectory() as temporary:
+            original = (worker.DATA_DIR, worker.STATUS_FILE)
+            try:
+                worker.DATA_DIR = Path(temporary)
+                worker.STATUS_FILE = Path(temporary) / "status.json"
+                conn = sqlite3.connect(":memory:")
+                conn.row_factory = sqlite3.Row
+                worker.init_db(conn)
+                strategy = next(s for s in worker.STRATEGIES if s["id"] == "BNB_15M_EMA_TREND")
+                worker.open_position(conn, strategy, 100.0, 1.0)
+                health = conn.execute(
+                    "SELECT last_success_at,last_error FROM shadow_intrabar_health WHERE strategy_id=?",
+                    (strategy["id"],),
+                ).fetchone()
+                self.assertIsNotNone(health)
+                self.assertIsNotNone(health["last_success_at"])
+                self.assertIsNone(health["last_error"])
+                worker.export_status(conn)
+                status = json.loads(worker.STATUS_FILE.read_text(encoding="utf-8"))
+                self.assertTrue(status["worker_health"]["all_protections_ok"])
+                account = next(a for a in status["accounts"] if a["strategy_id"] == strategy["id"])
+                self.assertEqual(account["position"]["protection_status"], "OK")
+                conn.close()
+            finally:
+                worker.DATA_DIR, worker.STATUS_FILE = original
+
     def test_position_size_rejects_invalid_market_inputs(self):
         self.assertEqual(worker.calculate_position_size(1000, 0, 2), 0)
         self.assertEqual(worker.calculate_position_size(1000, 500, 0), 0)
