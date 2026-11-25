@@ -240,9 +240,9 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     } catch (error) {
       set('feed-status-text', 'PAPER ONLY · PREVIEW');
       set('feed-connection', 'FEED UNAVAILABLE');
-      set('footer-state', 'READ-ONLY · BASELINE PREVIEW · NO LIVE FEED');
-      set('feed-note', 'Live status feed is unavailable. Displayed figures are the verified starting baseline only; they are not current performance.');
-      set('snapshot-note', 'Live worker status is unavailable. Baseline figures are shown for reference and must not be read as current balances.');
+      set('footer-state', 'READ-ONLY · LAST SNAPSHOT UNAVAILABLE');
+      set('feed-note', 'The latest status request failed. Values may reflect the previous successful snapshot or the starting baseline; they must not be treated as current.');
+      set('snapshot-note', 'Live worker status is unavailable. Displayed balances may be stale; wait for a successful refresh before treating them as current.');
     }
   }
 
@@ -619,7 +619,9 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       set('history-status', 'COLLECTING');
       set('history-samples', '0');
       set('history-drawdown', '—');
-      set('history-daily-pnl', 'Not enough data');
+      ['history-24h-pnl','history-24h-realized','history-24h-trades','history-24h-fees','history-24h-drawdown',
+       'history-daily-pnl','history-realized-pnl','history-daily-trades','history-daily-fees','history-intraday-drawdown']
+        .forEach(id => set(id, 'Not enough data'));
       set('history-realized-pnl', 'Not enough data');
       set('history-daily-trades', 'Not enough data');
       set('history-daily-fees', 'Not enough data');
