@@ -634,9 +634,6 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             if protection_status != "OK":
                 output["worker_health"]["protection_degraded_positions"] += 1
                 output["worker_health"]["all_protections_ok"] = False
-        if protection and protection["last_error"]:
-            output["worker_health"]["protection_degraded_strategies"] += 1
-            output["worker_health"]["all_protections_ok"] = False
             mark_price = price if price is not None else float(pos["entry"])
             # Mark open positions at estimated net liquidation value, not gross market value.
             liquidation_value = (
@@ -650,6 +647,9 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                         "protection_status":protection_status,
                         "last_intrabar_success_at":protection["last_success_at"] if protection else None,
                         "last_intrabar_error":protection["last_error"] if protection else None}
+        if protection and protection["last_error"]:
+            output["worker_health"]["protection_degraded_strategies"] += 1
+            output["worker_health"]["all_protections_ok"] = False
         cash = float(a["cash"])
         equity = cash + liquidation_value
         output["accounts"].append({
