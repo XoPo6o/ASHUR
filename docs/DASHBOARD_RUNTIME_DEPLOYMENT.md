@@ -31,11 +31,11 @@ Do not guess the port. Read the actual `SERVER_PORT` value from the hosting pane
 ### Preferred when the host permits a sidecar: Cloudflare Tunnel
 
 1. Create a dedicated Cloudflare Tunnel and a DNS hostname for the dashboard.
-2. Store the tunnel token only as a hosting-panel secret. Never commit it, print it, or put it in browser code.
+2. Store the tunnel token in a protected file outside the repository and web-served paths. For `cloudflared` 2025.4.0 or later, prefer `--token-file <PATH>` / `TUNNEL_TOKEN_FILE` so the token does not appear in process arguments. Never commit it, print it, or put it in browser code.
 3. Configure the tunnel ingress to forward the hostname to the dashboard listener on loopback, using the actual application port:
    `http://127.0.0.1:<SERVER_PORT>`
 4. Configure a final catch-all ingress rule to return 404.
-5. Run `cloudflared` as a supervised sidecar. It must restart independently and must not replace or wrap the trading supervisor in a way that changes worker lifecycle.
+5. Run `cloudflared` as a supervised sidecar. It must restart independently and must not replace or wrap the trading supervisor in a way that changes worker lifecycle. Confirm the host permits a second supervised process and that the pinned `cloudflared` binary matches the container architecture before enabling it.
 6. Enable HTTPS at the Cloudflare edge, redirect HTTP to HTTPS, and enable HSTS only after HTTPS has been verified.
 7. Restrict access to the dashboard hostname with Cloudflare Access or an equivalent identity-aware access policy. The dashboard currently has no application login.
 
