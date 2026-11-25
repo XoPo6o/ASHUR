@@ -542,6 +542,31 @@ class TestAshurRuntime(unittest.TestCase):
         self.assertTrue(worker.probe_intrabar_recovery(conn, strategy))
         conn.close()
 
+    def test_stale_minute_feed_health_is_revalidated_before_entry(self):
+        from datetime import datetime, timedelta, timezone
+        import pandas as pd
+
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        worker.init_db(conn)
+        strategy = next(s for s in worker.STRATEGIES if s["id"] == "BNB_15M_EMA_TREND")
+        stale = (datetime.now(timezone.utc) - timedelta(minutes=20)).isoformat()
+        conn.execute(
+            """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
+               VALUES(?,?,NULL,NULL)""",
+            (strategy["id"], stale),
+        )
+        conn.commit()
+        candle = pd.DataFrame([{
+            "timestamp": worker.minute_cursor_for_now() - 60000,
+            "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1.0,
+        }])
+        with patch.object(worker, "fetch_execution_klines", return_value=candle) as fetch:
+            self.assertFalse(worker.probe_intrabar_recovery(conn, strategy))
+            fetch.assert_called_once()
+        self.assertTrue(worker.probe_intrabar_recovery(conn, strategy))
+        conn.close()
+
     def test_new_paper_position_starts_with_healthy_intrabar_protection(self):
         import tempfile
         import json
