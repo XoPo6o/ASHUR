@@ -215,7 +215,7 @@ def read_history(
         high_water = float(row["high_water"])
         drawdown = ((equity / high_water) - 1) * 100 if high_water else 0.0
         max_drawdown = min(max_drawdown, drawdown)
-        at = str(row["captured_at"])
+        at = str(row["source_updated_at"])
         curve.append({
             "at": at,
             "equity": round(equity, 4),
