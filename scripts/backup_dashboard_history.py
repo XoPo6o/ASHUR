@@ -33,7 +33,7 @@ def create_verified_backup(source: Path, destination_dir: Path) -> dict[str, Any
         raise ValueError("backup destination must not be inside the source directory tree")
 
     destination_dir.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     final_db = destination_dir / f"{source.stem}-{stamp}.sqlite3"
     final_manifest = final_db.with_suffix(final_db.suffix + ".json")
 
