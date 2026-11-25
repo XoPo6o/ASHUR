@@ -19,16 +19,20 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn("cache: 'no-store'", HTML)
         self.assertIn("credentials: 'same-origin'", HTML)
         self.assertIn("window.setInterval(refreshDashboard, 60000)", HTML)
+        self.assertIn("fetch('/api/dashboard/v1/history?days=30'", HTML)
+        self.assertIn("window.setInterval(refreshHistory, 60000)", HTML)
 
     def test_history_dependent_panels_are_not_faked(self):
-        self.assertIn("HISTORY PENDING", HTML)
-        self.assertIn("historical snapshot series", HTML)
+        self.assertIn('id="history-status">COLLECTING', HTML)
+        self.assertIn("function drawEquityChart(points)", HTML)
+        self.assertIn("One validated snapshot is stored", HTML)
+        self.assertIn("No synthetic performance data is displayed", HTML)
         self.assertNotIn("NO TRADES YET", HTML)
 
     def test_offline_feed_is_not_presented_as_current_performance(self):
         self.assertIn("verified starting baseline only", HTML)
         self.assertIn("must not be read as current balances", HTML)
-        self.assertIn("Historical equity and drawdown remain unavailable", HTML)
+        self.assertIn("Historical analytics are supplied by the separate append-only collector", HTML)
 
     def test_official_star_mark_and_no_full_page_grid(self):
         self.assertIn('fill="#ffe45c"', HTML)
