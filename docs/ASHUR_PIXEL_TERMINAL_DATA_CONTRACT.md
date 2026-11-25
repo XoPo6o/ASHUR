@@ -109,3 +109,6 @@ If no validated snapshot exists at or before the boundary, `available=false` and
 
 ## Per-strategy trade outcome distribution
 The read-only history response includes `strategy_trade_stats`, one entry per strategy in the selected range. Each entry contains `strategy_id`, `available`, `closed_trades`, `wins` and `losses`. Counts are deltas between the first and last validated account snapshots available in that range. A counter reset or inconsistent delta makes the entry unavailable rather than manufacturing values. Open positions are excluded. The UI must show an empty/collecting state when there are no valid closed-trade deltas.
+
+
+The history response schema version is `1.1`, reflecting the additive rolling 24-hour and per-strategy trade-outcome fields. Consumers should ignore unknown additive fields and must not infer unavailable metrics.
