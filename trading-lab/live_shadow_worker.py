@@ -235,10 +235,11 @@ def _fetch_execution_pages(symbol, since_ms, cutoff_ms, source):
         page_count += 1
         if page_count > (MAX_INTRABAR_RECOVERY_MINUTES // EXECUTION_KLINE_PAGE_SIZE) + 2:
             raise RuntimeError("1m recovery exceeded pagination safety limit")
+        page_end = min(int(cutoff_ms), cursor + EXECUTION_KLINE_PAGE_SIZE * 60000)
         if source == "bybit":
             query = urllib.parse.urlencode({
                 "category": "spot", "symbol": market_symbol, "interval": "1",
-                "start": cursor, "end": int(cutoff_ms), "limit": EXECUTION_KLINE_PAGE_SIZE,
+                "start": cursor, "end": page_end, "limit": EXECUTION_KLINE_PAGE_SIZE,
             })
             payload = api_json("https://api.bybit.com/v5/market/kline?" + query)
             if payload.get("retCode") != 0:
@@ -247,7 +248,7 @@ def _fetch_execution_pages(symbol, since_ms, cutoff_ms, source):
         else:
             query = urllib.parse.urlencode({
                 "symbol": market_symbol, "interval": "1m",
-                "startTime": cursor, "endTime": int(cutoff_ms),
+                "startTime": cursor, "endTime": page_end,
                 "limit": EXECUTION_KLINE_PAGE_SIZE,
             })
             rows = api_json("https://data-api.binance.vision/api/v3/klines?" + query)
