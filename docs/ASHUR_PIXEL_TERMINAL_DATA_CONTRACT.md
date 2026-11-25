@@ -93,3 +93,15 @@ The collector may read the worker status file, but it must not write to the trad
 - summary values and total/sample point counts.
 
 If no valid history exists, the API returns HTTP 503 with `HISTORY_UNAVAILABLE`; unsupported ranges return HTTP 400. The browser never receives a database path or raw SQLite content.
+
+
+## Rolling 24-hour report
+The history response also exposes a read-only `rolling_24h` summary. Its reference point is the latest validated worker snapshot at or before the 24-hour boundary measured backward from the newest snapshot, not a fabricated or interpolated value.
+
+When the boundary anchor exists, the response includes:
+- `available`, `start_at`, `end_at`, `elapsed_hours` and `snapshots`;
+- observed equity P&L and return percentage;
+- realized P&L, closed-trade delta and fee delta;
+- maximum drawdown calculated chronologically from the anchor through the newest snapshot.
+
+If no validated snapshot exists at or before the boundary, `available=false` and the UI must show that 24-hour metrics are not yet available. The report displays the actual elapsed observation window so a small worker-cadence offset is never hidden. The calculation is read-only and does not alter the trading database.
