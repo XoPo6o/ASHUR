@@ -346,9 +346,11 @@ class TestAshurRuntime(unittest.TestCase):
                     (strategy["id"],),
                 ).fetchone()
                 conn.close()
-                self.assertEqual(trade[0], "SIGNAL")
+                self.assertEqual(trade[0], "PROTECTION_GAP_FAILSAFE")
                 status = json.loads(worker.STATUS_FILE.read_text(encoding="utf-8"))
                 self.assertEqual(status["worker_health"]["intrabar_data_warnings_24h"], 1)
+                account = next(x for x in status["accounts"] if x["strategy_id"] == strategy["id"])
+                self.assertIsNone(account["position"])
             finally:
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE, worker.STRATEGIES = original
 
@@ -419,15 +421,44 @@ class TestAshurRuntime(unittest.TestCase):
     def test_minute_cursor_rounds_down_to_current_minute(self):
         self.assertEqual(worker.minute_cursor_for_now(125_999), 120_000)
 
-    def test_intrabar_cursor_recovers_after_long_worker_outage(self):
+    def test_intrabar_cursor_is_never_reset_after_long_worker_outage(self):
         now_ms = 2_000_000_000_000
         recent = now_ms - 10 * 60000
-        stale = now_ms - 1000 * 60000
+        stale = now_ms - 3087 * 60000
         self.assertEqual(worker.recover_intrabar_cursor(recent, now_ms), recent)
-        self.assertEqual(
-            worker.recover_intrabar_cursor(stale, now_ms),
-            worker.minute_cursor_for_now(now_ms) - 120000,
-        )
+        self.assertEqual(worker.recover_intrabar_cursor(stale, now_ms), stale)
+
+    def test_intrabar_history_paginates_full_51_hour_window(self):
+        import pandas as pd
+        now_ms = 2_000_000_000_000
+        cutoff = now_ms
+        last_open = ((cutoff - 60000) // 60000) * 60000
+        since = last_open - 2001 * 60000
+        original_time = worker.time.time
+        original_api = worker.api_json
+        requests = []
+
+        def fake_api(url):
+            from urllib.parse import urlparse, parse_qs
+            params = parse_qs(urlparse(url).query)
+            start = int(params.get("start", params.get("startTime"))[0])
+            end = int(params.get("end", params.get("endTime"))[0])
+            requests.append((start, end))
+            stamps = list(range(start, end, 60000))[:worker.EXECUTION_KLINE_PAGE_SIZE]
+            return [[stamp, "100", "101", "99", "100", "1"] for stamp in reversed(stamps)]
+
+        try:
+            worker.time.time = lambda: cutoff / 1000
+            worker.api_json = fake_api
+            candles = worker._fetch_execution_pages("BNB/USDT", since, cutoff, "bybit")
+            self.assertEqual(len(candles), 2002)
+            self.assertEqual(int(candles.iloc[0].timestamp), since)
+            self.assertEqual(int(candles.iloc[-1].timestamp), last_open)
+            self.assertGreaterEqual(len(requests), 3)
+            self.assertTrue((candles.timestamp.diff().dropna() == 60000).all())
+        finally:
+            worker.time.time = original_time
+            worker.api_json = original_api
 
 
     def test_target_gap_fill_is_capped_at_target_reference(self):
