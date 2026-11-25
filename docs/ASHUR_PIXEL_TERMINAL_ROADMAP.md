@@ -21,8 +21,8 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 ## Ten-stage delivery plan
 1. Audit current site, runtime, status export, deployment and existing UI. DONE (initial repository audit; see audit findings below).
 2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive. DONE (initial IA and read-only data contract documented).
-3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules. IN PROGRESS (design tokens and first visual components documented; more components remain).
-4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health.
+3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules. BASELINE V0.1 DONE (tokens, typography, component rules and first responsive components documented; detailed component inventory continues during implementation).
+4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health. IN PROGRESS (first screen composition and verified baseline allocation visualization implemented; runtime values and full chart series await data integration).
 5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap.
 6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons.
 7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data.
@@ -42,7 +42,8 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 ## Progress on 2026-11-25
 - Stage 1 audit completed.
 - Stage 2 initial information architecture and read-only data contract completed; see `docs/ASHUR_PIXEL_TERMINAL_DATA_CONTRACT.md`.
-- Stage 3 in progress: design tokens and visual rules documented in `docs/ASHUR_PIXEL_TERMINAL_DESIGN_SYSTEM.md`; standalone `wall-preview.html` contains the first Pixelhood/Retro Pixel UI composition. It is a static design prototype and is not connected to production data.
+- Stage 3 baseline v0.1 completed: design tokens and visual rules documented in `docs/ASHUR_PIXEL_TERMINAL_DESIGN_SYSTEM.md`.
+- Stage 4 in progress: `wall-preview.html` now includes the main dashboard composition, six unique strategy cards, verified 6 × 1,000 USDT capital-allocation visualization, responsive layout, and an equity-curve baseline marker that does not imply fabricated flat performance. It remains a static preview, not connected to production data.
 - Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.
 
 ## First implementation deliverables
