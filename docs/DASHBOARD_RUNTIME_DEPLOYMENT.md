@@ -97,3 +97,30 @@ If the dashboard or tunnel causes instability:
 ## Release blockers
 
 PR #4 must remain Draft until HTTPS, access control, persistent-volume behavior, backup/restore, and public-origin runtime checks are evidenced. Passing CI is not proof of successful hosting-panel deployment.
+
+
+## Verified SQLite backup utility
+
+The dashboard branch includes `scripts/backup_dashboard_history.py`. It uses Python's
+SQLite online backup API, runs `PRAGMA integrity_check`, and writes a SHA-256
+manifest beside the snapshot. This avoids copying only the main database file
+while WAL writes may be active.
+
+Example (replace the destination with a separately mounted backup volume):
+
+```bash
+python scripts/backup_dashboard_history.py \
+  --source "$ASHUR_DATA_DIR/ashur_dashboard_history.sqlite3" \
+  --destination-dir "/mnt/ashur-offhost-backups"
+```
+
+The script refuses a destination inside the source directory tree. A successful
+local run is not, by itself, an off-host backup: the destination must be backed
+by storage independent of the SillyDev application volume. The utility does not
+upload to cloud storage, configure credentials, schedule jobs, or prune old
+backups. Those actions remain disabled until the external destination and
+retention policy are explicitly configured and a restore test is completed.
+
+For restoration testing, copy one verified snapshot to a disposable directory,
+open it with SQLite, run `PRAGMA integrity_check`, and verify expected tables
+and row counts. Never restore over the live history database as part of a test.
