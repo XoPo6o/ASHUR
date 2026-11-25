@@ -58,6 +58,21 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertNotIn("history-24h-realized", guard)
         self.assertIn("history-daily-pnl", guard)
 
+    def test_feed_failures_do_not_mislabel_stale_values_as_baseline(self):
+        offline = HTML.split("} catch (error) {", 1)[1].split("  }", 1)[0]
+        self.assertIn("LAST SNAPSHOT UNAVAILABLE", offline)
+        self.assertIn("may reflect the previous successful snapshot", offline)
+        self.assertNotIn("BASELINE PREVIEW · NO LIVE FEED", offline)
+
+    def test_history_failure_resets_rolling_and_intraday_metrics(self):
+        history_offline = HTML.split("async function refreshHistory()", 1)[1].split("  refreshHistory();", 1)[0]
+        catch = history_offline.split("} catch (error) {", 1)[1]
+        for metric_id in ("history-24h-pnl", "history-24h-realized", "history-24h-trades",
+                          "history-24h-fees", "history-24h-drawdown", "history-daily-pnl",
+                          "history-realized-pnl", "history-daily-trades", "history-daily-fees",
+                          "history-intraday-drawdown"):
+            self.assertIn(metric_id, catch)
+
     def test_performance_charts_use_observed_history_payloads(self):
         self.assertIn('id="daily-pnl-chart"', HTML)
         self.assertIn('id="drawdown-chart"', HTML)
