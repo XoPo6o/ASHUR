@@ -209,49 +209,86 @@ def validate_execution_klines(frame, since_ms, cutoff_ms):
     return frame
 
 
-def fetch_execution_klines(symbol, since_ms):
-    """Fetch closed 1m candles since the last processed minute for open-position protection."""
+MAX_INTRABAR_RECOVERY_MINUTES = 7 * 24 * 60
+EXECUTION_KLINE_PAGE_SIZE = 1000
+
+
+def _execution_frame(rows, columns):
+    return pd.DataFrame(
+        [[int(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]), float(r[5])]
+         for r in rows], columns=columns
+    )
+
+
+def _fetch_execution_pages(symbol, since_ms, cutoff_ms, source):
+    """Page through the complete closed-minute window; never silently truncate at 1000 bars."""
     market_symbol = symbol.replace("/", "")
-    cutoff = int(time.time() * 1000)
-    errors = []
     columns = ["timestamp", "open", "high", "low", "close", "volume"]
+    cursor = int(since_ms)
+    frames = []
+    expected_last = ((int(cutoff_ms) - 60000) // 60000) * 60000
+    if cursor > expected_last:
+        return pd.DataFrame(columns=columns)
 
-    try:
-        query = urllib.parse.urlencode({
-            "category": "spot", "symbol": market_symbol, "interval": "1",
-            "start": int(since_ms), "end": cutoff, "limit": 1000,
-        })
-        payload = api_json("https://api.bybit.com/v5/market/kline?" + query)
-        if payload.get("retCode") != 0:
-            raise RuntimeError("Bybit execution klines: " + str(payload.get("retMsg")))
-        rows = payload["result"]["list"]
-        frame = pd.DataFrame(
-            [[int(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]), float(r[5])]
-             for r in rows], columns=columns
-        )
+    page_count = 0
+    while cursor <= expected_last:
+        page_count += 1
+        if page_count > (MAX_INTRABAR_RECOVERY_MINUTES // EXECUTION_KLINE_PAGE_SIZE) + 2:
+            raise RuntimeError("1m recovery exceeded pagination safety limit")
+        if source == "bybit":
+            query = urllib.parse.urlencode({
+                "category": "spot", "symbol": market_symbol, "interval": "1",
+                "start": cursor, "end": int(cutoff_ms), "limit": EXECUTION_KLINE_PAGE_SIZE,
+            })
+            payload = api_json("https://api.bybit.com/v5/market/kline?" + query)
+            if payload.get("retCode") != 0:
+                raise RuntimeError("Bybit execution klines: " + str(payload.get("retMsg")))
+            rows = payload["result"]["list"]
+        else:
+            query = urllib.parse.urlencode({
+                "symbol": market_symbol, "interval": "1m",
+                "startTime": cursor, "endTime": int(cutoff_ms),
+                "limit": EXECUTION_KLINE_PAGE_SIZE,
+            })
+            rows = api_json("https://data-api.binance.vision/api/v3/klines?" + query)
+
+        frame = _execution_frame(rows, columns)
+        if frame.empty:
+            break
         frame = frame.sort_values("timestamp").reset_index(drop=True)
-        frame = frame[(frame.timestamp >= int(since_ms)) & (frame.timestamp + 60000 <= cutoff)].reset_index(drop=True)
-        return validate_execution_klines(frame, since_ms, cutoff)
-    except Exception as exc:
-        errors.append("Bybit: " + str(exc))
+        frame = frame[(frame.timestamp >= cursor) & (frame.timestamp + 60000 <= int(cutoff_ms))].reset_index(drop=True)
+        if frame.empty:
+            break
+        frames.append(frame)
+        next_cursor = int(frame.iloc[-1].timestamp) + 60000
+        if next_cursor <= cursor:
+            raise RuntimeError("1m recovery pagination did not advance")
+        cursor = next_cursor
+        if len(frame) < EXECUTION_KLINE_PAGE_SIZE:
+            break
 
-    try:
-        query = urllib.parse.urlencode({
-            "symbol": market_symbol, "interval": "1m",
-            "startTime": int(since_ms), "endTime": cutoff, "limit": 1000,
-        })
-        rows = api_json("https://data-api.binance.vision/api/v3/klines?" + query)
-        frame = pd.DataFrame(
-            [[int(r[0]), float(r[1]), float(r[2]), float(r[3]), float(r[4]), float(r[5])]
-             for r in rows], columns=columns
+    combined = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=columns)
+    combined = combined.drop_duplicates(subset=["timestamp"]).sort_values("timestamp").reset_index(drop=True)
+    return validate_execution_klines(combined, since_ms, cutoff_ms)
+
+
+def fetch_execution_klines(symbol, since_ms):
+    """Fetch every closed 1m candle since the cursor, with pagination and strict continuity."""
+    cutoff = int(time.time() * 1000)
+    since_ms = int(since_ms)
+    missing_minutes = max(0, ((cutoff - 60000) // 60000 - since_ms) // 60000 + 1)
+    if missing_minutes > MAX_INTRABAR_RECOVERY_MINUTES:
+        raise RuntimeError(
+            f"1m protection gap too large to reconstruct: {missing_minutes} minutes "
+            f"(limit {MAX_INTRABAR_RECOVERY_MINUTES})"
         )
-        frame = frame.sort_values("timestamp").reset_index(drop=True)
-        frame = frame[(frame.timestamp >= int(since_ms)) & (frame.timestamp + 60000 <= cutoff)].reset_index(drop=True)
-        return validate_execution_klines(frame, since_ms, cutoff)
-    except Exception as exc:
-        errors.append("Binance: " + str(exc))
-
-    raise RuntimeError("No usable 1m execution candles: " + " | ".join(errors))
+    errors = []
+    for source in ("bybit", "binance"):
+        try:
+            return _fetch_execution_pages(symbol, since_ms, cutoff, source)
+        except Exception as exc:
+            errors.append(f"{source}: {type(exc).__name__}: {exc}")
+    raise RuntimeError("No complete 1m execution history: " + " | ".join(errors))
 
 
 def intrabar_exit_signal(position, candles):
@@ -281,12 +318,8 @@ def minute_cursor_for_now(now_ms=None):
 
 
 def recover_intrabar_cursor(last_checked_open_ms, now_ms=None, max_gap_minutes=900):
-    """After a long outage, resume from the latest closed minute and record the blind window."""
-    now_ms = int(now_ms if now_ms is not None else time.time() * 1000)
-    last_checked_open_ms = int(last_checked_open_ms)
-    if now_ms - last_checked_open_ms <= int(max_gap_minutes) * 60000:
-        return last_checked_open_ms
-    return minute_cursor_for_now(now_ms) - 120000
+    """Preserve the original cursor; long gaps must be backfilled or fail-safe closed."""
+    return int(last_checked_open_ms)
 
 
 def validate_binance_ticker(payload, now_ms=None):
@@ -533,7 +566,9 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                                 "successful_strategies": successful_strategies,
                                 "error_count": int(worker_errors),
                                 "intrabar_data_warnings_24h": int(intrabar_warnings_24h),
-                                "all_strategies_ok": int(worker_errors) == 0 and successful_strategies == len(STRATEGIES)},
+                                "all_strategies_ok": int(worker_errors) == 0 and successful_strategies == len(STRATEGIES),
+                                "protection_degraded_positions": 0,
+                                "all_protections_ok": True},
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
                                     "veto_outcomes": news.veto_outcome_stats(conn)},
@@ -551,6 +586,16 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
         position = None
         liquidation_value = 0.0
         if pos:
+            protection = conn.execute(
+                "SELECT last_success_at,last_error,last_error_at FROM shadow_intrabar_health WHERE strategy_id=?",
+                (a["strategy_id"],),
+            ).fetchone()
+            protection_status = "DEGRADED" if protection and protection["last_error"] else "UNKNOWN"
+            if protection and protection["last_success_at"] and not protection["last_error"]:
+                protection_status = "OK"
+            if protection_status != "OK":
+                output["worker_health"]["protection_degraded_positions"] += 1
+                output["worker_health"]["all_protections_ok"] = False
             mark_price = price if price is not None else float(pos["entry"])
             # Mark open positions at estimated net liquidation value, not gross market value.
             liquidation_value = (
@@ -560,7 +605,10 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             unrealized = liquidation_value - entry_cost
             position = {"symbol":pos["symbol"],"qty":float(pos["qty"]),"entry":float(pos["entry"]),
                         "mark":mark_price,"stop":float(pos["stop"]),"target":float(pos["target"]),
-                        "unrealized_pnl":round(unrealized,4),"opened_at":pos["opened_at"]}
+                        "unrealized_pnl":round(unrealized,4),"opened_at":pos["opened_at"],
+                        "protection_status":protection_status,
+                        "last_intrabar_success_at":protection["last_success_at"] if protection else None,
+                        "last_intrabar_error":protection["last_error"] if protection else None}
         cash = float(a["cash"])
         equity = cash + liquidation_value
         output["accounts"].append({
@@ -619,61 +667,56 @@ def run():
                         "SELECT last_checked_open_ms FROM shadow_intrabar_state WHERE strategy_id=?",
                         (s["id"],),
                     ).fetchone()
+                    protection_ok = True
                     if cursor is None:
-                        # Existing positions predate the 1m watcher; start safely from now.
-                        baseline = minute_cursor_for_now()
-                        conn.execute(
-                            "INSERT INTO shadow_intrabar_state VALUES(?,?)",
-                            (s["id"], baseline),
-                        )
-                        event(conn, s["id"], "INTRABAR_BASELINE",
-                              "1m protection initialized for pre-existing position; historical minutes unavailable")
+                        protection_ok = False
+                        error_text = "Existing open position has no persisted 1m protection cursor"
                     else:
                         previous_cursor = int(cursor["last_checked_open_ms"])
                         recovered_cursor = recover_intrabar_cursor(previous_cursor)
-                        if recovered_cursor != previous_cursor:
-                            gap_minutes = max(0, (int(time.time() * 1000) - previous_cursor) // 60000)
-                            conn.execute(
-                                "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
-                                (recovered_cursor, s["id"]),
-                            )
-                            event(conn, s["id"], "INTRABAR_GAP_RESET",
-                                  f"unobserved_minutes={gap_minutes}; resumed_from={recovered_cursor}")
                         since_ms = recovered_cursor + 60000
                         try:
                             execution_candles = fetch_execution_klines(s["symbol"], since_ms)
                         except Exception as exc:
-                            # Keep independent live-price, daily-loss and signal exits active.
-                            # Do not advance the cursor: the missing minute range must be retried.
+                            protection_ok = False
                             error_text = f"{type(exc).__name__}: {exc}"[:500]
-                            event(conn, s["id"], "INTRABAR_DATA_WARNING", error_text)
-                            conn.execute(
-                                """INSERT INTO shadow_intrabar_health(strategy_id,last_error,last_error_at)
-                                   VALUES(?,?,?) ON CONFLICT(strategy_id) DO UPDATE SET
-                                   last_error=excluded.last_error,last_error_at=excluded.last_error_at""",
-                                (s["id"], error_text, now()),
-                            )
                             execution_candles = None
-                        if execution_candles is not None:
+
+                    if not protection_ok:
+                        # Paper fail-safe: flatten at the current validated ticker when the
+                        # stop history cannot be reconstructed. This is a simulation safeguard,
+                        # not an exchange-side stop or a claim about historical execution.
+                        event(conn, s["id"], "INTRABAR_DATA_WARNING", error_text)
+                        event(conn, s["id"], "PROTECTION_GAP_FAILSAFE",
+                              f"paper position closed at live mark={price:.6f}; new entries blocked this cycle")
+                        conn.execute(
+                            """INSERT INTO shadow_intrabar_health(strategy_id,last_error,last_error_at)
+                               VALUES(?,?,?) ON CONFLICT(strategy_id) DO UPDATE SET
+                               last_error=excluded.last_error,last_error_at=excluded.last_error_at""",
+                            (s["id"], error_text, now()),
+                        )
+                        close_position(conn, s, price, "PROTECTION_GAP_FAILSAFE", candle_id)
+                        closed_this_cycle = True
+                    else:
+                        conn.execute(
+                            """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
+                               VALUES(?,?,NULL,NULL) ON CONFLICT(strategy_id) DO UPDATE SET
+                               last_success_at=excluded.last_success_at,last_error=NULL,last_error_at=NULL""",
+                            (s["id"], now()),
+                        )
+                        intrabar_exit = intrabar_exit_signal(pos, execution_candles)
+                        if not execution_candles.empty:
+                            last_checked = int(execution_candles.iloc[-1].timestamp)
                             conn.execute(
-                                """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
-                                   VALUES(?,?,NULL,NULL) ON CONFLICT(strategy_id) DO UPDATE SET
-                                   last_success_at=excluded.last_success_at,last_error=NULL,last_error_at=NULL""",
-                                (s["id"], now()),
+                                "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
+                                (last_checked, s["id"]),
                             )
-                            intrabar_exit = intrabar_exit_signal(pos, execution_candles)
-                            if not execution_candles.empty:
-                                last_checked = int(execution_candles.iloc[-1].timestamp)
-                                conn.execute(
-                                    "UPDATE shadow_intrabar_state SET last_checked_open_ms=? WHERE strategy_id=?",
-                                    (last_checked, s["id"]),
-                                )
-                            if intrabar_exit:
-                                reason, reference_price, exit_candle_ms = intrabar_exit
-                                close_position(conn, s, reference_price, reason, candle_id)
-                                event(conn, s["id"], "INTRABAR_EXIT",
-                                      f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
-                                closed_this_cycle = True
+                        if intrabar_exit:
+                            reason, reference_price, exit_candle_ms = intrabar_exit
+                            close_position(conn, s, reference_price, reason, candle_id)
+                            event(conn, s["id"], "INTRABAR_EXIT",
+                                  f"{reason}; reference={reference_price:.6f}; candle={exit_candle_ms}")
+                            closed_this_cycle = True
                 if not closed_this_cycle:
                     if daily_loss_limit_hit(conn, s["id"], pos, price):
                         close_position(conn, s, price, "DAILY_STOP", candle_id)
