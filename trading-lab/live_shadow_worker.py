@@ -210,7 +210,7 @@ def validate_execution_klines(frame, since_ms, cutoff_ms):
 
 
 MAX_INTRABAR_RECOVERY_MINUTES = 7 * 24 * 60
-MAX_INTRABAR_HEALTH_AGE_SECONDS = 600
+MAX_INTRABAR_HEALTH_AGE_SECONDS = 240
 EXECUTION_KLINE_PAGE_SIZE = 1000
 
 
@@ -559,7 +559,9 @@ def probe_intrabar_recovery(conn, strategy):
         "SELECT last_success_at,last_error FROM shadow_intrabar_health WHERE strategy_id=?",
         (strategy["id"],),
     ).fetchone()
-    if health and health["last_success_at"] and not health["last_error"]:
+    had_error = bool(health and health["last_error"])
+    had_success = bool(health and health["last_success_at"])
+    if had_success and not had_error:
         try:
             success_at = datetime.fromisoformat(str(health["last_success_at"]).replace("Z", "+00:00"))
             health_age = (datetime.now(timezone.utc) - success_at).total_seconds()
@@ -579,9 +581,10 @@ def probe_intrabar_recovery(conn, strategy):
                last_success_at=excluded.last_success_at,last_error=NULL,last_error_at=NULL""",
             (strategy["id"], now()),
         )
-        event_name = "PROTECTION_RECOVERED" if health and health["last_error"] else "PROTECTION_INITIALIZED"
+        event_name = "PROTECTION_RECOVERED" if had_error else ("PROTECTION_INITIALIZED" if not had_success else "PROTECTION_REFRESHED")
         event(conn, strategy["id"], event_name,
-              f"validated_closed_minutes={len(candles)}; entry_allowed_from_next_cycle=true")
+              f"validated_closed_minutes={len(candles)}; entry_allowed_this_cycle={not had_error}")
+        return not had_error
     except Exception as exc:
         error_text = f"{type(exc).__name__}: {exc}"[:500]
         conn.execute(
