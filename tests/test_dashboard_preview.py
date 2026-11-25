@@ -35,6 +35,14 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn("must not be read as current balances", HTML)
         self.assertIn("Historical analytics are supplied by the separate append-only collector", HTML)
 
+    def test_mobile_touch_navigation_and_accessibility_rules(self):
+        self.assertIn("min-height:44px", HTML)
+        self.assertIn("overflow-x:auto", HTML)
+        self.assertIn("touch-action:pan-x", HTML)
+        self.assertIn(":focus-visible", HTML)
+        self.assertIn("prefers-reduced-motion:reduce", HTML)
+        self.assertIn('aria-live="polite"', HTML)
+
     def test_official_star_mark_and_no_full_page_grid(self):
         self.assertIn('fill="#ffe45c"', HTML)
         self.assertIn('fill="#ff397d"', HTML)
