@@ -35,6 +35,15 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn("must not be read as current balances", HTML)
         self.assertIn("Historical analytics are supplied by the separate append-only collector", HTML)
 
+    def test_archive_uses_observed_daily_history_without_fabricated_reports(self):
+        self.assertIn('id="archive-heatmap"', HTML)
+        self.assertIn('id="archive-reports"', HTML)
+        self.assertIn("function renderArchive(daily, anchorTimestamp)", HTML)
+        self.assertIn("history.daily || []", HTML)
+        self.assertIn("at least two observations required", HTML)
+        self.assertIn("No complete daily reports yet.", HTML)
+        self.assertNotIn('aria-label="30-day archive has not accumulated daily reports"', HTML)
+
     def test_mobile_touch_navigation_and_accessibility_rules(self):
         self.assertIn("min-height:44px", HTML)
         self.assertIn("overflow-x:auto", HTML)
