@@ -210,6 +210,7 @@ def validate_execution_klines(frame, since_ms, cutoff_ms):
 
 
 MAX_INTRABAR_RECOVERY_MINUTES = 7 * 24 * 60
+MAX_INTRABAR_HEALTH_AGE_SECONDS = 600
 EXECUTION_KLINE_PAGE_SIZE = 1000
 
 
@@ -559,7 +560,13 @@ def probe_intrabar_recovery(conn, strategy):
         (strategy["id"],),
     ).fetchone()
     if health and health["last_success_at"] and not health["last_error"]:
-        return True
+        try:
+            success_at = datetime.fromisoformat(str(health["last_success_at"]).replace("Z", "+00:00"))
+            health_age = (datetime.now(timezone.utc) - success_at).total_seconds()
+        except (TypeError, ValueError):
+            health_age = float("inf")
+        if 0 <= health_age <= MAX_INTRABAR_HEALTH_AGE_SECONDS:
+            return True
 
     since_ms = minute_cursor_for_now() - 60000
     try:
