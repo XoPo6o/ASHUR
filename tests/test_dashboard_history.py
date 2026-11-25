@@ -135,6 +135,27 @@ class DashboardHistoryTests(unittest.TestCase):
         self.assertEqual(stats[strategy_ids[1]]["losses"], 0)
         self.assertEqual(len(stats), 6)
 
+    def test_strategy_trade_counter_reset_is_not_reported_as_negative_activity(self):
+        strategy_id = sorted(STRATEGY_IDS)[0]
+        first_counts = {sid: 5 for sid in STRATEGY_IDS}
+        first_wins = {sid: 3 for sid in STRATEGY_IDS}
+        reset_counts = dict(first_counts)
+        reset_wins = dict(first_wins)
+        reset_counts[strategy_id] = 1
+        reset_wins[strategy_id] = 1
+        for stamp, trades, wins in (
+            (self.start, first_counts, first_wins),
+            (self.start + timedelta(minutes=5), reset_counts, reset_wins),
+        ):
+            self.save_status(self.make_status(stamp, [1000] * 6, trades, wins))
+            self.assertTrue(collect_once(self.status_file, self.history_db, now=stamp))
+        result = read_history(self.history_db, days=30, now=self.start + timedelta(minutes=6))
+        stats = {item["strategy_id"]: item for item in result["strategy_trade_stats"]}
+        self.assertFalse(stats[strategy_id]["available"])
+        self.assertEqual(stats[strategy_id]["closed_trades"], 0)
+        self.assertEqual(stats[strategy_id]["wins"], 0)
+        self.assertEqual(stats[strategy_id]["losses"], 0)
+
     def test_rolling_24h_uses_snapshot_at_or_before_boundary(self):
         observations = [
             (self.start, [1000] * 6),
@@ -184,6 +205,7 @@ class DashboardHistoryTests(unittest.TestCase):
         self.assertEqual(before, after)
         self.assertEqual(before, 1)
         self.assertFalse(read_history(self.history_db, days=7, now=self.start + timedelta(seconds=10))["rolling_24h"]["available"])
+        self.assertTrue(all(not item["available"] for item in read_history(self.history_db, days=7, now=self.start + timedelta(seconds=10))["strategy_trade_stats"]))
 
     def test_missing_history_and_invalid_ranges_are_explicit(self):
         with self.assertRaises(HistoryUnavailable):
