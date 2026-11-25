@@ -25,7 +25,7 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health. IN PROGRESS (first screen composition and verified baseline allocation visualization implemented; runtime values and full chart series await data integration).
 5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap.
 6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons.
-7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data.
+7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data. IN PROGRESS (runtime export audited; strict server-side read-model and guard tests added; secure hosting/retrieval path still pending).
 8. Implement mobile layouts and touch-friendly navigation.
 9. Test calculations against SQLite/exported status, empty states, timezone boundaries, stale data, all six strategies, accessibility and responsive layouts.
 10. Deploy only after review, keeping the existing landing page and trading runtime stable; verify production and record the release commit.
@@ -44,7 +44,7 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Stage 2 initial information architecture and read-only data contract completed; see `docs/ASHUR_PIXEL_TERMINAL_DATA_CONTRACT.md`.
 - Stage 3 baseline v0.1 completed: design tokens and visual rules documented in `docs/ASHUR_PIXEL_TERMINAL_DESIGN_SYSTEM.md`.
 - Stage 4 in progress: `wall-preview.html` now includes the main dashboard composition, six unique strategy cards, verified 6 × 1,000 USDT capital-allocation visualization, responsive layout, and an equity-curve baseline marker that does not imply fabricated flat performance. It remains a static preview, not connected to production data.
-- Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.
+- Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.\n- Runtime adapter milestone: `dashboard/read_model.py` projects the worker's actual JSON export through a strict allowlist, validates the active baseline and six 1,000 USDT accounts, derives portfolio aggregates, and labels stale/offline data. `tests/test_dashboard_read_model.py` covers baseline, mode, duplicate-account, freshness and secret/path non-leakage guards. Tests have been authored but not executed in this environment; no endpoint or live connection is deployed.
 
 ## First implementation deliverables
 - `wall-preview.html`: standalone visual prototype using only verified baseline facts and explicit empty states.
