@@ -516,6 +516,32 @@ class TestAshurRuntime(unittest.TestCase):
         self.assertTrue(worker.probe_intrabar_recovery(conn, strategy))
         conn.close()
 
+    def test_first_paper_entry_requires_successful_minute_feed_probe(self):
+        import pandas as pd
+
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        worker.init_db(conn)
+        strategy = next(s for s in worker.STRATEGIES if s["id"] == "BNB_15M_EMA_TREND")
+        with patch.object(worker, "fetch_execution_klines",
+                          side_effect=RuntimeError("minute source unavailable")):
+            self.assertFalse(worker.probe_intrabar_recovery(conn, strategy))
+        health = conn.execute(
+            "SELECT last_success_at,last_error FROM shadow_intrabar_health WHERE strategy_id=?",
+            (strategy["id"],),
+        ).fetchone()
+        self.assertIsNone(health["last_success_at"])
+        self.assertIn("minute source unavailable", health["last_error"])
+
+        good_candle = pd.DataFrame([{
+            "timestamp": worker.minute_cursor_for_now() - 60000,
+            "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1.0,
+        }])
+        with patch.object(worker, "fetch_execution_klines", return_value=good_candle):
+            self.assertFalse(worker.probe_intrabar_recovery(conn, strategy))
+        self.assertTrue(worker.probe_intrabar_recovery(conn, strategy))
+        conn.close()
+
     def test_new_paper_position_starts_with_healthy_intrabar_protection(self):
         import tempfile
         import json
