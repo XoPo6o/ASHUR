@@ -59,6 +59,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
 .legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:10px;margin-top:9px}
 .legend b{color:var(--cyan);font-weight:600}
 .dailylist{display:grid;gap:10px}
+.allocation{display:grid;gap:13px}.allocrow{display:grid;grid-template-columns:minmax(120px,1.2fr) 3fr 82px;gap:10px;align-items:center;font-size:10px}.allocname{color:#d9d8c9}.alloctrack{height:13px;background:#0b1821;border:1px solid #45616b;padding:2px}.allocfill{height:100%;width:100%;background:repeating-linear-gradient(90deg,#65d8d0 0 8px,#3a8587 8px 10px)}.allocvalue{text-align:right;color:var(--gold);font-weight:600}.allocation-foot{border-top:1px dashed #45616b;padding-top:12px;display:flex;justify-content:space-between;color:var(--muted);font-size:10px}.kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.kpi-mini{padding:10px;border:1px solid #385965;background:#10212b}.kpi-mini span{display:block;color:var(--muted);font-size:9px}.kpi-mini b{display:block;color:var(--gold);font-size:15px;margin-top:4px}
 .dailyrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed #3a5661;font-size:11px}
 .dailyrow:last-child{border-bottom:0}
 .dailyrow span:first-child{color:var(--muted)}
@@ -84,7 +85,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
 .footer b{color:var(--gold);font-weight:600}
 .smallprint{font-size:9px;color:#829ba2;line-height:1.7;margin-top:10px}
 @media(max-width:1000px){.hero-art{width:190px;min-width:150px}.metrics{grid-template-columns:repeat(2,1fr)}.strategies{grid-template-columns:repeat(2,1fr)}.nav a{font-size:8px;padding:8px}.topinner{height:auto;min-height:72px;flex-wrap:wrap;padding:12px 0}.twocol{grid-template-columns:1fr}}
-@media(max-width:620px){.hero-art{display:none}.shell{width:calc(100% - 22px)}.topinner{gap:12px}.nav{order:3;width:100%;overflow:auto;flex-wrap:nowrap;padding-bottom:5px}.nav a{white-space:nowrap}.live{margin-left:auto}.hero{display:block}.daystamp{display:inline-block;text-align:left;margin-top:12px}.metrics{gap:8px}.metric{padding:13px;min-height:112px}.metric .label{font-size:7px}.metric .value{font-size:20px}.strategies,.bottomgrid{grid-template-columns:1fr}.panelbody{padding:13px}.panelhead{padding:13px}.paneltitle{font-size:9px}.heat{grid-template-columns:repeat(7,1fr)}}
+@media(max-width:620px){.allocrow{grid-template-columns:1fr 2fr 68px;gap:6px;font-size:9px}.kpi-strip{grid-template-columns:1fr}.hero-art{display:none}.shell{width:calc(100% - 22px)}.topinner{gap:12px}.nav{order:3;width:100%;overflow:auto;flex-wrap:nowrap;padding-bottom:5px}.nav a{white-space:nowrap}.live{margin-left:auto}.hero{display:block}.daystamp{display:inline-block;text-align:left;margin-top:12px}.metrics{gap:8px}.metric{padding:13px;min-height:112px}.metric .label{font-size:7px}.metric .value{font-size:20px}.strategies,.bottomgrid{grid-template-columns:1fr}.panelbody{padding:13px}.panelhead{padding:13px}.paneltitle{font-size:9px}.heat{grid-template-columns:repeat(7,1fr)}}
 </style>
 </head>
 <body>
@@ -112,10 +113,10 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
           <line class="gridline" x1="50" y1="35" x2="700" y2="35"/><line class="gridline" x1="50" y1="85" x2="700" y2="85"/><line class="gridline" x1="50" y1="135" x2="700" y2="135"/><line class="gridline" x1="50" y1="185" x2="700" y2="185"/>
           <line class="axis" x1="50" y1="20" x2="50" y2="205"/><line class="axis" x1="50" y1="205" x2="700" y2="205"/>
           <text x="6" y="38">6,000</text><text x="6" y="88">—</text><text x="6" y="138">—</text><text x="6" y="188">—</text>
-          <line class="baseline" x1="50" y1="85" x2="700" y2="85"/>
+          <line class="baseline" x1="50" y1="85" x2="88" y2="85" stroke-dasharray="4 4"/>
           <circle cx="50" cy="85" r="5" fill="#e4b86a" stroke="#0b141d" stroke-width="2"/>
-          <text class="empty" x="68" y="68">BASELINE · 6,000.00 USDT</text>
-          <text x="50" y="225">25 NOV</text><text x="650" y="225">25 DEC</text>
+          <text class="empty" x="100" y="68">ONLY CONFIRMED OBSERVATION · 6,000.00 USDT</text>
+          <text x="50" y="225">25 NOV · START</text><text x="650" y="225">25 DEC · TARGET</text>
         </svg>
         <div class="legend"><span><b>━━</b> Confirmed starting equity</span><span>Performance line appears after observations</span></div>
       </div>
@@ -145,8 +146,17 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     </div>
   </section>
   <section id="daily" class="grid bottomgrid">
-    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY REPORT / P&amp;L</div><span class="tag">AWAITING DATA</span></div><div class="panelbody"><div class="emptybox"><b>NO CLOSED TRADES</b>Daily P&amp;L bars will appear after the first closed trade and daily snapshot.</div></div></article>
-    <article class="panel"><div class="panelhead"><div class="paneltitle">RISK / DRAWDOWN</div><span class="tag">AWAITING DATA</span></div><div class="panelbody"><div class="emptybox"><b>NO DRAWDOWN SERIES</b>Drawdown requires a time series of portfolio equity. The baseline alone is not enough.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">CAPITAL ALLOCATION / BASELINE</div><span class="tag">6 × 1,000 USDT</span></div><div class="panelbody"><div class="allocation">
+      <div class="allocrow"><span class="allocname">BNB · 15M EMA</span><div class="alloctrack"><div class="allocfill"></div></div><b class="allocvalue">1,000</b></div>
+      <div class="allocrow"><span class="allocname">BNB · 1D DONCHIAN</span><div class="alloctrack"><div class="allocfill"></div></div><b class="allocvalue">1,000</b></div>
+      <div class="allocrow"><span class="allocname">BNB · 1H DONCHIAN</span><div class="alloctrack"><div class="allocfill"></div></div><b class="allocvalue">1,000</b></div>
+      <div class="allocrow"><span class="allocname">BNB · 4H ADX</span><div class="alloctrack"><div class="allocfill"></div></div><b class="allocvalue">1,000</b></div>
+      <div class="allocrow"><span class="allocname">BNB · 4H KELTNER</span><div class="alloctrack"><div class="allocfill"></div></div><b class="allocvalue">1,000</b></div>
+      <div class="allocrow"><span class="allocname">SOL · 4H DONCHIAN</span><div class="alloctrack"><div class="allocfill"></div></div><b class="allocvalue">1,000</b></div>
+      <div class="allocation-foot"><span>Equal starting allocation</span><strong>100% · 6,000 USDT</strong></div>
+      <div class="kpi-strip"><div class="kpi-mini"><span>PER ACCOUNT</span><b>16.67%</b></div><div class="kpi-mini"><span>ACCOUNTS</span><b>06 / 06</b></div><div class="kpi-mini"><span>BASELINE</span><b>V2 LOCKED</b></div></div>
+    </div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag">NO TRADES YET</span></div><div class="panelbody"><div class="emptybox"><b>WAITING FOR FIRST OBSERVATIONS</b>Closed-trade P&amp;L, daily return and drawdown will appear after the system records actual activity. No synthetic performance data is displayed.</div><div class="notice">The current screen shows confirmed baseline allocation, not a live health guarantee. Current worker status must be fetched from the runtime read-only feed.</div></div></article>
   </section>
   <section id="archive" class="grid bottomgrid">
     <article class="panel"><div class="panelhead"><div class="paneltitle">EXPERIMENT ARCHIVE</div><span class="tag">30 DAYS</span></div><div class="panelbody"><div class="heat" aria-label="30-day archive has not accumulated daily reports"><span>01</span><span class="future">02</span><span class="future">03</span><span class="future">04</span><span class="future">05</span><span class="future">06</span><span class="future">07</span><span class="future">08</span><span class="future">09</span><span class="future">10</span><span class="future">11</span><span class="future">12</span><span class="future">13</span><span class="future">14</span><span class="future">15</span><span class="future">16</span><span class="future">17</span><span class="future">18</span><span class="future">19</span><span class="future">20</span><span class="future">21</span><span class="future">22</span><span class="future">23</span><span class="future">24</span><span class="future">25</span><span class="future">26</span><span class="future">27</span><span class="future">28</span><span class="future">29</span><span class="future">30</span></div><div class="smallprint">Day 01 marks the confirmed baseline. Future cells remain empty until a daily report is actually saved.</div></div></article>
