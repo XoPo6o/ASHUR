@@ -20,8 +20,8 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 
 ## Ten-stage delivery plan
 1. Audit current site, runtime, status export, deployment and existing UI. DONE (initial repository audit; see audit findings below).
-2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive. IN PROGRESS (information architecture set; data contract documented separately).
-3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules.
+2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive. DONE (initial IA and read-only data contract documented).
+3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules. IN PROGRESS (design tokens and first visual components documented; more components remain).
 4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health.
 5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap.
 6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons.
@@ -41,8 +41,8 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 
 ## Progress on 2026-11-25
 - Stage 1 audit completed.
-- Stage 2 information architecture drafted; read-only data contract drafted in `docs/ASHUR_PIXEL_TERMINAL_DATA_CONTRACT.md`.
-- Stage 3 started: standalone `wall-preview.html` contains the first pixel-art/Retro Pixel UI composition. It is a static design prototype and is not connected to production data.
+- Stage 2 initial information architecture and read-only data contract completed; see `docs/ASHUR_PIXEL_TERMINAL_DATA_CONTRACT.md`.
+- Stage 3 in progress: design tokens and visual rules documented in `docs/ASHUR_PIXEL_TERMINAL_DESIGN_SYSTEM.md`; standalone `wall-preview.html` contains the first Pixelhood/Retro Pixel UI composition. It is a static design prototype and is not connected to production data.
 - Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.
 
 ## First implementation deliverables
