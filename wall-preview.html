@@ -139,6 +139,11 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     </div>
     <article class="panel"><div class="panelhead"><div class="paneltitle">STRATEGY PERFORMANCE / BASELINE</div><span class="tag">SIX ISOLATED ACCOUNTS</span></div><div class="panelbody"><svg class="chart" id="strategy-chart" viewBox="0 0 720 245" role="img" aria-label="Observed percentage return for six isolated strategies"></svg><div class="legend" id="strategy-legend"></div><div class="smallprint" id="strategy-note">Per-strategy history appears after validated snapshots have accumulated.</div></div></article>
   </section>
+  <section id="performance-charts" class="grid twocol">
+    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / OBSERVED UTC DAYS</div><span class="tag">REALIZED EQUITY DELTA</span></div><div class="panelbody"><svg class="chart" id="daily-pnl-chart" viewBox="0 0 720 245" role="img" aria-label="Observed daily portfolio profit and loss"></svg><div class="smallprint" id="daily-pnl-note">Daily bars appear after at least two validated snapshots in a UTC day.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">DRAWDOWN HISTORY</div><span class="tag">FROM OBSERVED HIGH WATER</span></div><div class="panelbody"><svg class="chart" id="drawdown-chart" viewBox="0 0 720 245" role="img" aria-label="Observed portfolio drawdown from running equity high"></svg><div class="smallprint" id="drawdown-note">Drawdown is calculated from actual portfolio snapshots; no interpolation is applied.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">TRADE OUTCOMES BY STRATEGY</div><span class="tag">CLOSED TRADES IN RANGE</span></div><div class="panelbody"><svg class="chart" id="trade-distribution-chart" viewBox="0 0 720 245" role="img" aria-label="Observed winning and losing closed trades by strategy"></svg><div class="legend" id="trade-distribution-legend"><span><b style="color:#65d69a">━━</b> Wins</span><span><b style="color:#ed7774">━━</b> Losses</span></div><div class="smallprint" id="trade-distribution-note">Trade outcomes appear after multiple validated snapshots provide a counter delta.</div></div></article>
+  </section>
   <section id="daily" class="grid bottomgrid">
     <article class="panel"><div class="panelhead"><div class="paneltitle">CAPITAL ALLOCATION / BASELINE</div><span class="tag">6 × 1,000 USDT</span></div><div class="panelbody"><div class="allocation">
       <div class="allocrow"><span class="allocname">BNB · 15M EMA</span><div class="alloctrack"><div class="allocfill"></div></div><b class="allocvalue">1,000</b></div>
@@ -364,6 +369,128 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     }
   }
 
+  function drawDailyPnlChart(daily) {
+    const svg = byId('daily-pnl-chart');
+    if (!svg) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const observed = (daily || []).filter(item => Number(item.snapshots) >= 2 && Number.isFinite(Number(item.pnl)));
+    const left = 72, right = 700, top = 24, bottom = 198;
+    if (!observed.length) {
+      svg.appendChild(svgNode('text', {x:100, y:110, class:'empty'}, 'WAITING FOR COMPLETE UTC-DAY SUMMARIES'));
+      set('daily-pnl-note', 'No day is plotted until at least two validated snapshots exist within that UTC day.');
+      return;
+    }
+    const values = observed.map(item => Number(item.pnl));
+    let min = Math.min(0, ...values), max = Math.max(0, ...values);
+    if (min === max) { min -= 1; max += 1; }
+    const pad = (max - min) * 0.12;
+    min -= pad; max += pad;
+    const y = value => bottom - (value - min) / (max - min) * (bottom - top);
+    [0, 1, 2, 3].forEach(index => {
+      const value = max - index * (max - min) / 3;
+      const yy = top + index * (bottom - top) / 3;
+      svg.appendChild(svgNode('line', {x1:left, y1:yy, x2:right, y2:yy, class:'gridline'}));
+      svg.appendChild(svgNode('text', {x:4, y:yy + 4}, money(value)));
+    });
+    const zeroY = y(0);
+    svg.appendChild(svgNode('line', {x1:left, y1:zeroY, x2:right, y2:zeroY, class:'axis'}));
+    const slot = (right - left) / observed.length;
+    observed.forEach((item, index) => {
+      const value = Number(item.pnl);
+      const barWidth = Math.max(3, Math.min(34, slot * 0.62));
+      const x = left + index * slot + (slot - barWidth) / 2;
+      const yy = y(value);
+      const rect = svgNode('rect', {
+        x, y:Math.min(yy, zeroY), width:barWidth, height:Math.max(1, Math.abs(zeroY - yy)),
+        rx:2, fill:value >= 0 ? '#65d69a' : '#ed7774',
+        'aria-label':item.date + ' ' + signed(value) + ' USDT'
+      });
+      rect.appendChild(svgNode('title', {}, item.date + ' · ' + signed(value) + ' USDT · ' + item.snapshots + ' snapshots'));
+      svg.appendChild(rect);
+    });
+    svg.appendChild(svgNode('text', {x:left, y:225}, observed[0].date));
+    svg.appendChild(svgNode('text', {x:right - 78, y:225}, observed[observed.length - 1].date));
+    set('daily-pnl-note', observed.length + ' complete UTC days plotted. Partial days are excluded, not estimated.');
+  }
+
+  function drawDrawdownChart(points) {
+    const svg = byId('drawdown-chart');
+    if (!svg) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const valid = (points || []).filter(point => Number.isFinite(Number(point.drawdown_pct)));
+    const left = 72, right = 700, top = 24, bottom = 198;
+    if (!valid.length) {
+      svg.appendChild(svgNode('text', {x:100, y:110, class:'empty'}, 'WAITING FOR EQUITY HISTORY'));
+      return;
+    }
+    const values = valid.map(point => Number(point.drawdown_pct));
+    let min = Math.min(...values, 0), max = 0;
+    if (min === 0) min = -0.1;
+    const pad = Math.abs(min) * 0.12;
+    min -= pad;
+    const y = value => bottom - (value - min) / (max - min) * (bottom - top);
+    [0, 1, 2, 3].forEach(index => {
+      const value = max - index * (max - min) / 3;
+      const yy = top + index * (bottom - top) / 3;
+      svg.appendChild(svgNode('line', {x1:left, y1:yy, x2:right, y2:yy, class:'gridline'}));
+      svg.appendChild(svgNode('text', {x:4, y:yy + 4}, percent(value)));
+    });
+    const coords = valid.map((point, index) => ({
+      x:valid.length === 1 ? left : left + index * (right - left) / (valid.length - 1),
+      y:y(Number(point.drawdown_pct))
+    }));
+    if (coords.length > 1) {
+      svg.appendChild(svgNode('polyline', {
+        points:coords.map(point => point.x.toFixed(2) + ',' + point.y.toFixed(2)).join(' '),
+        fill:'none', stroke:'#ed7774', 'stroke-width':2.4, 'stroke-linejoin':'round', 'stroke-linecap':'round'
+      }));
+    } else {
+      svg.appendChild(svgNode('circle', {cx:coords[0].x, cy:coords[0].y, r:4, fill:'#ed7774'}));
+    }
+    svg.appendChild(svgNode('text', {x:left, y:225}, valid[0].at.slice(0, 10)));
+    svg.appendChild(svgNode('text', {x:right - 78, y:225}, valid[valid.length - 1].at.slice(0, 10)));
+    set('drawdown-note', 'Worst observed drawdown in this range: ' + percent(Math.min(...values)) + '. Based on actual snapshots only.');
+  }
+
+  function drawTradeDistribution(stats) {
+    const svg = byId('trade-distribution-chart');
+    if (!svg) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const available = (stats || []).filter(item => item.available);
+    const left = 72, right = 700, top = 24, bottom = 198;
+    if (!available.length || available.every(item => Number(item.closed_trades) === 0)) {
+      svg.appendChild(svgNode('text', {x:100, y:110, class:'empty'}, 'WAITING FOR OBSERVED CLOSED TRADES'));
+      set('trade-distribution-note', 'No closed-trade counter deltas are available yet. Open positions are not counted as wins or losses.');
+      return;
+    }
+    const max = Math.max(1, ...available.map(item => Number(item.closed_trades)));
+    const step = (right - left) / available.length;
+    const scale = (bottom - top) / max;
+    available.forEach((item, index) => {
+      const x = left + index * step + step * 0.18;
+      const width = step * 0.64;
+      const wins = Number(item.wins), losses = Number(item.losses);
+      const winHeight = wins * scale, lossHeight = losses * scale;
+      const lossY = bottom - winHeight - lossHeight;
+      const winY = bottom - winHeight;
+      const loss = svgNode('rect', {x, y:lossY, width, height:Math.max(0, lossHeight), rx:2, fill:'#ed7774'});
+      loss.appendChild(svgNode('title', {}, (strategyLabels[item.strategy_id] || item.strategy_id) + ' · ' + losses + ' losing trades'));
+      const win = svgNode('rect', {x, y:winY, width, height:Math.max(0, winHeight), rx:2, fill:'#65d69a'});
+      win.appendChild(svgNode('title', {}, (strategyLabels[item.strategy_id] || item.strategy_id) + ' · ' + wins + ' winning trades'));
+      svg.append(loss, win);
+      svg.appendChild(svgNode('text', {x:x - 4, y:220}, (strategyLabels[item.strategy_id] || item.strategy_id).replace('BNB ', '').replace('SOL ', '').slice(0, 13)));
+    });
+    [0, 1, 2, 3].forEach(index => {
+      const value = max - index * max / 3;
+      const yy = top + index * (bottom - top) / 3;
+      svg.insertBefore(svgNode('line', {x1:left, y1:yy, x2:right, y2:yy, class:'gridline'}), svg.firstChild);
+      svg.insertBefore(svgNode('text', {x:18, y:yy + 4}, String(Math.round(value))), svg.firstChild);
+    });
+    const totalTrades = available.reduce((sum, item) => sum + Number(item.closed_trades), 0);
+    const totalWins = available.reduce((sum, item) => sum + Number(item.wins), 0);
+    set('trade-distribution-note', totalTrades + ' observed closed trades in range · ' + totalWins + ' wins · ' + (totalTrades - totalWins) + ' losses. Results are counter deltas, not open positions.');
+  }
+
   function renderArchive(daily, anchorTimestamp) {
     const heatmap = byId('archive-heatmap');
     const reports = byId('archive-reports');
@@ -452,6 +579,9 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       }
       drawEquityChart(history.equity_curve || []);
       drawStrategyChart(history.strategies || []);
+      drawDailyPnlChart(history.daily || []);
+      drawDrawdownChart(history.equity_curve || []);
+      drawTradeDistribution(history.strategy_trade_stats || []);
       set('strategy-note', history.sample_count < 2 ? 'One validated observation per strategy is stored. Comparison curves appear after the next worker cycle.' : 'Six strategy return series from the same validated portfolio snapshots; returns are measured against each account’s 1,000 USDT baseline.');
       set('history-status', 'HISTORY · ' + history.range_days + 'D');
       set('history-samples', String(history.sample_count));
@@ -482,6 +612,9 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     } catch (error) {
       renderArchive([], null);
       drawEquityChart([]);
+      drawDailyPnlChart([]);
+      drawDrawdownChart([]);
+      drawTradeDistribution([]);
       drawStrategyChart([]);
       set('strategy-note', 'Per-strategy history is not available yet. No synthetic strategy performance is displayed.');
       set('history-status', 'COLLECTING');
