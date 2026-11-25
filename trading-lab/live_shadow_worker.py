@@ -437,6 +437,8 @@ def init_db(conn):
     CREATE TABLE IF NOT EXISTS shadow_intrabar_health(
       strategy_id TEXT PRIMARY KEY, last_success_at TEXT, last_error TEXT,
       last_error_at TEXT);
+    CREATE TABLE IF NOT EXISTS ashur_meta(
+      key TEXT PRIMARY KEY, value TEXT NOT NULL);
     """)
     for s in STRATEGIES:
         conn.execute("""INSERT OR IGNORE INTO shadow_accounts
@@ -760,7 +762,8 @@ def run():
     conn = sqlite3.connect(DB, timeout=30)
     conn.row_factory = sqlite3.Row
     init_db(conn)
-    reset_paper_baseline_once(conn)
+    if os.environ.get("ASHUR_RESET_PAPER_BASELINE_ID") == PAPER_BASELINE_ID:
+        reset_paper_baseline_once(conn)
     news.init_db(conn)
     cache = {}
     strategy_errors = 0
