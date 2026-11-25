@@ -341,7 +341,7 @@ def read_history(
         for sid, points in sorted(strategy_points.items())
     ]
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "baseline_id": BASELINE_ID,
         "timezone": "UTC",
         "range_days": days,
