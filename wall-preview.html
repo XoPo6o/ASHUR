@@ -591,8 +591,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       setTone(byId('history-drawdown'), history.summary.max_drawdown_pct);
       const latestDay = history.daily[history.daily.length - 1];
       if (history.sample_count < 2 || !latestDay || latestDay.snapshots < 2) {
-        ['history-24h-pnl','history-24h-realized','history-24h-trades','history-24h-fees','history-24h-drawdown'].forEach(id => set(id, 'Not enough data'));
-      set('history-daily-pnl', 'Not enough data');
+        set('history-daily-pnl', 'Not enough data');
         set('history-realized-pnl', 'Not enough data');
         set('history-daily-trades', 'Not enough data');
         set('history-daily-fees', 'Not enough data');
