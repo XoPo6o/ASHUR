@@ -106,6 +106,31 @@ class DashboardHistoryTests(unittest.TestCase):
         self.assertEqual(result["daily"][0]["fees"], 0.0)
         self.assertAlmostEqual(result["daily"][0]["max_drawdown_pct"], (6060 / 6100 - 1) * 100, places=3)
 
+    def test_rolling_24h_uses_snapshot_at_or_before_boundary(self):
+        observations = [
+            (self.start, [1000] * 6),
+            (self.start + timedelta(hours=24, minutes=5), [1010] * 6),
+            (self.start + timedelta(hours=24, minutes=10), [1005] * 6),
+        ]
+        for stamp, equities in observations:
+            self.save_status(self.make_status(stamp, equities))
+            self.assertTrue(collect_once(self.status_file, self.history_db, now=stamp))
+
+        result = read_history(
+            self.history_db,
+            days=30,
+            now=observations[-1][0] + timedelta(minutes=1),
+        )
+        report = result["rolling_24h"]
+        self.assertTrue(report["available"])
+        self.assertEqual(report["pnl"], 30.0)
+        self.assertEqual(report["realized_pnl"], 30.0)
+        self.assertEqual(report["closed_trades"], 0)
+        self.assertEqual(report["fees"], 0.0)
+        self.assertAlmostEqual(report["max_drawdown_pct"], (6030 / 6060 - 1) * 100, places=3)
+        self.assertEqual(report["snapshots"], 3)
+        self.assertGreaterEqual(report["elapsed_hours"], 24.0)
+
     def test_stale_offline_and_wrong_baseline_are_not_collected(self):
         stale_at = self.start - timedelta(minutes=11)
         self.save_status(self.make_status(stale_at, [1000] * 6))
@@ -129,6 +154,7 @@ class DashboardHistoryTests(unittest.TestCase):
             after = conn.execute("SELECT COUNT(*) FROM dashboard_snapshots").fetchone()[0]
         self.assertEqual(before, after)
         self.assertEqual(before, 1)
+        self.assertFalse(read_history(self.history_db, days=7, now=self.start + timedelta(seconds=10))["rolling_24h"]["available"])
 
     def test_missing_history_and_invalid_ranges_are_explicit(self):
         with self.assertRaises(HistoryUnavailable):
