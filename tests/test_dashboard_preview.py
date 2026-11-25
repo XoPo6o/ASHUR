@@ -51,6 +51,13 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn("last validated snapshot at or before the 24-hour boundary", HTML)
         self.assertIn("Not enough data", HTML)
 
+    def test_rolling_24h_metrics_are_not_hidden_by_incomplete_utc_day(self):
+        guard = HTML.split("if (history.sample_count < 2 || !latestDay || latestDay.snapshots < 2)", 1)[1]
+        guard = guard.split("} else {", 1)[0]
+        self.assertNotIn("history-24h-pnl", guard)
+        self.assertNotIn("history-24h-realized", guard)
+        self.assertIn("history-daily-pnl", guard)
+
     def test_performance_charts_use_observed_history_payloads(self):
         self.assertIn('id="daily-pnl-chart"', HTML)
         self.assertIn('id="drawdown-chart"', HTML)
