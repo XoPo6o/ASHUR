@@ -91,7 +91,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
 <header class="topbar"><div class="shell topinner">
   <a class="brand" href="#top"><span class="sig"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 1l5 10 11-5-5 11 8 3-8 4 5 11-11-5-5 9-5-9-11 5 5-11-8-4 8-3-5-11 11 5z" fill="#ffe45c" stroke="#fff0c2" stroke-width="2"/><path d="M20 9l4 8 8 3-8 4-4 8-4-8-8-4 8-3z" fill="#ff397d"/></svg></span><span class="brandname">ASHUR<small>PIXEL TRADING TERMINAL</small></span></a>
   <nav class="nav" aria-label="Навигация"><a class="active" href="#overview">COMMAND CENTER</a><a href="#strategies">STRATEGY ROOM</a><a href="#daily">DAILY REPORT</a><a href="#archive">ARCHIVE</a></nav>
-  <div class="live"><i class="dot"></i> PAPER ONLY</div>
+  <div class="live" id="feed-status"><i class="dot"></i><span id="feed-status-text">PAPER ONLY · CONNECTING</span></div>
 </div></header>
 <main id="top" class="shell">
   <div class="hero" id="overview">
@@ -99,9 +99,9 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     <div class="hero-art" aria-hidden="true"><svg viewBox="0 0 240 170" role="img"><g opacity=".7"><rect x="12" y="105" width="30" height="25" fill="#243c43"/><rect x="18" y="93" width="18" height="12" fill="#385c61"/><rect x="190" y="96" width="34" height="34" fill="#243c43"/><rect x="198" y="84" width="18" height="12" fill="#385c61"/><rect x="50" y="112" width="140" height="18" fill="#5d705e"/></g><g><rect x="58" y="63" width="12" height="10" fill="#d2a45f"/><rect x="70" y="55" width="12" height="10" fill="#d2a45f"/><rect x="82" y="47" width="12" height="10" fill="#e4b86a"/><rect x="94" y="43" width="12" height="10" fill="#e4b86a"/><rect x="106" y="47" width="12" height="10" fill="#d2a45f"/><rect x="118" y="55" width="12" height="10" fill="#d2a45f"/><rect x="130" y="63" width="12" height="10" fill="#b18a52"/><rect x="66" y="73" width="12" height="9" fill="#d2a45f"/><rect x="78" y="65" width="12" height="9" fill="#e4b86a"/><rect x="90" y="61" width="12" height="9" fill="#e4b86a"/><rect x="102" y="65" width="12" height="9" fill="#d2a45f"/><rect x="114" y="73" width="12" height="9" fill="#b18a52"/><rect x="76" y="83" width="90" height="33" fill="#b18a52"/><rect x="86" y="77" width="72" height="8" fill="#e4b86a"/><rect x="130" y="66" width="28" height="24" fill="#d2a45f"/><rect x="145" y="40" width="34" height="32" fill="#d2a45f"/><rect x="151" y="33" width="8" height="9" fill="#e4b86a"/><rect x="167" y="33" width="8" height="9" fill="#e4b86a"/><rect x="146" y="28" width="7" height="8" fill="#e4b86a"/><rect x="174" y="28" width="7" height="8" fill="#e4b86a"/><rect x="157" y="49" width="6" height="6" fill="#0b141d"/><rect x="172" y="49" width="6" height="6" fill="#65d8d0"/><rect x="151" y="72" width="18" height="13" fill="#8b633d"/><rect x="160" y="84" width="12" height="9" fill="#e4b86a"/><rect x="86" y="113" width="13" height="23" fill="#b18a52"/><rect x="110" y="113" width="13" height="23" fill="#b18a52"/><rect x="143" y="113" width="13" height="23" fill="#b18a52"/><rect x="161" y="113" width="13" height="23" fill="#b18a52"/><rect x="82" y="134" width="19" height="8" fill="#0b141d"/><rect x="106" y="134" width="19" height="8" fill="#0b141d"/><rect x="139" y="134" width="19" height="8" fill="#0b141d"/><rect x="157" y="134" width="19" height="8" fill="#0b141d"/><rect x="70" y="91" width="8" height="8" fill="#65d8d0"/><rect x="127" y="91" width="8" height="8" fill="#65d8d0"/><rect x="179" y="55" width="8" height="8" fill="#e4b86a"/><rect x="187" y="47" width="8" height="8" fill="#e4b86a"/></g></svg></div><div class="daystamp"><strong>DAY 01 / 30</strong><span>25 NOV 2026 · BASELINE LOCKED</span></div>
   </div>
   <section class="grid metrics" aria-label="Ключевые показатели">
-    <article class="panel metric"><div class="label">TOTAL EQUITY</div><div class="value">6,000.00</div><div class="foot">USDT · 6 isolated accounts</div></article>
-    <article class="panel metric"><div class="label">NET P&amp;L SINCE BASELINE</div><div class="value positive">+0.00</div><div class="foot">0.00% · starting point</div></article>
-    <article class="panel metric"><div class="label">CLOSED TRADES</div><div class="value">0</div><div class="foot">No closed trades yet</div></article>
+    <article class="panel metric"><div class="label">TOTAL EQUITY</div><div class="value" id="total-equity">6,000.00</div><div class="foot" id="equity-foot">USDT · 6 isolated accounts · baseline</div></article>
+    <article class="panel metric"><div class="label">NET P&amp;L SINCE BASELINE</div><div class="value positive" id="net-pnl">+0.00</div><div class="foot" id="pnl-foot">0.00% · starting point</div></article>
+    <article class="panel metric"><div class="label">CLOSED TRADES</div><div class="value" id="closed-trades">0</div><div class="foot" id="trades-foot">No closed trades yet</div></article>
     <article class="panel metric"><div class="label">MAX DRAWDOWN</div><div class="value">—</div><div class="foot">Not measurable at baseline</div></article>
   </section>
   <section class="grid twocol">
@@ -123,25 +123,25 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     <article class="panel">
       <div class="panelhead"><div class="paneltitle">DAILY SNAPSHOT</div><span class="tag">DAY 01</span></div>
       <div class="panelbody dailylist">
-        <div class="dailyrow"><span>Baseline timestamp</span><strong>10:51:24 UTC</strong></div>
+        <div class="dailyrow"><span>Last worker update</span><strong id="source-updated">10:51:24 UTC · BASELINE</strong></div>
         <div class="dailyrow"><span>Starting capital / strategy</span><strong>1,000.00 USDT</strong></div>
-        <div class="dailyrow"><span>Strategies</span><strong>6 / 6</strong></div>
-        <div class="dailyrow"><span>Closed trades</span><strong>0</strong></div>
-        <div class="dailyrow"><span>Realized P&amp;L</span><strong>+0.00 USDT</strong></div>
-        <div class="dailyrow"><span>Worker errors at baseline check</span><strong class="positive">0</strong></div>
-        <div class="notice">This is the initial baseline snapshot, not a completed 24-hour performance report. No daily return is inferred from missing history.</div>
+        <div class="dailyrow"><span>Healthy strategies</span><strong id="healthy-strategies">6 / 6</strong></div>
+        <div class="dailyrow"><span>Closed trades</span><strong id="snapshot-trades">0</strong></div>
+        <div class="dailyrow"><span>Realized P&amp;L</span><strong id="realized-pnl">+0.00 USDT</strong></div>
+        <div class="dailyrow"><span>Worker errors</span><strong class="positive" id="worker-errors">0</strong></div>
+        <div class="notice" id="snapshot-note">This is the initial baseline snapshot, not a completed 24-hour performance report. No daily return is inferred from missing history.</div>
       </div>
     </article>
   </section>
   <section id="strategies">
     <div class="hero"><div><div class="eyebrow">SIX GUARDIANS / SIX ACCOUNTS</div><h1>STRATEGY ROOM</h1><div class="subtitle">Each strategy owns an isolated virtual account · 1,000 USDT starting equity</div></div></div>
     <div class="grid strategies">
-      <article class="panel strategy"><div class="strategytop"><div class="strategyname">BNB 4H KELTNER ADX</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
-      <article class="panel strategy"><div class="strategytop"><div class="strategyname">BNB 4H ADX TREND</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
-      <article class="panel strategy"><div class="strategytop"><div class="strategyname">BNB 1H DONCHIAN ADX25</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>1H</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
-      <article class="panel strategy"><div class="strategytop"><div class="strategyname">BNB 15M EMA TREND</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>15M</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
-      <article class="panel strategy"><div class="strategytop"><div class="strategyname">BNB 1D DONCHIAN55</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>1D</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
-      <article class="panel strategy"><div class="strategytop"><div class="strategyname">SOL 4H DONCHIAN VOL</div><span class="status">BASELINE</span></div><div class="strategymeta"><span>SOL/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong>1,000.00</strong></div></article>
+      <article class="panel strategy" data-strategy-id="BNB_4H_KELTNER_ADX"><div class="strategytop"><div class="strategyname">BNB 4H KELTNER ADX</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
+      <article class="panel strategy" data-strategy-id="BNB_4H_ADX_TREND"><div class="strategytop"><div class="strategyname">BNB 4H ADX TREND</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
+      <article class="panel strategy" data-strategy-id="BNB_1H_DONCHIAN_ADX25"><div class="strategytop"><div class="strategyname">BNB 1H DONCHIAN ADX25</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>1H</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
+      <article class="panel strategy" data-strategy-id="BNB_15M_EMA_TREND"><div class="strategytop"><div class="strategyname">BNB 15M EMA TREND</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>15M</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
+      <article class="panel strategy" data-strategy-id="BNB_1D_DONCHIAN55"><div class="strategytop"><div class="strategyname">BNB 1D DONCHIAN55</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>1D</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
+      <article class="panel strategy" data-strategy-id="SOL_4H_DONCHIAN_VOL"><div class="strategytop"><div class="strategyname">SOL 4H DONCHIAN VOL</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>SOL/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
     </div>
   </section>
   <section id="daily" class="grid bottomgrid">
@@ -159,9 +159,95 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
   </section>
   <section id="archive" class="grid bottomgrid">
     <article class="panel"><div class="panelhead"><div class="paneltitle">EXPERIMENT ARCHIVE</div><span class="tag">30 DAYS</span></div><div class="panelbody"><div class="heat" aria-label="30-day archive has not accumulated daily reports"><span>01</span><span class="future">02</span><span class="future">03</span><span class="future">04</span><span class="future">05</span><span class="future">06</span><span class="future">07</span><span class="future">08</span><span class="future">09</span><span class="future">10</span><span class="future">11</span><span class="future">12</span><span class="future">13</span><span class="future">14</span><span class="future">15</span><span class="future">16</span><span class="future">17</span><span class="future">18</span><span class="future">19</span><span class="future">20</span><span class="future">21</span><span class="future">22</span><span class="future">23</span><span class="future">24</span><span class="future">25</span><span class="future">26</span><span class="future">27</span><span class="future">28</span><span class="future">29</span><span class="future">30</span></div><div class="smallprint">Day 01 marks the confirmed baseline. Future cells remain empty until a daily report is actually saved.</div></div></article>
-    <article class="panel"><div class="panelhead"><div class="paneltitle">SYSTEM INTEGRITY</div><span class="tag">INITIAL CHECK</span></div><div class="panelbody dailylist"><div class="dailyrow"><span>Execution mode</span><strong class="positive">PAPER_ONLY</strong></div><div class="dailyrow"><span>Initial health check</span><strong class="positive">6 / 6 OK</strong></div><div class="dailyrow"><span>Worker errors</span><strong>0</strong></div><div class="dailyrow"><span>Intrabar protections</span><strong class="positive">OK</strong></div><div class="dailyrow"><span>Live data connection</span><strong>NOT CONNECTED IN PREVIEW</strong></div><div class="notice">The preview is static by design. Live values will be wired to the worker's exported status through a read-only data layer after its security and freshness rules are implemented.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">SYSTEM INTEGRITY</div><span class="tag">INITIAL CHECK</span></div><div class="panelbody dailylist"><div class="dailyrow"><span>Execution mode</span><strong class="positive" id="mode-status">PAPER_ONLY</strong></div><div class="dailyrow"><span>Worker health</span><strong class="positive" id="worker-health">6 / 6 OK</strong></div><div class="dailyrow"><span>Worker errors</span><strong id="integrity-errors">0</strong></div><div class="dailyrow"><span>Intrabar protections</span><strong class="positive" id="protection-health">OK</strong></div><div class="dailyrow"><span>Live data connection</span><strong id="feed-connection">CONNECTING</strong></div><div class="notice" id="feed-note">Connecting to the read-only Paper/Shadow status feed. Baseline figures remain clearly labelled until a live snapshot is received.</div></div></article>
   </section>
   <p class="smallprint">BASELINE ID: ashur-paper-30d-2026-11-25-v2 · Started 2026-11-25 10:51:24 UTC · Ends 2026-12-25 10:51:24 UTC. This page is a design prototype, not a live trading dashboard.</p>
 </main>
-<footer class="footer"><div class="shell footerinner"><span><b>ASHUR</b> · THE WALL · NINEVEH DIGITAL ARCHIVE</span><span>READ-ONLY · PAPER EXPERIMENT · BUILD PREVIEW 01</span></div></footer>
+<footer class="footer"><div class="shell footerinner"><span><b>ASHUR</b> · THE WALL · NINEVEH DIGITAL ARCHIVE</span><span id="footer-state">READ-ONLY · PAPER EXPERIMENT · LIVE FEED CONNECTING</span></div></footer>
+
+<script>
+(() => {
+  const byId = id => document.getElementById(id);
+  const number = value => Number(value || 0);
+  const money = value => new Intl.NumberFormat('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}).format(number(value));
+  const signed = value => (number(value) >= 0 ? '+' : '−') + money(Math.abs(number(value)));
+  const percent = value => (number(value) >= 0 ? '+' : '−') + Math.abs(number(value)).toFixed(2) + '%';
+  const set = (id, value) => { const node = byId(id); if (node) node.textContent = value; };
+  const setTone = (node, value) => {
+    if (!node) return;
+    node.classList.toggle('positive', number(value) >= 0);
+    node.classList.toggle('negative', number(value) < 0);
+  };
+  const localTime = value => {
+    if (!value) return 'Unavailable';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Unavailable' : date.toLocaleString();
+  };
+
+  async function refreshDashboard() {
+    try {
+      const response = await fetch('/api/dashboard/v1/status', {
+        method: 'GET',
+        headers: {Accept: 'application/json'},
+        cache: 'no-store',
+        credentials: 'same-origin'
+      });
+      if (!response.ok) throw new Error('status_' + response.status);
+      const data = await response.json();
+      if (data.mode !== 'PAPER_ONLY' || !data.portfolio || !Array.isArray(data.accounts)) {
+        throw new Error('invalid_dashboard_payload');
+      }
+
+      set('feed-status-text', 'PAPER ONLY · ' + data.freshness);
+      set('feed-connection', 'CONNECTED');
+      set('footer-state', 'READ-ONLY · PAPER EXPERIMENT · LIVE FEED CONNECTED');
+      set('mode-status', data.mode);
+      set('total-equity', money(data.portfolio.equity));
+      set('equity-foot', 'USDT · ' + data.accounts.length + ' isolated accounts · ' + data.freshness);
+      set('net-pnl', signed(data.portfolio.net_pnl) + ' USDT');
+      setTone(byId('net-pnl'), data.portfolio.net_pnl);
+      set('pnl-foot', percent(data.portfolio.return_pct) + ' since baseline');
+      set('closed-trades', String(data.portfolio.trades));
+      set('trades-foot', data.portfolio.wins + ' wins · realized + unrealized P&L');
+      set('source-updated', localTime(data.source_updated_at) + ' · ' + data.freshness);
+      set('healthy-strategies', data.worker_health.successful_strategies + ' / ' + data.worker_health.strategy_count);
+      set('snapshot-trades', String(data.portfolio.trades));
+      set('realized-pnl', signed(data.portfolio.realized_pnl) + ' USDT');
+      setTone(byId('realized-pnl'), data.portfolio.realized_pnl);
+      set('worker-errors', String(data.worker_health.error_count));
+      set('integrity-errors', String(data.worker_health.error_count));
+      set('worker-health', data.worker_health.all_strategies_ok ? 'ALL STRATEGIES OK' : 'CHECK REQUIRED');
+      set('protection-health', data.worker_health.all_protections_ok ? 'OK' : 'DEGRADED');
+      set('feed-note', 'Live worker snapshot received at ' + localTime(data.source_updated_at) + '. Historical equity and drawdown remain unavailable until the history collector is added.');
+      set('snapshot-note', 'Source freshness: ' + data.freshness + '. This is a current worker snapshot, not a completed 24-hour report.');
+
+      const accounts = new Map(data.accounts.map(account => [account.strategy_id, account]));
+      document.querySelectorAll('[data-strategy-id]').forEach(card => {
+        const account = accounts.get(card.dataset.strategyId);
+        if (!account) {
+          const status = card.querySelector('.strategy-status');
+          if (status) status.textContent = 'MISSING';
+          return;
+        }
+        const equity = card.querySelector('.strategy-equity');
+        const status = card.querySelector('.strategy-status');
+        if (equity) equity.textContent = money(account.equity);
+        if (status) {
+          status.textContent = data.freshness === 'STALE' ? 'STALE' :
+            (account.protection_status === 'DEGRADED' ? 'CHECK' : 'OK');
+        }
+      });
+    } catch (error) {
+      set('feed-status-text', 'PAPER ONLY · PREVIEW');
+      set('feed-connection', 'FEED UNAVAILABLE');
+      set('footer-state', 'READ-ONLY · BASELINE PREVIEW · NO LIVE FEED');
+      set('feed-note', 'Live status feed is unavailable. Displayed figures are the verified starting baseline only; they are not current performance.');
+      set('snapshot-note', 'Live worker status is unavailable. Baseline figures are shown for reference and must not be read as current balances.');
+    }
+  }
+
+  refreshDashboard();
+  window.setInterval(refreshDashboard, 60000);
+})();
+</script>
 </body></html>
