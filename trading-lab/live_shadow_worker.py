@@ -553,31 +553,35 @@ def open_position(conn, s, price, atr):
     event(conn,s["id"],"OPEN",f"paper BUY; qty={qty:.8f}; entry={fill:.6f}; SL={stop:.6f}; TP={target:.6f}")
 
 def probe_intrabar_recovery(conn, strategy):
-    """Probe a fresh closed minute after a protection failure; never allow entry in this cycle."""
+    """Require a fresh closed-minute data probe before any new paper entry."""
     health = conn.execute(
         "SELECT last_success_at,last_error FROM shadow_intrabar_health WHERE strategy_id=?",
         (strategy["id"],),
     ).fetchone()
-    if not health or not health["last_error"]:
+    if health and health["last_success_at"] and not health["last_error"]:
         return True
+
     since_ms = minute_cursor_for_now() - 60000
     try:
         candles = fetch_execution_klines(strategy["symbol"], since_ms)
         if candles.empty:
-            raise RuntimeError("No closed 1m candle available for protection recovery")
+            raise RuntimeError("No closed 1m candle available for protection validation")
         conn.execute(
-            """UPDATE shadow_intrabar_health SET last_success_at=?,last_error=NULL,last_error_at=NULL
-               WHERE strategy_id=?""",
-            (now(), strategy["id"]),
+            """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
+               VALUES(?,?,NULL,NULL) ON CONFLICT(strategy_id) DO UPDATE SET
+               last_success_at=excluded.last_success_at,last_error=NULL,last_error_at=NULL""",
+            (strategy["id"], now()),
         )
-        event(conn, strategy["id"], "PROTECTION_RECOVERED",
+        event_name = "PROTECTION_RECOVERED" if health and health["last_error"] else "PROTECTION_INITIALIZED"
+        event(conn, strategy["id"], event_name,
               f"validated_closed_minutes={len(candles)}; entry_allowed_from_next_cycle=true")
     except Exception as exc:
         error_text = f"{type(exc).__name__}: {exc}"[:500]
         conn.execute(
-            """UPDATE shadow_intrabar_health SET last_error=?,last_error_at=?
-               WHERE strategy_id=?""",
-            (error_text, now(), strategy["id"]),
+            """INSERT INTO shadow_intrabar_health(strategy_id,last_success_at,last_error,last_error_at)
+               VALUES(?,NULL,?,?) ON CONFLICT(strategy_id) DO UPDATE SET
+               last_error=excluded.last_error,last_error_at=excluded.last_error_at""",
+            (strategy["id"], error_text, now()),
         )
         event(conn, strategy["id"], "PROTECTION_RECOVERY_BLOCKED", error_text)
     return False
