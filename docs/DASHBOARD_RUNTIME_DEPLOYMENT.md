@@ -124,3 +124,67 @@ retention policy are explicitly configured and a restore test is completed.
 For restoration testing, copy one verified snapshot to a disposable directory,
 open it with SQLite, run `PRAGMA integrity_check`, and verify expected tables
 and row counts. Never restore over the live history database as part of a test.
+
+
+## Cloudflare R2 off-host backup uploader
+
+The branch also includes `scripts/upload_dashboard_history_backup.py`. It is deliberately
+separate from the SQLite snapshot utility and is not started by the worker or dashboard
+supervisor. It requires the optional dependency in
+`scripts/requirements-dashboard-backup.txt`.
+
+The uploader:
+- accepts only a backup whose adjacent JSON manifest confirms `integrity_check=ok`;
+- recomputes the local SQLite file SHA-256 and size before network access;
+- uploads the SQLite object first and its manifest second;
+- checks object size and SHA-256 metadata with HEAD, then downloads each object and
+  recomputes SHA-256 before reporting success;
+- prints object keys and checksums only; it never prints credentials.
+
+### R2 bucket and credentials
+
+Create a **private** R2 bucket dedicated to ASHUR dashboard history. Create an R2
+S3 API token with Object Read & Write permission scoped to that bucket only. Store
+the Access Key ID and Secret Access Key in the hosting provider's protected
+environment/secret settings. Never put them in GitHub source, a checked-in env
+file, a command argument, a browser variable, or a log.
+
+Required environment variable names:
+- `R2_ACCOUNT_ID`
+- `R2_BUCKET`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+
+Optional object prefix: `R2_BACKUP_PREFIX` (defaults to
+`ashur/dashboard-history`). The S3 endpoint is constructed as
+`https://<ACCOUNT_ID>.r2.cloudflarestorage.com` and uses region `auto`.
+
+### Manual upload sequence
+
+Install the optional dependency in an isolated environment, then create a local
+verified SQLite snapshot in a temporary location outside the application data
+directory. Upload it only after the R2 bucket and bucket-scoped credentials exist:
+
+```bash
+python -m pip install -r scripts/requirements-dashboard-backup.txt
+python scripts/backup_dashboard_history.py \
+  --source "$ASHUR_DATA_DIR/ashur_dashboard_history.sqlite3" \
+  --destination-dir "/tmp/ashur-backup-staging"
+python scripts/upload_dashboard_history_backup.py \
+  --backup "/tmp/ashur-backup-staging/<BACKUP_FILENAME>.sqlite3" \
+  --manifest "/tmp/ashur-backup-staging/<BACKUP_FILENAME>.sqlite3.json"
+```
+
+The filename placeholder must be replaced with the exact filename printed by the
+snapshot command. A successful upload reports `verified: true` for both objects.
+This is a manual utility only: no automatic schedule, retry daemon, retention
+deletion, lifecycle rule, or restore-to-live action is configured.
+
+After the first upload, perform a separate restore test by downloading the exact
+database object into a disposable directory, comparing its SHA-256 with the
+manifest, and running SQLite `PRAGMA integrity_check` plus expected schema/row
+checks. Do not overwrite the live history database.
+
+Do not enable lifecycle deletion until a successful restore test exists and a
+retention period has been explicitly approved. Keep the bucket private; do not
+enable public access or create public object URLs.
