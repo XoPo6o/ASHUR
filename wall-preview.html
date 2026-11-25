@@ -135,6 +135,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       <article class="panel strategy" data-strategy-id="BNB_1D_DONCHIAN55"><div class="strategytop"><div class="strategyname">BNB 1D DONCHIAN55</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>BNB/USDT</span><span>·</span><span>1D</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
       <article class="panel strategy" data-strategy-id="SOL_4H_DONCHIAN_VOL"><div class="strategytop"><div class="strategyname">SOL 4H DONCHIAN VOL</div><span class="status strategy-status">BASELINE</span></div><div class="strategymeta"><span>SOL/USDT</span><span>·</span><span>4H</span></div><div class="strategybottom"><span>Equity</span><strong class="strategy-equity">1,000.00</strong></div></article>
     </div>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">STRATEGY PERFORMANCE / BASELINE</div><span class="tag">SIX ISOLATED ACCOUNTS</span></div><div class="panelbody"><svg class="chart" id="strategy-chart" viewBox="0 0 720 245" role="img" aria-label="Observed percentage return for six isolated strategies"></svg><div class="legend" id="strategy-legend"></div><div class="smallprint" id="strategy-note">Per-strategy history appears after validated snapshots have accumulated.</div></div></article>
   </section>
   <section id="daily" class="grid bottomgrid">
     <article class="panel"><div class="panelhead"><div class="paneltitle">CAPITAL ALLOCATION / BASELINE</div><span class="tag">6 × 1,000 USDT</span></div><div class="panelbody"><div class="allocation">
@@ -291,6 +292,76 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     }
   }
 
+  const strategyLabels = {
+    BNB_4H_KELTNER_ADX:'BNB 4H Keltner',
+    BNB_4H_ADX_TREND:'BNB 4H ADX',
+    BNB_1H_DONCHIAN_ADX25:'BNB 1H Donchian',
+    BNB_15M_EMA_TREND:'BNB 15M EMA',
+    BNB_1D_DONCHIAN55:'BNB 1D Donchian',
+    SOL_4H_DONCHIAN_VOL:'SOL 4H Donchian'
+  };
+  const strategyColors = ['#65d8d0','#e4b86a','#ed7774','#8f9cff','#65d69a','#d78de6'];
+
+  function drawStrategyChart(series) {
+    const svg = byId('strategy-chart');
+    const legend = byId('strategy-legend');
+    if (!svg || !legend) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    legend.replaceChildren();
+    const left = 72, right = 700, top = 24, bottom = 198;
+    [0, 1, 2, 3].forEach(index => {
+      const y = top + index * (bottom - top) / 3;
+      svg.appendChild(svgNode('line', {x1:left, y1:y, x2:right, y2:y, class:'gridline'}));
+    });
+    svg.appendChild(svgNode('line', {x1:left, y1:top, x2:left, y2:bottom, class:'axis'}));
+    svg.appendChild(svgNode('line', {x1:left, y1:bottom, x2:right, y2:bottom, class:'axis'}));
+    const values = series.flatMap(item => item.points.map(point => number(point.return_pct)));
+    if (!values.length) {
+      svg.appendChild(svgNode('text', {x:100, y:100, class:'empty'}, 'WAITING FOR STRATEGY SNAPSHOTS'));
+      return;
+    }
+    let min = Math.min(...values), max = Math.max(...values);
+    if (max === min) { min -= 0.1; max += 0.1; }
+    const pad = (max - min) * 0.12;
+    min -= pad; max += pad;
+    [0, 1, 2, 3].forEach(index => {
+      const value = max - index * (max - min) / 3;
+      const y = top + index * (bottom - top) / 3;
+      svg.appendChild(svgNode('text', {x:4, y:y + 4}, percent(value)));
+    });
+    series.forEach((item, index) => {
+      const points = item.points || [];
+      if (!points.length) return;
+      const coords = points.map((point, pointIndex) => ({
+        x: points.length === 1 ? left : left + pointIndex * (right - left) / (points.length - 1),
+        y: bottom - (number(point.return_pct) - min) / (max - min) * (bottom - top)
+      }));
+      if (coords.length > 1) {
+        svg.appendChild(svgNode('polyline', {
+          points:coords.map(point => point.x.toFixed(2) + ',' + point.y.toFixed(2)).join(' '),
+          fill:'none', stroke:strategyColors[index % strategyColors.length],
+          'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'
+        }));
+      } else {
+        svg.appendChild(svgNode('circle', {
+          cx:coords[0].x, cy:coords[0].y, r:4,
+          fill:strategyColors[index % strategyColors.length]
+        }));
+      }
+      const entry = document.createElement('span');
+      const swatch = document.createElement('b');
+      swatch.textContent = '━━';
+      swatch.style.color = strategyColors[index % strategyColors.length];
+      entry.appendChild(swatch);
+      entry.appendChild(document.createTextNode(' ' + (strategyLabels[item.strategy_id] || item.strategy_id)));
+      legend.appendChild(entry);
+    });
+    if (values.length === series.length) {
+      svg.appendChild(svgNode('text', {x:100, y:225}, 'FIRST OBSERVATION'));
+      svg.appendChild(svgNode('text', {x:580, y:225}, 'CURRENT'));
+    }
+  }
+
   async function refreshHistory() {
     try {
       const response = await fetch('/api/dashboard/v1/history?days=30', {
@@ -299,6 +370,8 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       if (!response.ok) throw new Error('history_' + response.status);
       const history = await response.json();
       drawEquityChart(history.equity_curve || []);
+      drawStrategyChart(history.strategies || []);
+      set('strategy-note', history.sample_count < 2 ? 'One validated observation per strategy is stored. Comparison curves appear after the next worker cycle.' : 'Six strategy return series from the same validated portfolio snapshots; returns are measured against each account’s 1,000 USDT baseline.');
       set('history-status', 'HISTORY · ' + history.range_days + 'D');
       set('history-samples', String(history.sample_count));
       set('history-range-label', 'UTC · ' + history.range_days + '-day history · ' + history.returned_point_count + ' plotted points');
@@ -326,6 +399,8 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       }
     } catch (error) {
       drawEquityChart([]);
+      drawStrategyChart([]);
+      set('strategy-note', 'Per-strategy history is not available yet. No synthetic strategy performance is displayed.');
       set('history-status', 'COLLECTING');
       set('history-samples', '0');
       set('history-drawdown', '—');
