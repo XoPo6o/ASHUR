@@ -25,7 +25,6 @@ jobs:
           python - <<'PY'
           import json
           import os
-          import sys
           from urllib.error import HTTPError, URLError
           from urllib.request import Request, urlopen
 
@@ -63,7 +62,6 @@ jobs:
           startup_data = get(f"/servers/{server}/startup")
           startup_meta = startup_data.get("meta", {})
           git_data = get(f"/servers/{server}/git")
-          git_attrs = attrs(git_data)
 
           relationships = server_attrs.get("relationships", {})
           allocation_data = relationships.get("allocations", {}).get("data", [])
@@ -120,11 +118,9 @@ jobs:
           }, ensure_ascii=False, sort_keys=True))
 
           print("=== GIT DEPLOY ===")
-          repository = git_attrs.get("repository")
-          config = git_attrs.get("config")
-          if not isinstance(config, dict):
-              config = {}
-          deploys = git_attrs.get("deployments", [])
+          repository = git_data.get("repository") or {}
+          config = git_data.get("config") or {}
+          deploys = git_data.get("deployments", [])
           safe_deploys = []
           for item in deploys[:5] if isinstance(deploys, list) else []:
               commit = item.get("commit") or {}
@@ -135,17 +131,16 @@ jobs:
                   "commit_sha": commit.get("sha"),
                   "created_at": item.get("created_at"),
               })
+          repo_fields = (
+              "source", "repository", "branch", "directory", "auto_deploy",
+              "restart_on_deploy", "start_if_offline", "apply_config",
+              "sync_startup", "disconnected", "last_deployed_at"
+          )
+          config_fields = ("state", "missing", "unsupported", "invalid", "version_outdated", "problems", "differs")
           print(json.dumps({
-              "can_manage": git_attrs.get("can_manage"),
-              "repository": repository,
-              "config": {
-                  key: config.get(key)
-                  for key in (
-                      "branch", "directory", "auto_deploy", "restart_on_deploy",
-                      "start_if_offline", "apply_config", "sync_startup", "disconnected"
-                  )
-                  if key in config
-              },
+              "can_manage": git_data.get("can_manage"),
+              "repository": {k: repository.get(k) for k in repo_fields if k in repository},
+              "sillydev_config": {k: config.get(k) for k in config_fields if k in config},
               "recent_deployments": safe_deploys,
           }, ensure_ascii=False, sort_keys=True))
 
