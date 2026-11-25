@@ -1,0 +1,158 @@
+name: ASHUR SillyDev read-only runtime audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-sillydev-readonly-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect SillyDev configuration without changing it
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, urlopen
+
+          key = os.environ.get("SILLYDEV_API_KEY", "")
+          server = os.environ.get("SILLYDEV_SERVER_ID", "")
+          if not key or not server:
+              print("AUDIT_BLOCKED: SILLYDEV_API_KEY or SILLYDEV_SERVER_ID is not configured in GitHub Actions.")
+              raise SystemExit(1)
+
+          base = "https://sillydev.co.uk/panel/api/client"
+          headers = {"Authorization": f"Bearer {key}", "Accept": "application/json"}
+
+          def get(path):
+              request = Request(base + path, headers=headers, method="GET")
+              try:
+                  with urlopen(request, timeout=20) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except HTTPError as exc:
+                  print(f"AUDIT_API_ERROR endpoint={path} http={exc.code}")
+                  raise SystemExit(1)
+              except (URLError, TimeoutError, OSError, ValueError) as exc:
+                  print(f"AUDIT_API_ERROR endpoint={path} type={type(exc).__name__}")
+                  raise SystemExit(1)
+
+          def attrs(value):
+              return value.get("attributes", value) if isinstance(value, dict) else {}
+
+          def records(value):
+              data = value.get("data", []) if isinstance(value, dict) else []
+              return [attrs(item) for item in data if isinstance(item, dict)]
+
+          server_data = get(f"/servers/{server}")
+          server_attrs = attrs(server_data)
+          resource_data = attrs(get(f"/servers/{server}/resources"))
+          startup_data = get(f"/servers/{server}/startup")
+          startup_meta = startup_data.get("meta", {})
+          git_data = get(f"/servers/{server}/git")
+          git_attrs = attrs(git_data)
+
+          relationships = server_attrs.get("relationships", {})
+          allocation_data = relationships.get("allocations", {}).get("data", [])
+          ports = [
+              item.get("attributes", {}).get("port")
+              for item in allocation_data
+              if isinstance(item, dict)
+          ]
+
+          print("=== SERVER ===")
+          print(json.dumps({
+              "name": server_attrs.get("name"),
+              "identifier": server_attrs.get("identifier"),
+              "node": server_attrs.get("node"),
+              "status": server_attrs.get("status"),
+              "docker_image": server_attrs.get("docker_image"),
+              "disk_limit_mib": server_attrs.get("limits", {}).get("disk"),
+              "backup_slots": server_attrs.get("feature_limits", {}).get("backups"),
+              "allocated_ports": ports,
+              "is_transferring": server_attrs.get("is_transferring"),
+              "is_node_under_maintenance": server_attrs.get("is_node_under_maintenance"),
+          }, ensure_ascii=False, sort_keys=True))
+
+          print("=== RUNTIME ===")
+          runtime = resource_data.get("resources", {})
+          print(json.dumps({
+              "state": resource_data.get("current_state"),
+              "is_booting": resource_data.get("is_booting"),
+              "memory_bytes": runtime.get("memory_bytes"),
+              "cpu_percent": runtime.get("cpu_absolute"),
+              "disk_bytes": runtime.get("disk_bytes"),
+              "uptime_ms": runtime.get("uptime"),
+          }, sort_keys=True))
+
+          print("=== STARTUP ===")
+          safe_values = {"MAIN_FILE", "SERVER_PORT", "ASHUR_DATA_DIR", "ASHUR_DASHBOARD_ALLOWED_ORIGINS"}
+          variable_report = []
+          for item in records(startup_data):
+              name = item.get("env_variable", "")
+              value = item.get("server_value")
+              row = {
+                  "name": name,
+                  "is_editable": item.get("is_editable"),
+                  "configured": value not in (None, ""),
+              }
+              if name in safe_values:
+                  row["value"] = value
+              variable_report.append(row)
+          print(json.dumps({
+              "raw_startup_command": startup_meta.get("raw_startup_command"),
+              "docker_image_options": sorted((startup_meta.get("docker_images") or {}).keys()),
+              "variables": variable_report,
+              "sillydev_config_managed": startup_meta.get("sillydev") is not None,
+          }, ensure_ascii=False, sort_keys=True))
+
+          print("=== GIT DEPLOY ===")
+          repository = git_attrs.get("repository")
+          config = git_attrs.get("config")
+          if not isinstance(config, dict):
+              config = {}
+          deploys = git_attrs.get("deployments", [])
+          safe_deploys = []
+          for item in deploys[:5] if isinstance(deploys, list) else []:
+              commit = item.get("commit") or {}
+              safe_deploys.append({
+                  "branch": item.get("branch"),
+                  "status": item.get("status"),
+                  "trigger": item.get("trigger"),
+                  "commit_sha": commit.get("sha"),
+                  "created_at": item.get("created_at"),
+              })
+          print(json.dumps({
+              "can_manage": git_attrs.get("can_manage"),
+              "repository": repository,
+              "config": {
+                  key: config.get(key)
+                  for key in (
+                      "branch", "directory", "auto_deploy", "restart_on_deploy",
+                      "start_if_offline", "apply_config", "sync_startup", "disconnected"
+                  )
+                  if key in config
+              },
+              "recent_deployments": safe_deploys,
+          }, ensure_ascii=False, sort_keys=True))
+
+          print("=== AUDIT SAFETY ===")
+          print("READ_ONLY=true")
+          print("POWER_ACTIONS=none")
+          print("DEPLOY_ACTIONS=none")
+          print("FILESYSTEM_WRITES=none")
+          print("SECRETS_VALUES=never_printed")
+          PY
