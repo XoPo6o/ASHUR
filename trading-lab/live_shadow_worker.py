@@ -54,13 +54,13 @@ MAX_NOTIONAL = 0.95
 # Public market-data polling is read-only; this worker never sends exchange orders.
 STRATEGIES = [
     {"id": "BNB_4H_KELTNER_ADX", "symbol": "BNB/USDT", "interval": "240",
-     "label": "Keltner breakout + ADX", "grade": "RESEARCH_PASS"},
+     "label": "Keltner breakout + ADX", "grade": "PROMISING_LOW_SAMPLE"},
     {"id": "BNB_4H_ADX_TREND", "symbol": "BNB/USDT", "interval": "240",
      "label": "ADX trend filter", "grade": "RESEARCH_PASS"},
     {"id": "BNB_1H_DONCHIAN_ADX25", "symbol": "BNB/USDT", "interval": "60",
      "label": "Donchian ensemble + ADX25", "grade": "RESEARCH_PASS"},
     {"id": "BNB_15M_EMA_TREND", "symbol": "BNB/USDT", "interval": "15",
-     "label": "EMA20/50 trend continuation", "grade": "PAPER_VALIDATION"},
+     "label": "EMA20/50 trend continuation", "grade": "REJECTED_HISTORICAL_SCREEN"},
     {"id": "SOL_4H_DONCHIAN_VOL", "symbol": "SOL/USDT", "interval": "240",
      "label": "Donchian volatility regime", "grade": "EXPERIMENTAL_LOW_SAMPLE"},
     {"id": "BNB_1D_DONCHIAN55", "symbol": "BNB/USDT", "interval": "D",
@@ -442,6 +442,9 @@ def init_db(conn):
           (strategy_id,label,symbol,interval,grade,cash,starting_cash,created_at)
           VALUES(?,?,?,?,?,?,?,?)""",
           (s["id"],s["label"],s["symbol"],s["interval"],s["grade"],START_CASH,START_CASH,now()))
+        # Keep the persisted dashboard grade aligned with the current research review.
+        conn.execute("UPDATE shadow_accounts SET grade=? WHERE strategy_id=?",
+                     (s["grade"], s["id"]))
     conn.commit()
 
 def event(conn, sid, kind, details):
@@ -631,6 +634,13 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
         mark = conn.execute("SELECT price,updated_at FROM shadow_marks WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
         trades = conn.execute("SELECT pnl,fees,reason,opened_at,closed_at FROM shadow_trades WHERE strategy_id=? ORDER BY id", (a["strategy_id"],)).fetchall()
         realized = sum(float(t["pnl"]) for t in trades)
+        recent_cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        recent_trades = conn.execute(
+            """SELECT id,entry,exit,qty,fees,pnl,reason,opened_at,closed_at
+               FROM shadow_trades WHERE strategy_id=? AND closed_at>=?
+               ORDER BY id DESC LIMIT 100""",
+            (a["strategy_id"], recent_cutoff),
+        ).fetchall()
         wins = sum(float(t["pnl"]) > 0 for t in trades)
         gross_profit = sum(float(t["pnl"]) for t in trades if float(t["pnl"]) > 0)
         gross_loss = abs(sum(float(t["pnl"]) for t in trades if float(t["pnl"]) < 0))
@@ -678,8 +688,16 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             "return_pct":round((equity/float(a["starting_cash"])-1)*100,4),
             "trades":len(trades),"wins":wins,"win_rate_pct":round(wins/len(trades)*100,2) if trades else 0,
             "profit_factor":round(gross_profit/gross_loss,3) if gross_loss else (None if not gross_profit else "inf"),
-            "fees":round(sum(float(t["fees"]) for t in trades),4),"last_price":price,
-            "last_price_at":mark["updated_at"] if mark else None,"position":position
+            "fees":round(sum(float(t["fees"]) for t in trades),4),
+            "recent_trades_30d":[
+                {"id":int(t["id"]),"entry":float(t["entry"]),"exit":float(t["exit"]),
+                 "qty":float(t["qty"]),"fees":round(float(t["fees"]),6),
+                 "net_pnl":round(float(t["pnl"]),6),"reason":t["reason"],
+                 "opened_at":t["opened_at"],"closed_at":t["closed_at"]}
+                for t in recent_trades
+            ],
+            "last_price":price,"last_price_at":mark["updated_at"] if mark else None,
+            "position":position
         })
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     STATUS_FILE.write_text(json.dumps(output, indent=2), encoding="utf-8")
