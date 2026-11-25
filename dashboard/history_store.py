@@ -186,14 +186,13 @@ def read_history(
             if not rows:
                 raise HistoryUnavailable("no snapshots collected in the requested range")
 
-            snapshot_ids = [int(row["id"]) for row in rows]
-            placeholders = ",".join("?" for _ in snapshot_ids)
             account_rows = conn.execute(
-                f"""SELECT snapshot_id, strategy_id, equity, net_pnl, return_pct
-                    FROM dashboard_account_snapshots
-                    WHERE snapshot_id IN ({placeholders})
-                    ORDER BY snapshot_id, strategy_id""",
-                snapshot_ids,
+                """SELECT a.snapshot_id, a.strategy_id, a.equity, a.net_pnl, a.return_pct
+                   FROM dashboard_account_snapshots AS a
+                   JOIN dashboard_snapshots AS s ON s.id=a.snapshot_id
+                   WHERE s.baseline_id=? AND s.captured_at>=?
+                   ORDER BY a.snapshot_id, a.strategy_id""",
+                (BASELINE_ID, since),
             ).fetchall()
     except sqlite3.Error as exc:
         raise HistoryUnavailable("history store could not be read") from exc
