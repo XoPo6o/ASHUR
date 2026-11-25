@@ -109,7 +109,7 @@ jobs:
           print("\n".join(lines))
           PY
       - name: Save daily status snapshot for the 30-day review
-        if: github.event_name == 'schedule' && github.event.schedule == '17 0 * * *'
+        if: github.event_name == 'push' || (github.event_name == 'schedule' && github.event.schedule == '17 0 * * *')
         uses: actions/upload-artifact@v4
         with:
           name: ashur-paper-shadow-daily-${{ github.run_id }}
