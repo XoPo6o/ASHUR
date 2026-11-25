@@ -24,7 +24,7 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn('id="top-max-drawdown"', HTML)
 
     def test_history_dependent_panels_are_not_faked(self):
-        self.assertIn('id="history-status">COLLECTING', HTML)
+        self.assertRegex(HTML, r'id="history-status"[^>]*>COLLECTING</span>')
         self.assertIn("function drawEquityChart(points)", HTML)
         self.assertIn("at least two observations in the same UTC day", HTML)
         self.assertIn("No synthetic performance data is displayed", HTML)
