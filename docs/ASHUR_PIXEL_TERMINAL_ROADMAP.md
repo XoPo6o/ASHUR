@@ -23,8 +23,8 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive. DONE (initial IA and read-only data contract documented).
 3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules. BASELINE V0.1 DONE (tokens, typography, component rules and first responsive components documented; detailed component inventory continues during implementation).
 4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health. IN PROGRESS (current values and six strategy states wired to the validated read-only status API; live equity history chart now consumes the separate snapshot API).
-5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap. IN PROGRESS (append-only history collector, portfolio and six strategy time series, UTC daily summaries and observed drawdown calculation implemented; CI verification pending).
-6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons.
+5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap. IN PROGRESS (append-only collector, portfolio/six-strategy time series, live equity and strategy-comparison charts, observed high-water/intraday drawdown, UTC daily P&L, realized P&L, trade and fee deltas implemented; further report/archive views remain).
+6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons. IN PROGRESS (observed intraday P&L, realized P&L, closed-trade delta, fees and intraday drawdown are displayed; full dated report/archive and complete 24-hour boundaries remain).
 7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data. IN PROGRESS (status and history endpoints implemented and wired to the UI on the isolated branch; live host/HTTPS verification remains pending).
 8. Implement mobile layouts and touch-friendly navigation.
 9. Test calculations against SQLite/exported status, empty states, timezone boundaries, stale data, all six strategies, accessibility and responsive layouts.
@@ -83,3 +83,6 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Updated `wall-preview.html` to draw the actual observed equity curve and display history collection status, sample count, maximum observed drawdown and intraday P&L. Daily P&L remains “Not enough data” until at least two observations exist within the same UTC day.
 - No synthetic chart points are generated. The API and UI show an explicit collecting/empty state until actual worker snapshots have accumulated.
 - Added history collector, read-only API and UI integrity tests. GitHub Actions run #53 passed: 19 unit tests and the dashboard JavaScript syntax check both succeeded.
+
+- Daily report panel now shows observed intraday P&L, realized P&L, closed-trade delta, fees and intraday drawdown. Values remain unavailable until two observations exist within the same UTC day.
+- Added six-strategy historical return comparison chart using the six per-account time series returned by the history API.
