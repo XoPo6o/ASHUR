@@ -8,6 +8,7 @@ on:
       - "dashboard/**"
       - "tests/test_dashboard_*.py"
       - "wall-preview.html"
+      - "trading-lab/ashur_supervisor.py"
       - ".github/workflows/dashboard-checks.yml"
   pull_request:
     branches:
