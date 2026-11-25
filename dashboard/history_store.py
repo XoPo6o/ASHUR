@@ -238,12 +238,21 @@ def read_history(
         start_equity = float(first["portfolio_equity"])
         end_equity = float(last["portfolio_equity"])
         # Intraday P&L is measured from the first observed snapshot of that UTC day.
+        day_peak = max(float(item["portfolio_equity"]) for item in observations)
+        day_drawdown = min(
+            ((float(item["portfolio_equity"]) / day_peak) - 1) * 100
+            for item in observations
+        ) if day_peak else 0.0
         daily.append({
             "date": day,
             "first_equity": round(start_equity, 4),
             "last_equity": round(end_equity, 4),
             "pnl": round(end_equity - start_equity, 4),
             "return_pct": round((end_equity / start_equity - 1) * 100, 4) if start_equity else 0.0,
+            "realized_pnl": round(float(last["realized_pnl"]) - float(first["realized_pnl"]), 4),
+            "closed_trades": int(last["trades"]) - int(first["trades"]),
+            "fees": round(float(last["fees"]) - float(first["fees"]), 4),
+            "max_drawdown_pct": round(day_drawdown, 4),
             "snapshots": len(observations),
         })
 
