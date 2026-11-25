@@ -140,7 +140,7 @@ jobs:
                   FROM shadow_intrabar_health ORDER BY strategy_id"""):
                   print("-"," | ".join(str(value) if value is not None else "none" for value in health_row))
           print()
-                    print("## Closed paper trades")
+          print("## Closed paper trades")
           rows=c.execute("SELECT strategy_id,symbol,entry,exit,qty,fees,pnl,reason,opened_at,closed_at FROM shadow_trades ORDER BY id").fetchall()
           if not rows: print("No closed trades yet.")
           for x in rows: print("-"," | ".join(map(str,x)))
