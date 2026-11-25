@@ -21,13 +21,13 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 ## Ten-stage delivery plan
 1. Audit current site, runtime, status export, deployment and existing UI. DONE (initial repository audit; see audit findings below).
 2. Define information architecture and data contract for Command Center, Daily Report, Strategy Room, Equity & Performance, Trade History, System Status and Archive. DONE (initial IA and read-only data contract documented).
-3. Build the design system: pixel grid, palette, type scale, 9-slice panel borders, buttons, indicators, icons, decorative Assyrian assets and responsive rules. BASELINE V0.1 DONE (tokens, typography, component rules and first responsive components documented; detailed component inventory continues during implementation).
+3. Build the design system: pixel UI, palette, type scale, panel borders, indicators, icons, Assyrian identity and responsive rules. V0.2 DONE (official ASHUR star, midnight gradient without a full-page grid, typography, pixel panels and responsive CSS baseline implemented; detailed component polish continues).
 4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health. IN PROGRESS (current values and six strategy states wired to the validated read-only status API; live equity history chart now consumes the separate snapshot API).
 5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap. IN PROGRESS (append-only collector, portfolio/six-strategy time series, live equity and strategy-comparison charts, observed high-water/intraday drawdown, UTC daily P&L, realized P&L, trade and fee deltas implemented; further report/archive views remain).
 6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons. IN PROGRESS (observed intraday P&L, realized P&L, closed-trade delta, fees and intraday drawdown are displayed; full dated report/archive and complete 24-hour boundaries remain).
 7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data. IN PROGRESS (status and history endpoints implemented and wired to the UI on the isolated branch; live host/HTTPS verification remains pending).
-8. Implement mobile layouts and touch-friendly navigation.
-9. Test calculations against SQLite/exported status, empty states, timezone boundaries, stale data, all six strategies, accessibility and responsive layouts.
+8. Implement mobile layouts and touch-friendly navigation. IN PROGRESS (responsive CSS baseline is present; mobile browser verification and touch-navigation polish remain).
+9. Test calculations against SQLite/exported status, empty states, timezone boundaries, stale data, all six strategies, accessibility and responsive layouts. IN PROGRESS (19 unit tests and JavaScript syntax check pass; browser integration, timezone-boundary, accessibility and production runtime checks remain).
 10. Deploy only after review, keeping the existing landing page and trading runtime stable; verify production and record the release commit.
 
 ## Non-negotiable safety rules
@@ -42,9 +42,10 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 ## Progress on 2026-11-25
 - Stage 1 audit completed.
 - Stage 2 initial information architecture and read-only data contract completed; see `docs/ASHUR_PIXEL_TERMINAL_DATA_CONTRACT.md`.
-- Stage 3 baseline v0.1 completed: design tokens and visual rules documented in `docs/ASHUR_PIXEL_TERMINAL_DESIGN_SYSTEM.md`.
-- Stage 4 in progress: `wall-preview.html` now includes the main dashboard composition, six unique strategy cards, verified 6 × 1,000 USDT capital-allocation visualization, responsive layout, and an equity-curve baseline marker that does not imply fabricated flat performance. It remains a static preview, not connected to production data.
-- Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.\n- Runtime adapter milestone: `dashboard/read_model.py` projects the worker's actual JSON export through a strict allowlist, validates the active baseline and six 1,000 USDT accounts, derives portfolio aggregates, and labels stale/offline data. The status and history endpoints are covered by GitHub Actions; the live host has not yet been verified.
+- Stage 3 design system v0.2 completed: official ASHUR star, atmospheric no-grid background, typography, pixel panels and responsive CSS baseline.
+- Stage 4 in progress: `wall-preview.html` includes the Command Center, six strategy cards, verified 6 × 1,000 USDT baseline allocation and live read-only status/history data wiring. Production host verification is not complete.
+- Work is isolated on `ashur-pixel-terminal-ui`; no merge or deployment has occurred.
+- Runtime adapter milestone: `dashboard/read_model.py` projects the worker's actual JSON export through a strict allowlist, validates the active baseline and six 1,000 USDT accounts, derives portfolio aggregates, and labels stale/offline data. The status and history endpoints are covered by GitHub Actions; the live host has not yet been verified.
 
 ## First implementation deliverables
 - `wall-preview.html`: standalone visual prototype using only verified baseline facts and explicit empty states.
