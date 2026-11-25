@@ -292,7 +292,7 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.DATA_DIR, worker.STATUS_FILE = original
 
 
-    def test_minute_feed_outage_does_not_disable_signal_exit(self):
+    def test_minute_feed_outage_failsafe_closes_and_blocks_new_entry(self):
         import json
         import tempfile
         import pandas as pd
@@ -335,10 +335,12 @@ class TestAshurRuntime(unittest.TestCase):
                     patch.object(worker, "fetch_bybit_klines", return_value=object()),
                     patch.object(worker, "indicators", return_value=closed_candle),
                     patch.object(worker, "fetch_ticker", return_value=100.0),
-                    patch.object(worker, "signals", return_value=(False, True)),
+                    patch.object(worker, "signals", return_value=(True, False)),
                     patch.object(worker, "fetch_execution_klines", side_effect=RuntimeError("minute API unavailable")),
+                    patch.object(worker, "open_position", wraps=worker.open_position) as reopen,
                 ):
                     worker.run()
+                    reopen.assert_not_called()
 
                 conn = sqlite3.connect(worker.DB)
                 trade = conn.execute(
