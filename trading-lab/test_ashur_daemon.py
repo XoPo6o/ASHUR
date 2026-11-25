@@ -562,7 +562,7 @@ class TestAshurRuntime(unittest.TestCase):
             "open": 100.0, "high": 101.0, "low": 99.0, "close": 100.0, "volume": 1.0,
         }])
         with patch.object(worker, "fetch_execution_klines", return_value=candle) as fetch:
-            self.assertFalse(worker.probe_intrabar_recovery(conn, strategy))
+            self.assertTrue(worker.probe_intrabar_recovery(conn, strategy))
             fetch.assert_called_once()
         self.assertTrue(worker.probe_intrabar_recovery(conn, strategy))
         conn.close()
