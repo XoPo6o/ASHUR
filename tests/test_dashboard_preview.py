@@ -31,8 +31,9 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertNotIn("NO TRADES YET", HTML)
 
     def test_offline_feed_is_not_presented_as_current_performance(self):
-        self.assertIn("verified starting baseline only", HTML)
-        self.assertIn("must not be read as current balances", HTML)
+        self.assertIn("LAST SNAPSHOT UNAVAILABLE", HTML)
+        self.assertIn("may reflect the previous successful snapshot", HTML)
+        self.assertIn("must not be treated as current", HTML)
         self.assertIn("Historical analytics are supplied by the separate append-only collector", HTML)
 
     def test_archive_uses_observed_daily_history_without_fabricated_reports(self):
