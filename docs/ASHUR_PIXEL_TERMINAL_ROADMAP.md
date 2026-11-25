@@ -97,3 +97,12 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Added archive rendering coverage. GitHub Actions runs for the current PR head passed both the dashboard unit tests and JavaScript syntax check.
 - Stage 6 remains IN PROGRESS: the dated archive view is implemented, while full 24-hour boundary reporting and additional report validation remain.
 - No merge, deployment, trading database writes, order access or strategy changes were performed.
+
+
+## Progress update — 2026-11-25 (rolling 24-hour report)
+- Added a boundary-anchored rolling 24-hour summary to the history API. It compares the newest validated snapshot with the latest validated snapshot at or before the 24-hour cutoff.
+- The API reports the actual elapsed observation window, sample count, equity P&L/return, realized P&L, closed-trade delta, fees and chronological drawdown. If the boundary anchor is missing, the summary remains explicitly unavailable.
+- Added unit coverage for the 24-hour anchor, P&L/drawdown calculations and insufficient-history behavior.
+- Wired the rolling 24-hour values into Daily Report alongside the separate UTC intraday summary; the UI labels the actual observed hours rather than implying an exact clock boundary.
+- Dashboard unit tests and JavaScript syntax checks passed for the implementation commits. The latest CI run is completing its final job bookkeeping.
+- Stage 6 remains IN PROGRESS: the 30-day dated archive and rolling 24-hour metrics are now present; deeper report validation and mobile/browser verification remain.
