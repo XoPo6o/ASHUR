@@ -241,7 +241,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       set('feed-status-text', 'PAPER ONLY · LAST SNAPSHOT UNAVAILABLE');
       set('feed-connection', 'LAST SNAPSHOT UNAVAILABLE');
       set('footer-state', 'READ-ONLY · LIVE DATA UNAVAILABLE');
-      set('snapshot-note', 'LAST SNAPSHOT UNAVAILABLE. Any previously displayed values may reflect the previous successful snapshot.');
+      set('snapshot-note', 'LAST SNAPSHOT UNAVAILABLE. Any previously displayed values may reflect the previous successful snapshot and must not be treated as current.');
       ['total-equity','net-pnl','closed-trades','source-updated','healthy-strategies',
        'snapshot-trades','realized-pnl','worker-errors','integrity-errors'].forEach(id => set(id, '—'));
       set('equity-foot', 'No validated live snapshot');
