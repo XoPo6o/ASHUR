@@ -25,7 +25,7 @@ class DashboardPreviewTests(unittest.TestCase):
     def test_history_dependent_panels_are_not_faked(self):
         self.assertIn('id="history-status">COLLECTING', HTML)
         self.assertIn("function drawEquityChart(points)", HTML)
-        self.assertIn("One validated snapshot is stored", HTML)
+        self.assertIn("at least two observations in the same UTC day", HTML)
         self.assertIn("No synthetic performance data is displayed", HTML)
         self.assertNotIn("NO TRADES YET", HTML)
 
