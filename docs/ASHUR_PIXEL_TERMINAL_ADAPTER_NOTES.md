@@ -27,4 +27,8 @@ Important corrections to the initial draft:
 - returns only an explicit allowlist of dashboard fields;
 - derives portfolio aggregates from the six account records.
 
-This is not yet an HTTP endpoint and is not deployed. A trusted server-side host must call it after securely obtaining the status JSON. Do not point the browser at the SillyDev panel file API and do not publish raw status JSON. The hosting decision and authenticated server-side retrieval remain separate deployment tasks.
+This read model now has a standard-library HTTP adapter in `dashboard/http_server.py`. The adapter serves `wall-preview.html` at `/`, a minimal `/healthz`, and the sanitized projection at `GET /api/dashboard/v1/status`. It reads only the active worker's `ashur_shadow_status.json`; it never exposes the raw file, the worker SQLite database, arbitrary filesystem paths, or write operations. The response is `no-store`, bounded to a 2 MB source file, and rejects unavailable/offline data rather than presenting stale values as current.
+
+`trading-lab/ashur_supervisor.py` starts the HTTP listener in a daemon thread only when the host provides `SERVER_PORT`; it binds to `0.0.0.0` as required by Silly Development. Missing/invalid port or listener startup failure is logged and does not stop the Paper/Shadow supervisor. Same-origin requests are accepted; cross-origin requests require an exact comma-separated `ASHUR_DASHBOARD_ALLOWED_ORIGINS` entry. No wildcard CORS is used.
+
+The endpoint is implemented only on `ashur-pixel-terminal-ui` and is not deployed. Silly Development exposes app ports over plain HTTP and does not provide TLS; production browser access from an HTTPS website therefore still requires a verified HTTPS tunnel/reverse proxy or another HTTPS server-side origin. Live host verification, history collection, automated test execution and UI data wiring remain open tasks.
