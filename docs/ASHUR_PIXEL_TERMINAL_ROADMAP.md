@@ -65,3 +65,10 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - The endpoint remains isolated in `ashur-pixel-terminal-ui`; nothing has been merged or deployed. Silly Development's public app port is plain HTTP, so HTTPS tunnel/reverse-proxy setup must be resolved before connecting a production HTTPS website.
 
 - Initial dashboard unit suite is green; broader calculation checks against live runtime exports, timezone boundaries, responsive browser rendering and production host verification remain for stage 9.
+
+
+## Progress update — 2026-11-25 (browser data wiring)
+- Connected the Command Center to the same-origin read-only status API. The page polls every 60 seconds with `cache: no-store` and updates portfolio equity, net P&L/return, closed trades, worker health, source freshness and six strategy balances/statuses.
+- Failure state explicitly labels displayed values as baseline reference only; it does not present the last static baseline as current performance.
+- Equity history, daily P&L history and drawdown remain empty until the separate append-only history collector exists; no synthetic chart series is drawn.
+- Added preview integrity tests for the six strategy IDs, feed route, baseline-only failure behavior and the new official star/no-grid design. CI run #14 is in progress at this update; final result must be checked before calling this milestone green.
