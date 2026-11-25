@@ -103,6 +103,7 @@ class DashboardHistoryTests(unittest.TestCase):
         self.assertEqual(result["daily"][0]["pnl"], 60.0)
         self.assertEqual(result["daily"][0]["realized_pnl"], 60.0)
         self.assertEqual(result["daily"][0]["closed_trades"], 0)
+        self.assertEqual(result["daily"][0]["fees"], 0.0)
         self.assertAlmostEqual(result["daily"][0]["max_drawdown_pct"], (6060 / 6100 - 1) * 100, places=3)
 
     def test_stale_offline_and_wrong_baseline_are_not_collected(self):
