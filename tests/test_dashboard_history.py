@@ -107,6 +107,26 @@ class DashboardHistoryTests(unittest.TestCase):
         self.assertEqual(result["daily"][0]["fees"], 0.0)
         self.assertAlmostEqual(result["daily"][0]["max_drawdown_pct"], (6060 / 6100 - 1) * 100, places=3)
 
+    def test_daily_buckets_are_normalized_to_utc_across_local_midnight(self):
+        local_zone = timezone(timedelta(hours=7))
+        observations = [
+            (datetime(2026, 11, 26, 0, 5, tzinfo=local_zone), [1000] * 6),
+            (datetime(2026, 11, 26, 0, 10, tzinfo=local_zone), [1005] * 6),
+        ]
+        for stamp, equities in observations:
+            self.save_status(self.make_status(stamp, equities))
+            self.assertTrue(collect_once(self.status_file, self.history_db, now=stamp))
+
+        result = read_history(
+            self.history_db,
+            days=7,
+            now=observations[-1][0] + timedelta(minutes=1),
+        )
+        self.assertEqual(len(result["daily"]), 1)
+        self.assertEqual(result["daily"][0]["date"], "2026-11-25")
+        self.assertEqual(result["daily"][0]["snapshots"], 2)
+        self.assertEqual(result["daily"][0]["pnl"], 30.0)
+
     def test_strategy_trade_stats_report_observed_wins_and_losses(self):
         first_counts = {strategy_id: 0 for strategy_id in STRATEGY_IDS}
         first_wins = dict(first_counts)
