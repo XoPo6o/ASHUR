@@ -1,0 +1,35 @@
+name: ASHUR dashboard checks
+
+on:
+  push:
+    branches:
+      - ashur-pixel-terminal-ui
+    paths:
+      - "dashboard/**"
+      - "tests/test_dashboard_*.py"
+      - "wall-preview.html"
+      - ".github/workflows/dashboard-checks.yml"
+  pull_request:
+    branches:
+      - ashur-live-shadow
+    paths:
+      - "dashboard/**"
+      - "tests/test_dashboard_*.py"
+      - "wall-preview.html"
+      - ".github/workflows/dashboard-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run dashboard unit tests
+        run: python -m unittest discover -s tests -p "test_dashboard_*.py" -v
