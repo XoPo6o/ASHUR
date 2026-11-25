@@ -52,3 +52,6 @@ The endpoint and browser data wiring are implemented only on `ashur-pixel-termin
 The HTTP adapter exposes `GET /api/dashboard/v1/history?days=1|7|30|90`. It opens the history database with SQLite `mode=ro`, calculates the running high-water drawdown and UTC daily first-to-last observed P&L, and returns bounded chart series. No-history and invalid-range states are explicit. `wall-preview.html` polls the endpoint and draws only actual observations.
 
 The history database is append-only at the application layer and currently has no pruning. A persistent-volume backup and retention policy are still required before production deployment. The history collector/API/UI tests passed in GitHub Actions run #53 (19 total tests; JavaScript syntax check passed).
+
+- The Daily Report panel displays observed intraday equity P&L, realized P&L delta, closed-trade delta, fee delta and intraday drawdown; all require at least two snapshots within the same UTC day.
+- Added a six-strategy return comparison chart based on each account's baseline-relative return series.
