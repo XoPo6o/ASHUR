@@ -127,8 +127,8 @@ jobs:
           diagnostic_cutoff=(datetime.now(timezone.utc)-timedelta(days=7)).isoformat()
           diagnostic_events=c.execute("""SELECT created_at,strategy_id,event,details FROM shadow_events
               WHERE created_at>=? AND event IN
-              ('OPEN','CLOSE','ERROR','INTRABAR_DATA_WARNING','INTRABAR_GAP_RESET','INTRABAR_EXIT','NEWS_VETO')
-              ORDER BY id DESC LIMIT 120""",(diagnostic_cutoff,)).fetchall()
+              ('OPEN','CLOSE','ERROR','INTRABAR_DATA_WARNING','INTRABAR_GAP_RESET','INTRABAR_EXIT','CHECK')
+              ORDER BY id DESC LIMIT 200""",(diagnostic_cutoff,)).fetchall()
           if not diagnostic_events:
               print("No execution or warning events in the last 7 days.")
           for event_row in diagnostic_events:
