@@ -161,7 +161,7 @@ jobs:
           print("Worker errors / intrabar warnings in loss window:")
           for row in loss_errors:
               print("-"," | ".join(str(value) for value in row))
-                    print("## Closed paper trades")
+          print("## Closed paper trades")
           rows=c.execute("SELECT strategy_id,symbol,entry,exit,qty,fees,pnl,reason,opened_at,closed_at FROM shadow_trades ORDER BY id").fetchall()
           if not rows: print("No closed trades yet.")
           for x in rows: print("-"," | ".join(map(str,x)))
