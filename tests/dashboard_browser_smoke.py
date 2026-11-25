@@ -25,12 +25,19 @@ def main():
                     document: document.documentElement.scrollWidth,
                     navOverflow: getComputedStyle(nav).overflowX,
                     minNavLinkHeight: Math.min(...links.map(link => link.getBoundingClientRect().height)),
-                    chartWidth: chart.getBoundingClientRect().width
+                    chartWidth: chart.getBoundingClientRect().width,
+                    overflowers: [...document.querySelectorAll("body *")]
+                        .map(element => ({tag: element.tagName, id: element.id, className: String(element.className || "").slice(0, 100),
+                            left: Math.round(element.getBoundingClientRect().left),
+                            right: Math.round(element.getBoundingClientRect().right),
+                            width: Math.round(element.getBoundingClientRect().width)}))
+                        .filter(item => item.right > window.innerWidth + 1 || item.left < -1)
+                        .slice(0, 12)
                 };
             }""")
             if result["document"] > result["viewport"]:
                 raise AssertionError(
-                    f"Horizontal page overflow at {width}px: {result['document']}px"
+                    f"Horizontal page overflow at {width}px: {result['document']}px; elements={result['overflowers']}"
                 )
             if result["chartWidth"] <= 0:
                 raise AssertionError(f"Chart is not visible at {width}px")
