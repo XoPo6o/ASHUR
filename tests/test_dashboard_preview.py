@@ -44,6 +44,13 @@ class DashboardPreviewTests(unittest.TestCase):
         self.assertIn("No complete daily reports yet.", HTML)
         self.assertNotIn('aria-label="30-day archive has not accumulated daily reports"', HTML)
 
+    def test_rolling_24h_report_is_explicitly_boundary_anchored(self):
+        self.assertIn('id="history-24h-pnl"', HTML)
+        self.assertIn("history.rolling_24h", HTML)
+        self.assertIn("rolling.elapsed_hours", HTML)
+        self.assertIn("last validated snapshot at or before the 24-hour boundary", HTML)
+        self.assertIn("Not enough data", HTML)
+
     def test_mobile_touch_navigation_and_accessibility_rules(self):
         self.assertIn("min-height:44px", HTML)
         self.assertIn("overflow-x:auto", HTML)
