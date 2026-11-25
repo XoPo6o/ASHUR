@@ -194,6 +194,22 @@ def read_history(
                    ORDER BY a.snapshot_id, a.strategy_id""",
                 (BASELINE_ID, since),
             ).fetchall()
+            latest_source_at = datetime.fromisoformat(str(rows[-1]["source_updated_at"]))
+            rolling_cutoff = latest_source_at - timedelta(hours=24)
+            rolling_anchor = conn.execute(
+                """SELECT source_updated_at, portfolio_equity, realized_pnl, trades, fees
+                   FROM dashboard_snapshots
+                   WHERE baseline_id=? AND source_updated_at<=?
+                   ORDER BY source_updated_at DESC, id DESC LIMIT 1""",
+                (BASELINE_ID, rolling_cutoff.isoformat()),
+            ).fetchone()
+            rolling_recent = conn.execute(
+                """SELECT source_updated_at, portfolio_equity, realized_pnl, trades, fees
+                   FROM dashboard_snapshots
+                   WHERE baseline_id=? AND source_updated_at>? AND source_updated_at<=?
+                   ORDER BY source_updated_at, id""",
+                (BASELINE_ID, rolling_cutoff.isoformat(), latest_source_at.isoformat()),
+            ).fetchall()
     except sqlite3.Error as exc:
         raise HistoryUnavailable("history store could not be read") from exc
 
@@ -258,6 +274,38 @@ def read_history(
             "snapshots": len(observations),
         })
 
+    rolling_24h: dict[str, Any] = {
+        "available": False,
+        "reason": "INSUFFICIENT_24H_HISTORY",
+    }
+    if rolling_anchor is not None:
+        rolling_points = [rolling_anchor, *rolling_recent]
+        first_24h, last_24h = rolling_points[0], rolling_points[-1]
+        start_equity = float(first_24h["portfolio_equity"])
+        end_equity = float(last_24h["portfolio_equity"])
+        peak = start_equity
+        rolling_drawdown = 0.0
+        for point in rolling_points:
+            observed = float(point["portfolio_equity"])
+            peak = max(peak, observed)
+            if peak:
+                rolling_drawdown = min(rolling_drawdown, (observed / peak - 1) * 100)
+        start_at = datetime.fromisoformat(str(first_24h["source_updated_at"]))
+        end_at = datetime.fromisoformat(str(last_24h["source_updated_at"]))
+        rolling_24h = {
+            "available": True,
+            "start_at": start_at.isoformat(),
+            "end_at": end_at.isoformat(),
+            "elapsed_hours": round((end_at - start_at).total_seconds() / 3600, 3),
+            "snapshots": len(rolling_points),
+            "pnl": round(end_equity - start_equity, 4),
+            "return_pct": round((end_equity / start_equity - 1) * 100, 4) if start_equity else 0.0,
+            "realized_pnl": round(float(last_24h["realized_pnl"]) - float(first_24h["realized_pnl"]), 4),
+            "closed_trades": int(last_24h["trades"]) - int(first_24h["trades"]),
+            "fees": round(float(last_24h["fees"]) - float(first_24h["fees"]), 4),
+            "max_drawdown_pct": round(rolling_drawdown, 4),
+        }
+
     sampled_curve = _downsample(curve)
     sampled_strategies = [
         {"strategy_id": sid, "points": _downsample(points)}
@@ -281,6 +329,7 @@ def read_history(
         "equity_curve": sampled_curve,
         "strategies": sampled_strategies,
         "daily": daily,
+        "rolling_24h": rolling_24h,
     }
 
 
