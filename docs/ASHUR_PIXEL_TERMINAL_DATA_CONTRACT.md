@@ -74,7 +74,7 @@ The collector may read the worker status file, but it must not write to the trad
 - Win rate = total wins / total closed trades; if there are no closed trades, return null and render “Not enough data”.
 - Profit Factor = total gross profit / absolute total gross loss; if there are no losses or no trades, preserve null/inf semantics and render a clearly qualified state.
 - Drawdown requires a chronological equity time series; the history API calculates percentage decline from the running portfolio-equity high-water mark.
-- Daily intraday P&L is the last observed equity minus the first observed equity within each UTC date; at least two same-day observations are required before the UI reports a value.
+- Daily intraday P&L is the last observed equity minus the first observed equity within each UTC date; realized P&L, closed trades and fees are also reported as deltas between those observations. Intraday drawdown is measured from that UTC day's observed equity high. At least two same-day observations are required before the UI reports daily metrics.
 - Store canonical timestamps in UTC; let the UI display local time only as a presentation choice.
 
 ## Security and deployment
@@ -89,7 +89,7 @@ The collector may read the worker status file, but it must not write to the trad
 `GET /api/dashboard/v1/history?days=30` supports 1, 7, 30 or 90 days. The response contains:
 - `equity_curve[]`: UTC timestamp, portfolio equity, baseline-relative net P&L/return and running-high-water drawdown;
 - `strategies[]`: six strategy IDs with their own timestamped equity/P&L/return points;
-- `daily[]`: UTC date, first/last observed equity, intraday P&L/return and observation count;
+- `daily[]`: UTC date, first/last observed equity, intraday equity P&L/return, realized P&L delta, closed-trade delta, fees delta, intraday drawdown and observation count;
 - summary values and total/sample point counts.
 
 If no valid history exists, the API returns HTTP 503 with `HISTORY_UNAVAILABLE`; unsupported ranges return HTTP 400. The browser never receives a database path or raw SQLite content.
