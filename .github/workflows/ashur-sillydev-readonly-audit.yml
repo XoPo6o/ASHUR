@@ -26,7 +26,8 @@ jobs:
           import json
           import os
           from urllib.error import HTTPError, URLError
-          from urllib.request import Request, urlopen\n          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+          from urllib.parse import urlencode
 
           key = os.environ.get("SILLYDEV_API_KEY", "")
           server = os.environ.get("SILLYDEV_SERVER_ID", "")
