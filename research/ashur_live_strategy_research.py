@@ -269,8 +269,20 @@ def main():
         raw = lab.fetch_history(symbol, timeframe, interval_ms)
         # pandas datetime64 stores nanoseconds, while interval_ms is milliseconds.
         timestamps = raw.timestamp.astype("int64").to_numpy()
-        if len(timestamps) > 1 and (timestamps[1:] - timestamps[:-1] != interval_ms * 1_000_000).any():
-            raise RuntimeError(f"Non-contiguous history: {symbol} {timeframe}")
+        gaps = timestamps[1:] - timestamps[:-1]
+        bad = (gaps != interval_ms * 1_000_000).nonzero()[0]
+        if len(bad):
+            details = []
+            for index in bad[:5]:
+                details.append({
+                    "previous": raw.timestamp.iloc[int(index)].isoformat(),
+                    "next": raw.timestamp.iloc[int(index) + 1].isoformat(),
+                    "gap_minutes": int(gaps[int(index)] // 60_000_000_000),
+                })
+            raise RuntimeError(
+                f"Non-contiguous history: {symbol} {timeframe}; "
+                f"gap_count={len(bad)}; first_gaps={json.dumps(details)}"
+            )
         frame = add_live_signals(lab.indicators(raw))
         n = len(frame)
         train_end = int(n * TRAIN_FRACTION)
