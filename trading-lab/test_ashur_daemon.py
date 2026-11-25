@@ -445,7 +445,8 @@ class TestAshurRuntime(unittest.TestCase):
             end = int(params.get("end", params.get("endTime"))[0])
             requests.append((start, end))
             stamps = list(range(start, end, 60000))[:worker.EXECUTION_KLINE_PAGE_SIZE]
-            return [[stamp, "100", "101", "99", "100", "1"] for stamp in reversed(stamps)]
+            rows = [[stamp, "100", "101", "99", "100", "1"] for stamp in reversed(stamps)]
+            return {"retCode": 0, "result": {"list": rows}}
 
         try:
             worker.time.time = lambda: cutoff / 1000
