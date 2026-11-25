@@ -132,3 +132,11 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - GitHub Actions run #45625381278 passed the expanded dashboard unit suite, Chromium desktop/tablet/mobile and accessibility smoke checks, and JavaScript syntax validation on UI branch head `26f4f349d51aef24341d105fec296d98dc8f9cdf`.
 - Stage 9 remains IN PROGRESS: automated browser and UTC-boundary baselines are covered; broader screen-reader/contrast review and live host/runtime verification remain open.
 - HTTPS reverse-proxy configuration, persistent-volume backup/retention decisions and any production rollout remain pending. No merge or deployment was performed.
+
+
+## Runtime integration findings — Silly Development
+- The existing dashboard listener reads `SERVER_PORT` and binds to `0.0.0.0`; if the variable is absent, the dashboard sidecar is intentionally disabled while Paper/Shadow supervision continues.
+- Silly Development's current hosting guide confirms that apps must listen on `0.0.0.0` and the supplied `SERVER_PORT`; the public address/port is plain HTTP and the host does not issue a domain name or HTTPS certificate. See [Silly Development hosting guide](https://sillydev.co.uk/).
+- The provider recommends a tunnel such as Cloudflare Tunnel or a separately managed reverse proxy for HTTPS. No tunnel token, custom domain or TLS configuration has been added to the repository.
+- Before runtime sign-off: confirm the actual server startup environment exposes `SERVER_PORT`, choose and configure an HTTPS tunnel/reverse proxy outside the trading worker, then verify `/healthz`, status/history API responses and the UI on the public HTTPS origin.
+- These checks require the user's hosting-panel configuration and HTTPS endpoint. Do not enable a public HTTP dashboard or deploy this UI branch as a substitute.
