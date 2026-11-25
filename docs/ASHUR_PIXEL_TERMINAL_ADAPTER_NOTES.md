@@ -31,7 +31,7 @@ This read model now has a standard-library HTTP adapter in `dashboard/http_serve
 
 `trading-lab/ashur_supervisor.py` starts the HTTP listener in a daemon thread only when the host provides `SERVER_PORT`; it binds to `0.0.0.0` as required by Silly Development. Missing/invalid port or listener startup failure is logged and does not stop the Paper/Shadow supervisor. Same-origin requests are accepted; cross-origin requests require an exact comma-separated `ASHUR_DASHBOARD_ALLOWED_ORIGINS` entry. No wildcard CORS is used.
 
-The endpoint and browser data wiring are implemented only on `ashur-pixel-terminal-ui` and are not deployed. Silly Development exposes app ports over plain HTTP and does not provide TLS; production browser access from an HTTPS website therefore still requires a verified HTTPS tunnel/reverse proxy or another HTTPS server-side origin. Live host/HTTPS verification, persistent-volume backup policy and retention policy remain open tasks. GitHub Actions run #53 passed 19 dashboard unit tests and `node --check` (2026-11-25).
+The endpoint and browser data wiring are implemented only on `ashur-pixel-terminal-ui` and are not deployed. Silly Development exposes app ports over plain HTTP and does not provide TLS; production browser access from an HTTPS website therefore still requires a verified HTTPS tunnel/reverse proxy or another HTTPS server-side origin. Live host/HTTPS verification, persistent-volume backup policy and retention policy remain open tasks. GitHub Actions run #70 passed 19 dashboard unit tests and `node --check` (2026-11-25).
 
 
 ## Browser wiring milestone (2026-11-25)
