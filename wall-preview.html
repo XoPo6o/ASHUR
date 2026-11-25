@@ -622,10 +622,6 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       ['history-24h-pnl','history-24h-realized','history-24h-trades','history-24h-fees','history-24h-drawdown',
        'history-daily-pnl','history-realized-pnl','history-daily-trades','history-daily-fees','history-intraday-drawdown']
         .forEach(id => set(id, 'Not enough data'));
-      set('history-realized-pnl', 'Not enough data');
-      set('history-daily-trades', 'Not enough data');
-      set('history-daily-fees', 'Not enough data');
-      set('history-intraday-drawdown', 'Not enough data');
       set('history-range-label', 'UTC · 30-day history');
       set('history-note', 'Historical snapshots are not available yet. The collector starts independently and records only fresh, validated Paper/Shadow status.');
     }
