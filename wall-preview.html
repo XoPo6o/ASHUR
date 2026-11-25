@@ -79,7 +79,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
 .emptybox b{display:block;color:var(--gold);font:9px var(--pixel);line-height:2.2;margin-bottom:9px}
 .heat{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
 .heat span{aspect-ratio:1;background:#1b3340;border:1px solid #395965;display:grid;place-items:center;color:#78939b;font-size:8px}
-.heat span.future{opacity:.35}
+.heat span.future{opacity:.35}.heat span.report-positive{background:#174537;border-color:#4b9b79;color:#9de2b9}.heat span.report-negative{background:#512d32;border-color:#b96b70;color:#ffc0b8}.heat span.report-partial{background:#3b3b2e;border-color:#8c8054;color:#e4d39a}.archive-report{padding:10px 0;border-bottom:1px dashed #3a5661}.archive-report:last-child{border-bottom:0}.archive-report-top{display:flex;justify-content:space-between;gap:10px;font:9px var(--mono);color:var(--muted)}.archive-report-top strong{color:var(--gold)}.archive-report-meta{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.6}
 .footer{border-top:1px solid #34505d;padding:20px 0;color:#829ba2;font-size:10px}
 .footerinner{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .footer b{color:var(--gold);font-weight:600}
@@ -153,7 +153,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag" id="history-status" role="status" aria-live="polite">COLLECTING</span></div><div class="panelbody"><div class="dailyrow"><span>Stored observations</span><strong id="history-samples">0</strong></div><div class="dailyrow"><span>Max observed drawdown</span><strong id="history-drawdown">—</strong></div><div class="dailyrow"><span>Latest intraday P&amp;L</span><strong id="history-daily-pnl">Not enough data</strong></div><div class="dailyrow"><span>Realized P&amp;L observed</span><strong id="history-realized-pnl">—</strong></div><div class="dailyrow"><span>Closed trades observed</span><strong id="history-daily-trades">—</strong></div><div class="dailyrow"><span>Fees observed</span><strong id="history-daily-fees">—</strong></div><div class="dailyrow"><span>Intraday drawdown</span><strong id="history-intraday-drawdown">—</strong></div><div class="notice" id="history-note">The independent history collector is waiting for the first validated worker snapshot. No synthetic performance data is displayed.</div></div></article>
   </section>
   <section id="archive" class="grid bottomgrid">
-    <article class="panel"><div class="panelhead"><div class="paneltitle">EXPERIMENT ARCHIVE</div><span class="tag">30 DAYS</span></div><div class="panelbody"><div class="heat" aria-label="30-day archive has not accumulated daily reports"><span>01</span><span class="future">02</span><span class="future">03</span><span class="future">04</span><span class="future">05</span><span class="future">06</span><span class="future">07</span><span class="future">08</span><span class="future">09</span><span class="future">10</span><span class="future">11</span><span class="future">12</span><span class="future">13</span><span class="future">14</span><span class="future">15</span><span class="future">16</span><span class="future">17</span><span class="future">18</span><span class="future">19</span><span class="future">20</span><span class="future">21</span><span class="future">22</span><span class="future">23</span><span class="future">24</span><span class="future">25</span><span class="future">26</span><span class="future">27</span><span class="future">28</span><span class="future">29</span><span class="future">30</span></div><div class="smallprint">Day 01 marks the confirmed baseline. Future cells remain empty until a daily report is actually saved.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">EXPERIMENT ARCHIVE</div><span class="tag" id="archive-count">0 REPORTS</span></div><div class="panelbody"><div class="heat" id="archive-heatmap" role="list" aria-label="Observed daily Paper and Shadow summaries"><span class="future">—</span></div><div class="smallprint" id="archive-note">Daily summaries appear only when validated worker snapshots are available. A complete daily report requires at least two observations in the same UTC day.</div><div class="dailylist" id="archive-reports" aria-live="polite"><div class="emptybox">No complete daily reports yet.</div></div></div></article>
     <article class="panel"><div class="panelhead"><div class="paneltitle">SYSTEM INTEGRITY</div><span class="tag">INITIAL CHECK</span></div><div class="panelbody dailylist"><div class="dailyrow"><span>Execution mode</span><strong class="positive" id="mode-status">PAPER_ONLY</strong></div><div class="dailyrow"><span>Worker health</span><strong class="positive" id="worker-health">6 / 6 OK</strong></div><div class="dailyrow"><span>Worker errors</span><strong id="integrity-errors">0</strong></div><div class="dailyrow"><span>Intrabar protections</span><strong class="positive" id="protection-health">OK</strong></div><div class="dailyrow"><span>Live data connection</span><strong id="feed-connection">CONNECTING</strong></div><div class="notice" id="feed-note">Connecting to the read-only Paper/Shadow status feed. Baseline figures remain clearly labelled until a live snapshot is received.</div></div></article>
   </section>
   <p class="smallprint">BASELINE ID: ashur-paper-30d-2026-11-25-v2 · Started 2026-11-25 10:51:24 UTC · Ends 2026-12-25 10:51:24 UTC. This page is a design prototype, not a live trading dashboard.</p>
@@ -364,6 +364,71 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
     }
   }
 
+  function renderArchive(daily, anchorTimestamp) {
+    const heatmap = byId('archive-heatmap');
+    const reports = byId('archive-reports');
+    if (!heatmap || !reports) return;
+    heatmap.replaceChildren();
+    reports.replaceChildren();
+    const validDays = Array.isArray(daily) ? daily.filter(item => /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date || '')) : [];
+    const byDate = new Map(validDays.map(item => [item.date, item]));
+    const anchorDate = anchorTimestamp ? new Date(anchorTimestamp) : new Date();
+    const end = new Date(Date.UTC(anchorDate.getUTCFullYear(), anchorDate.getUTCMonth(), anchorDate.getUTCDate()));
+    let completeCount = 0;
+    for (let offset = 29; offset >= 0; offset -= 1) {
+      const day = new Date(end);
+      day.setUTCDate(day.getUTCDate() - offset);
+      const key = day.toISOString().slice(0, 10);
+      const item = byDate.get(key);
+      const cell = document.createElement('span');
+      cell.setAttribute('role', 'listitem');
+      cell.textContent = key.slice(8, 10);
+      if (!item) {
+        cell.className = 'future';
+        cell.setAttribute('aria-label', key + ': no validated observations');
+        cell.title = key + ' · no validated observations';
+      } else if (Number(item.snapshots) < 2) {
+        cell.className = 'report-partial';
+        cell.setAttribute('aria-label', key + ': one or fewer observations; daily metrics unavailable');
+        cell.title = key + ' · collecting; at least two observations required';
+      } else {
+        completeCount += 1;
+        const pnl = number(item.pnl);
+        cell.className = pnl > 0 ? 'report-positive' : (pnl < 0 ? 'report-negative' : 'report-partial');
+        cell.setAttribute('aria-label', key + ': daily P&L ' + signed(pnl) + ' USDT');
+        cell.title = key + ' · ' + signed(pnl) + ' USDT · ' + item.snapshots + ' observations';
+      }
+      heatmap.appendChild(cell);
+    }
+    set('archive-count', completeCount + ' REPORTS');
+    set('archive-note', completeCount + ' complete observed UTC-day summaries in this 30-day window. Days with fewer than two snapshots remain marked as collecting; empty days are not filled with estimates.');
+    const complete = validDays.filter(item => Number(item.snapshots) >= 2).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+    if (!complete.length) {
+      const empty = document.createElement('div');
+      empty.className = 'emptybox';
+      empty.textContent = 'No complete daily reports yet. The first report appears after two validated snapshots in one UTC day.';
+      reports.appendChild(empty);
+      return;
+    }
+    complete.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'archive-report';
+      const top = document.createElement('div');
+      top.className = 'archive-report-top';
+      const date = document.createElement('strong');
+      date.textContent = item.date + ' · UTC';
+      const pnl = document.createElement('b');
+      pnl.className = Number(item.pnl) > 0 ? 'positive' : (Number(item.pnl) < 0 ? 'negative' : '');
+      pnl.textContent = signed(item.pnl) + ' USDT';
+      top.append(date, pnl);
+      const meta = document.createElement('div');
+      meta.className = 'archive-report-meta';
+      meta.textContent = 'Realized ' + signed(item.realized_pnl) + ' USDT · Trades +' + item.closed_trades + ' · Fees ' + money(item.fees) + ' USDT · Intraday DD ' + percent(item.max_drawdown_pct) + ' · ' + item.snapshots + ' snapshots';
+      row.append(top, meta);
+      reports.appendChild(row);
+    });
+  }
+
   async function refreshHistory() {
     try {
       const response = await fetch('/api/dashboard/v1/history?days=30', {
@@ -371,6 +436,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       });
       if (!response.ok) throw new Error('history_' + response.status);
       const history = await response.json();
+      renderArchive(history.daily || [], history.last_snapshot_at);
       drawEquityChart(history.equity_curve || []);
       drawStrategyChart(history.strategies || []);
       set('strategy-note', history.sample_count < 2 ? 'One validated observation per strategy is stored. Comparison curves appear after the next worker cycle.' : 'Six strategy return series from the same validated portfolio snapshots; returns are measured against each account’s 1,000 USDT baseline.');
@@ -400,6 +466,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
         set('history-note', 'Daily metrics compare the first and last observed snapshots of the latest UTC day; they are not represented as a complete 24-hour report.');
       }
     } catch (error) {
+      renderArchive([], null);
       drawEquityChart([]);
       drawStrategyChart([]);
       set('strategy-note', 'Per-strategy history is not available yet. No synthetic strategy performance is displayed.');
