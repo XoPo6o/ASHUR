@@ -1,0 +1,120 @@
+name: ASHUR independent runtime watchdog
+run-name: ASHUR · independent Paper/Shadow health check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-independent-watchdog.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+    - cron: "17 0 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-independent-watchdog
+  cancel-in-progress: false
+
+jobs:
+  runtime-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify SillyDev process and six-strategy runtime
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SILLYDEV_API_KEY" || -z "$SILLYDEV_SERVER_ID" ]]; then
+            echo "::error::SILLYDEV_API_KEY or SILLYDEV_SERVER_ID is missing."
+            exit 1
+          fi
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+          curl --fail-with-body --silent --show-error "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" > /tmp/resources.json
+          curl --fail-with-body --silent --show-error --get \
+            --data-urlencode "file=/.local/share/ashur/ashur_shadow_status.json" \
+            "$API/servers/$SILLYDEV_SERVER_ID/files/contents" "${AUTH[@]}" > /tmp/status.json
+          python - <<'PY'
+          import json, sys
+          from datetime import datetime, timezone
+          resources=json.load(open("/tmp/resources.json"))
+          state=resources.get("attributes",{}).get("current_state","unknown")
+          if state != "running":
+              raise SystemExit(f"SERVER_NOT_RUNNING state={state}")
+          d=json.load(open("/tmp/status.json"))
+          expected={
+              "BNB_4H_KELTNER_ADX", "BNB_4H_ADX_TREND",
+              "BNB_1H_DONCHIAN_ADX25", "BNB_15M_EMA_TREND",
+              "SOL_4H_DONCHIAN_VOL", "BNB_1D_DONCHIAN55",
+          }
+          h=d.get("worker_health",{})
+          if d.get("mode") != "PAPER_ONLY":
+              raise SystemExit("UNSAFE_MODE mode="+str(d.get("mode")))
+          stamp=d.get("updated_at")
+          if not stamp:
+              raise SystemExit("MISSING_WORKER_HEARTBEAT")
+          age=(datetime.now(timezone.utc)-datetime.fromisoformat(stamp.replace("Z","+00:00"))).total_seconds()
+          if age < -60 or age > 900:
+              raise SystemExit(f"STALE_WORKER_HEARTBEAT age_seconds={int(age)}")
+          accounts=d.get("accounts",[])
+          ids={a.get("strategy_id") for a in accounts}
+          if len(accounts) != 6 or ids != expected:
+              raise SystemExit(f"STRATEGY_SET_MISMATCH count={len(accounts)} ids={sorted(str(x) for x in ids)}")
+          if h.get("successful_strategies") != 6 or h.get("error_count") != 0 or h.get("all_strategies_ok") is not True:
+              raise SystemExit("STRATEGY_HEALTH_FAILED "+json.dumps(h))
+          if h.get("all_protections_ok") is not True or h.get("protection_degraded_positions") != 0 or h.get("protection_degraded_strategies") != 0:
+              raise SystemExit("POSITION_PROTECTION_FAILED "+json.dumps(h))
+          lines=[
+              "# ASHUR Paper/Shadow daily snapshot",
+              "",
+              f"- Checked: {datetime.now(timezone.utc).isoformat()}",
+              f"- Server: {state}",
+              f"- Worker heartbeat age: {int(age)} seconds",
+              f"- Mode: {d['mode']}",
+              f"- Strategies healthy: {h.get('successful_strategies')}/6",
+              f"- Worker errors: {h.get('error_count')}",
+              f"- Intrabar protections: {h.get('all_protections_ok')}",
+              "",
+              "| Strategy | Equity (USDT) | Net PnL | Trades | Fees |",
+              "|---|---:|---:|---:|---:|",
+          ]
+          for a in sorted(accounts,key=lambda x:x["strategy_id"]):
+              price_stamp=a.get("last_price_at")
+              if not price_stamp:
+                  raise SystemExit("MISSING_PRICE_TIMESTAMP "+a["strategy_id"])
+              price_age=(datetime.now(timezone.utc)-datetime.fromisoformat(price_stamp.replace("Z","+00:00"))).total_seconds()
+              if price_age < -60 or price_age > 900:
+                  raise SystemExit(f"STALE_PRICE {a['strategy_id']} age={int(price_age)}")
+              equity=float(a["equity"])
+              expected_equity=float(a["cash"])
+              p=a.get("position")
+              if p:
+                  if p.get("protection_status") != "OK":
+                      raise SystemExit("OPEN_POSITION_PROTECTION_NOT_OK "+a["strategy_id"])
+                  expected_equity += float(p["qty"])*float(p["mark"])*(1-0.0005)*(1-0.001)
+              if abs(equity-expected_equity) > 0.03:
+                  raise SystemExit(f"EQUITY_RECONCILIATION_FAILED {a['strategy_id']}")
+              if abs(float(a["net_pnl"])-(equity-float(a["starting_cash"]))) > 0.03:
+                  raise SystemExit(f"PNL_RECONCILIATION_FAILED {a['strategy_id']}")
+              lines.append(f"| {a['strategy_id']} | {equity:.2f} | {float(a['net_pnl']):+.2f} | {int(a['trades'])} | {float(a['fees']):.2f} |")
+          news=d.get("news_intelligence",{})
+          lines += ["", f"- News collector feed errors (24h): {news.get('feed_errors','unknown')}", ""]
+          open("/tmp/ashur-daily-report.md","w").write("\n".join(lines))
+          print("\n".join(lines))
+          PY
+      - name: Save daily status snapshot for the 30-day review
+        if: github.event_name == 'schedule' && github.event.schedule == '17 0 * * *'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashur-paper-shadow-daily-${{ github.run_id }}
+          path: |
+            /tmp/status.json
+            /tmp/ashur-daily-report.md
+          if-no-files-found: error
+          retention-days: 30
