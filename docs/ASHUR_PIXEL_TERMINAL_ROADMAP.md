@@ -25,7 +25,7 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 4. Build Command Center: portfolio equity, P&L, trades, drawdown, equity curve, daily P&L, six strategy states and system health. IN PROGRESS (first screen composition and verified baseline allocation visualization implemented; runtime values and full chart series await data integration).
 5. Build analytics charts: equity curve, daily P&L, drawdown, strategy comparison, trade distribution and calendar heatmap.
 6. Build Daily Report and dated report archive with 24-hour and baseline-relative comparisons.
-7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data. IN PROGRESS (runtime export audited; strict server-side read-model and guard tests added; secure hosting/retrieval path still pending).
+7. Integrate the real Paper/Shadow status through a read-only endpoint or safely published status projection; never read the stale repository JSON as live data. IN PROGRESS (runtime export audited; strict read model and standard-library HTTP endpoint implemented on the isolated branch; HTTPS access, live host verification and front-end wiring remain pending).
 8. Implement mobile layouts and touch-friendly navigation.
 9. Test calculations against SQLite/exported status, empty states, timezone boundaries, stale data, all six strategies, accessibility and responsive layouts.
 10. Deploy only after review, keeping the existing landing page and trading runtime stable; verify production and record the release commit.
@@ -55,3 +55,11 @@ Scope: read-only Paper/Shadow analytics UI. No order execution, no strategy chan
 - Updated `wall-preview.html` to use the exact eight-point star SVG mark from the current `main/index.html` brand.
 - Removed the full-page grid overlay and replaced it with a restrained layered midnight gradient with soft turquoise and warm-gold ambient light.
 - Stage 4 remains IN PROGRESS. This is a design refinement only: the preview is still static, and live runtime integration, history collection, automated test execution, and review are not complete.
+
+
+## Progress update — 2026-11-25 (read-only HTTP adapter)
+- Added `dashboard/http_server.py`: same-origin dashboard page at `/`, `/healthz`, and `GET /api/dashboard/v1/status`; the API returns only the validated `project_status()` allowlist and never serves the raw worker JSON or SQLite database.
+- Added bounded source-file handling, `no-store` response headers, exact CORS allowlisting, same-origin support for an HTTPS reverse proxy, and safe 503 behavior for missing/invalid/offline status.
+- Updated `trading-lab/ashur_supervisor.py` to start the optional listener only when `SERVER_PORT` is supplied. The HTTP listener runs in a daemon thread; listener failure does not interrupt Paper/Shadow supervision.
+- Added `tests/test_dashboard_http_server.py` and `.github/workflows/dashboard-checks.yml`. The workflow has been committed, but a successful CI run has not yet been confirmed.
+- The endpoint remains isolated in `ashur-pixel-terminal-ui`; nothing has been merged or deployed. Silly Development's public app port is plain HTTP, so HTTPS tunnel/reverse-proxy setup must be resolved before connecting a production HTTPS website.
