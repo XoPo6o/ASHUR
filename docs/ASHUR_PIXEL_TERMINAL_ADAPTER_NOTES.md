@@ -32,3 +32,10 @@ This read model now has a standard-library HTTP adapter in `dashboard/http_serve
 `trading-lab/ashur_supervisor.py` starts the HTTP listener in a daemon thread only when the host provides `SERVER_PORT`; it binds to `0.0.0.0` as required by Silly Development. Missing/invalid port or listener startup failure is logged and does not stop the Paper/Shadow supervisor. Same-origin requests are accepted; cross-origin requests require an exact comma-separated `ASHUR_DASHBOARD_ALLOWED_ORIGINS` entry. No wildcard CORS is used.
 
 The endpoint is implemented only on `ashur-pixel-terminal-ui` and is not deployed. Silly Development exposes app ports over plain HTTP and does not provide TLS; production browser access from an HTTPS website therefore still requires a verified HTTPS tunnel/reverse proxy or another HTTPS server-side origin. Live host verification, history collection and UI data wiring remain open tasks. The isolated unit-test suite passes in GitHub Actions (8 tests; run #6, 2026-11-25).
+
+
+## Browser wiring milestone (2026-11-25)
+- `wall-preview.html` now fetches the same-origin `/api/dashboard/v1/status` endpoint with `cache: no-store` and refreshes every 60 seconds.
+- The Command Center updates portfolio equity, baseline-relative P&L, closed-trade count, source timestamp/freshness, worker health, protection state and all six strategy account equities.
+- If the endpoint is unavailable, the UI labels the screen as a baseline preview and explicitly warns that the displayed baseline values are not current balances.
+- Historical equity, daily P&L series and drawdown remain intentionally unavailable until the append-only history collector is implemented.
