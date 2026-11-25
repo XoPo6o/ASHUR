@@ -550,6 +550,37 @@ def open_position(conn, s, price, atr):
     )
     event(conn,s["id"],"OPEN",f"paper BUY; qty={qty:.8f}; entry={fill:.6f}; SL={stop:.6f}; TP={target:.6f}")
 
+def probe_intrabar_recovery(conn, strategy):
+    """Probe a fresh closed minute after a protection failure; never allow entry in this cycle."""
+    health = conn.execute(
+        "SELECT last_success_at,last_error FROM shadow_intrabar_health WHERE strategy_id=?",
+        (strategy["id"],),
+    ).fetchone()
+    if not health or not health["last_error"]:
+        return True
+    since_ms = minute_cursor_for_now() - 60000
+    try:
+        candles = fetch_execution_klines(strategy["symbol"], since_ms)
+        if candles.empty:
+            raise RuntimeError("No closed 1m candle available for protection recovery")
+        conn.execute(
+            """UPDATE shadow_intrabar_health SET last_success_at=?,last_error=NULL,last_error_at=NULL
+               WHERE strategy_id=?""",
+            (now(), strategy["id"]),
+        )
+        event(conn, strategy["id"], "PROTECTION_RECOVERED",
+              f"validated_closed_minutes={len(candles)}; entry_allowed_from_next_cycle=true")
+    except Exception as exc:
+        error_text = f"{type(exc).__name__}: {exc}"[:500]
+        conn.execute(
+            """UPDATE shadow_intrabar_health SET last_error=?,last_error_at=?
+               WHERE strategy_id=?""",
+            (error_text, now(), strategy["id"]),
+        )
+        event(conn, strategy["id"], "PROTECTION_RECOVERY_BLOCKED", error_text)
+    return False
+
+
 def export_status(conn, worker_errors=0, successful_strategies=None):
     # Keep status export safe for legacy/test databases created before News Intelligence.
     news.init_db(conn)
@@ -573,6 +604,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                                 "intrabar_data_warnings_24h": int(intrabar_warnings_24h),
                                 "all_strategies_ok": int(worker_errors) == 0 and successful_strategies == len(STRATEGIES),
                                 "protection_degraded_positions": 0,
+                                "protection_degraded_strategies": 0,
                                 "all_protections_ok": True},
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
@@ -590,17 +622,21 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
         unrealized = 0.0
         position = None
         liquidation_value = 0.0
+        protection = conn.execute(
+            "SELECT last_success_at,last_error,last_error_at FROM shadow_intrabar_health WHERE strategy_id=?",
+            (a["strategy_id"],),
+        ).fetchone()
+        protection_status = "DEGRADED" if protection and protection["last_error"] else "NOT_REQUIRED"
         if pos:
-            protection = conn.execute(
-                "SELECT last_success_at,last_error,last_error_at FROM shadow_intrabar_health WHERE strategy_id=?",
-                (a["strategy_id"],),
-            ).fetchone()
-            protection_status = "DEGRADED" if protection and protection["last_error"] else "UNKNOWN"
+            protection_status = "UNKNOWN"
             if protection and protection["last_success_at"] and not protection["last_error"]:
                 protection_status = "OK"
             if protection_status != "OK":
                 output["worker_health"]["protection_degraded_positions"] += 1
                 output["worker_health"]["all_protections_ok"] = False
+        if protection and protection["last_error"]:
+            output["worker_health"]["protection_degraded_strategies"] += 1
+            output["worker_health"]["all_protections_ok"] = False
             mark_price = price if price is not None else float(pos["entry"])
             # Mark open positions at estimated net liquidation value, not gross market value.
             liquidation_value = (
@@ -619,7 +655,8 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
         output["accounts"].append({
             "strategy_id":a["strategy_id"],"label":a["label"],"symbol":a["symbol"],
             "timeframe":{"15":"15m","60":"1h","240":"4h","D":"1d"}.get(a["interval"],a["interval"]),
-            "grade":a["grade"],"starting_cash":float(a["starting_cash"]),"cash":round(cash,4),
+            "grade":a["grade"],"protection_status":protection_status,
+            "starting_cash":float(a["starting_cash"]),"cash":round(cash,4),
             "equity":round(equity,4),"net_pnl":round(equity-float(a["starting_cash"]),4),
             "realized_pnl":round(realized,4),"unrealized_pnl":round(unrealized,4),
             "return_pct":round((equity/float(a["starting_cash"])-1)*100,4),
@@ -732,7 +769,8 @@ def run():
             guard = conn.execute("SELECT last_closed_candle FROM shadow_trade_guard WHERE strategy_id=?",(s["id"],)).fetchone()
             cooldown_active = bool(guard and guard["last_closed_candle"] == candle_id)
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
-            if not pos and entry_signal and not closed_this_cycle and not cooldown_active:
+            entry_protection_ok = probe_intrabar_recovery(conn, s) if not pos else True
+            if not pos and entry_signal and not closed_this_cycle and not cooldown_active and entry_protection_ok:
                 news_veto = news.high_risk_news(conn, s["symbol"])
                 if news_veto:
                     news.record_veto(conn, s["id"], s["symbol"], news_veto, price)
