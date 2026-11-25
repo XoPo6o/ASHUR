@@ -44,6 +44,7 @@ def prepare_data_dir():
 
     print(f"STATE_STORAGE_READY path={DATA_DIR} db_exists={DB.exists()}", flush=True)
 START_CASH = 1000.0
+PAPER_BASELINE_ID = "ashur-paper-30d-2026-11-25-v2"
 RISK = 0.005
 DAILY_STOP = 0.02
 FEE = 0.001
@@ -447,6 +448,50 @@ def init_db(conn):
                      (s["grade"], s["id"]))
     conn.commit()
 
+def reset_paper_baseline_once(conn):
+    """Archive all pre-experiment Paper state, then atomically create a clean baseline."""
+    conn.execute("""CREATE TABLE IF NOT EXISTS ashur_meta(
+        key TEXT PRIMARY KEY, value TEXT NOT NULL
+    )""")
+    existing = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_id'").fetchone()
+    if existing and existing["value"] == PAPER_BASELINE_ID:
+        return False
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    archive_db = DATA_DIR / ("ashur_shadow.pre_" + PAPER_BASELINE_ID + ".sqlite3")
+    archive_status = DATA_DIR / ("ashur_shadow_status.pre_" + PAPER_BASELINE_ID + ".json")
+    if not archive_db.exists() and DB.exists():
+        with sqlite3.connect(str(DB), timeout=30) as source:
+            with sqlite3.connect(str(archive_db), timeout=30) as target:
+                source.backup(target)
+    if STATUS_FILE.exists() and not archive_status.exists():
+        shutil.copy2(STATUS_FILE, archive_status)
+    baseline_at = now()
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        for table in ("shadow_positions", "shadow_trades", "shadow_state", "shadow_events",
+                      "shadow_marks", "shadow_trade_guard", "shadow_intrabar_state",
+                      "shadow_intrabar_health"):
+            conn.execute("DELETE FROM " + table)
+        for strategy in STRATEGIES:
+            conn.execute("UPDATE shadow_accounts SET cash=?, starting_cash=?, grade=?, created_at=? WHERE strategy_id=?",
+                         (START_CASH, START_CASH, strategy["grade"], baseline_at, strategy["id"]))
+        conn.execute("DELETE FROM sqlite_sequence WHERE name IN ('shadow_trades','shadow_events')")
+        conn.execute("INSERT OR REPLACE INTO ashur_meta(key,value) VALUES('paper_baseline_id',?)",
+                     (PAPER_BASELINE_ID,))
+        conn.execute("INSERT OR REPLACE INTO ashur_meta(key,value) VALUES('paper_baseline_at',?)",
+                     (baseline_at,))
+        event(conn, "SYSTEM", "PAPER_BASELINE_RESET",
+              "baseline_id=" + PAPER_BASELINE_ID + "; starting_cash=" + format(START_CASH, ".2f") +
+              " per strategy; archived_db=" + archive_db.name)
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    print("PAPER_BASELINE_RESET_OK id=" + PAPER_BASELINE_ID + " at=" + baseline_at +
+          " accounts=" + str(len(STRATEGIES)) + " cash_each=" + format(START_CASH, ".2f") +
+          " archive=" + archive_db.name, flush=True)
+    return True
+
 def event(conn, sid, kind, details):
     conn.execute("INSERT INTO shadow_events(created_at,strategy_id,event,details) VALUES(?,?,?,?)",
                  (now(), sid, kind, details))
@@ -615,7 +660,15 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
            WHERE event='INTRABAR_DATA_WARNING' AND created_at>=?""",
         (cutoff_24h,),
     ).fetchone()[0]
+    baseline_id = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_id'").fetchone()
+    baseline_at = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_at'").fetchone()
     output = {"updated_at": now(), "mode": "PAPER_ONLY",
+              "experiment": {
+                  "baseline_id": baseline_id["value"] if baseline_id else None,
+                  "baseline_at": baseline_at["value"] if baseline_at else None,
+                  "starting_equity_per_strategy": START_CASH,
+                  "strategy_count": len(STRATEGIES),
+              },
               "market_data": "Public spot market data; Bybit primary, Binance fallback",
               "worker_health": {"strategy_count": len(STRATEGIES),
                                 "successful_strategies": successful_strategies,
@@ -707,6 +760,7 @@ def run():
     conn = sqlite3.connect(DB, timeout=30)
     conn.row_factory = sqlite3.Row
     init_db(conn)
+    reset_paper_baseline_once(conn)
     news.init_db(conn)
     cache = {}
     strategy_errors = 0
