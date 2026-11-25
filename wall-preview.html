@@ -147,7 +147,7 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       <div class="allocation-foot"><span>Equal starting allocation</span><strong>100% · 6,000 USDT</strong></div>
       <div class="kpi-strip"><div class="kpi-mini"><span>PER ACCOUNT</span><b>16.67%</b></div><div class="kpi-mini"><span>ACCOUNTS</span><b>06 / 06</b></div><div class="kpi-mini"><span>BASELINE</span><b>V2 LOCKED</b></div></div>
     </div></div></article>
-    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag" id="history-status">COLLECTING</span></div><div class="panelbody"><div class="dailyrow"><span>Stored observations</span><strong id="history-samples">0</strong></div><div class="dailyrow"><span>Max observed drawdown</span><strong id="history-drawdown">—</strong></div><div class="dailyrow"><span>Latest intraday P&amp;L</span><strong id="history-daily-pnl">Not enough data</strong></div><div class="notice" id="history-note">The independent history collector is waiting for the first validated worker snapshot. No synthetic performance data is displayed.</div></div></article>
+    <article class="panel"><div class="panelhead"><div class="paneltitle">DAILY P&amp;L / RISK</div><span class="tag" id="history-status">COLLECTING</span></div><div class="panelbody"><div class="dailyrow"><span>Stored observations</span><strong id="history-samples">0</strong></div><div class="dailyrow"><span>Max observed drawdown</span><strong id="history-drawdown">—</strong></div><div class="dailyrow"><span>Latest intraday P&amp;L</span><strong id="history-daily-pnl">Not enough data</strong></div><div class="dailyrow"><span>Realized P&amp;L observed</span><strong id="history-realized-pnl">—</strong></div><div class="dailyrow"><span>Closed trades observed</span><strong id="history-daily-trades">—</strong></div><div class="dailyrow"><span>Fees observed</span><strong id="history-daily-fees">—</strong></div><div class="dailyrow"><span>Intraday drawdown</span><strong id="history-intraday-drawdown">—</strong></div><div class="notice" id="history-note">The independent history collector is waiting for the first validated worker snapshot. No synthetic performance data is displayed.</div></div></article>
   </section>
   <section id="archive" class="grid bottomgrid">
     <article class="panel"><div class="panelhead"><div class="paneltitle">EXPERIMENT ARCHIVE</div><span class="tag">30 DAYS</span></div><div class="panelbody"><div class="heat" aria-label="30-day archive has not accumulated daily reports"><span>01</span><span class="future">02</span><span class="future">03</span><span class="future">04</span><span class="future">05</span><span class="future">06</span><span class="future">07</span><span class="future">08</span><span class="future">09</span><span class="future">10</span><span class="future">11</span><span class="future">12</span><span class="future">13</span><span class="future">14</span><span class="future">15</span><span class="future">16</span><span class="future">17</span><span class="future">18</span><span class="future">19</span><span class="future">20</span><span class="future">21</span><span class="future">22</span><span class="future">23</span><span class="future">24</span><span class="future">25</span><span class="future">26</span><span class="future">27</span><span class="future">28</span><span class="future">29</span><span class="future">30</span></div><div class="smallprint">Day 01 marks the confirmed baseline. Future cells remain empty until a daily report is actually saved.</div></div></article>
@@ -308,11 +308,21 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       const latestDay = history.daily[history.daily.length - 1];
       if (history.sample_count < 2 || !latestDay || latestDay.snapshots < 2) {
         set('history-daily-pnl', 'Not enough data');
-        set('history-note', 'History is based on ' + history.sample_count + ' validated snapshot(s). Intraday P&L becomes measurable after at least two observations in the same UTC day.');
+        set('history-realized-pnl', 'Not enough data');
+        set('history-daily-trades', 'Not enough data');
+        set('history-daily-fees', 'Not enough data');
+        set('history-intraday-drawdown', 'Not enough data');
+        set('history-note', 'History is based on ' + history.sample_count + ' validated snapshot(s). Intraday metrics become measurable after at least two observations in the same UTC day.');
       } else {
         set('history-daily-pnl', signed(latestDay.pnl) + ' USDT');
+        set('history-realized-pnl', signed(latestDay.realized_pnl) + ' USDT');
+        set('history-daily-trades', String(latestDay.closed_trades));
+        set('history-daily-fees', money(latestDay.fees) + ' USDT');
+        set('history-intraday-drawdown', percent(latestDay.max_drawdown_pct));
         setTone(byId('history-daily-pnl'), latestDay.pnl);
-        set('history-note', 'History is based on ' + history.sample_count + ' validated worker snapshots. Daily P&L is measured between the first and last observed snapshot of each UTC day.');
+        setTone(byId('history-realized-pnl'), latestDay.realized_pnl);
+        setTone(byId('history-intraday-drawdown'), latestDay.max_drawdown_pct);
+        set('history-note', 'Daily metrics compare the first and last observed snapshots of the latest UTC day; they are not represented as a complete 24-hour report.');
       }
     } catch (error) {
       drawEquityChart([]);
@@ -320,6 +330,10 @@ h1{font:clamp(18px,2.6vw,27px) var(--pixel);line-height:1.7;margin:10px 0;color:
       set('history-samples', '0');
       set('history-drawdown', '—');
       set('history-daily-pnl', 'Not enough data');
+      set('history-realized-pnl', 'Not enough data');
+      set('history-daily-trades', 'Not enough data');
+      set('history-daily-fees', 'Not enough data');
+      set('history-intraday-drawdown', 'Not enough data');
       set('history-range-label', 'UTC · 30-day history');
       set('history-note', 'Historical snapshots are not available yet. The collector starts independently and records only fresh, validated Paper/Shadow status.');
     }
