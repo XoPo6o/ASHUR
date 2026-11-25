@@ -6,7 +6,7 @@ on:
       - ashur-pixel-terminal-ui
     paths:
       - "dashboard/**"
-      - "tests/test_dashboard_*.py"
+      - "tests/**"
       - "wall-preview.html"
       - "trading-lab/ashur_supervisor.py"
       - ".github/workflows/dashboard-checks.yml"
@@ -35,6 +35,12 @@ jobs:
           python-version: "3.12"
       - name: Run dashboard unit tests
         run: python -m unittest discover -s tests -p "test_dashboard_*.py" -v
+      - name: Install Chromium browser for responsive smoke test
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Verify desktop and mobile browser layout
+        run: python tests/dashboard_browser_smoke.py
       - name: Check dashboard JavaScript syntax
         run: |
           python - <<'PY'
