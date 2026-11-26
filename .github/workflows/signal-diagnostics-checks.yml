@@ -18,6 +18,10 @@ on:
     paths:
       - "trading-lab/live_shadow_worker.py"
       - "trading-lab/test_signal_diagnostics.py"
+      - "trading-lab/news_intelligence.py"
+      - "trading-lab/test_news_intelligence.py"
+      - "trading-lab/test_status_reporting.py"
+      - "trading-lab/test_news_veto_logging.py"
       - ".github/workflows/signal-diagnostics-checks.yml"
 
 permissions:
