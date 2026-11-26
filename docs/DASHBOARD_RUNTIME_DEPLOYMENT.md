@@ -59,6 +59,7 @@ Operational limits:
 - The hostname is temporary and changes when the Quick Tunnel is restarted.
 - Anyone not on the allow-list must be denied before traffic reaches the dashboard.
 - The tunnel process must remain running; stopping it disables the URL.
+- Quick Tunnels have no uptime guarantee, allow at most 200 in-flight requests, and do not support Server-Sent Events (SSE). The current Wall preview uses ordinary HTTP `fetch` polling, not SSE.
 - This is suitable for a short private review, not a stable production hostname or a substitute for persistent storage and off-host backups.
 - Never publish the dashboard through an unrestricted Quick Tunnel.
 - Do not place an email address or tunnel configuration containing secrets in source control.
