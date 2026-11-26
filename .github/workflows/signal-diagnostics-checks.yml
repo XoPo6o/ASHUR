@@ -1,0 +1,51 @@
+name: ASHUR signal diagnostics checks
+
+on:
+  push:
+    branches:
+      - ashur-signal-observability
+    paths:
+      - "trading-lab/live_shadow_worker.py"
+      - "trading-lab/test_signal_diagnostics.py"
+      - "trading-lab/news_intelligence.py"
+      - "trading-lab/test_news_intelligence.py"
+      - "trading-lab/test_status_reporting.py"
+      - "trading-lab/test_news_veto_logging.py"
+      - "trading-lab/test_ashur_daemon.py"
+      - "trading-lab/test_ashur_supervisor.py"
+      - ".github/workflows/signal-diagnostics-checks.yml"
+  pull_request:
+    branches:
+      - ashur-live-shadow
+    paths:
+      - "trading-lab/live_shadow_worker.py"
+      - "trading-lab/test_signal_diagnostics.py"
+      - "trading-lab/news_intelligence.py"
+      - "trading-lab/test_news_intelligence.py"
+      - "trading-lab/test_status_reporting.py"
+      - "trading-lab/test_news_veto_logging.py"
+      - "trading-lab/test_ashur_daemon.py"
+      - "trading-lab/test_ashur_supervisor.py"
+      - ".github/workflows/signal-diagnostics-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  signal-diagnostics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated test dependencies
+        run: python -m pip install "numpy<3" "pandas<3" pytest
+      - name: Compile worker and diagnostics tests
+        working-directory: trading-lab
+        run: python -m py_compile live_shadow_worker.py news_intelligence.py ashur_daemon.py ashur_supervisor.py test_signal_diagnostics.py test_news_intelligence.py test_status_reporting.py test_news_veto_logging.py test_ashur_daemon.py test_ashur_supervisor.py
+      - name: Run signal diagnostics regression tests
+        working-directory: trading-lab
+        run: python -m pytest -q

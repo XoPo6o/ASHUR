@@ -408,6 +408,80 @@ def signals(row, strategy_id):
         exit_ = close < row.dl10
     return bool(entry), bool(exit_)
 
+def signal_diagnostics(row, strategy_id):
+    """Explain the exact closed-candle conditions behind each strategy signal."""
+    close = float(row.close)
+    checks = {}
+    exits = {}
+    if strategy_id == "BNB_4H_KELTNER_ADX":
+        checks = {
+            "close_above_keltner_upper": close > row.keltner_upper,
+            "ema50_above_ema200": row.ema50 > row.ema200,
+            "adx_above_15": row.adx > 15,
+        }
+        exits = {"close_below_ema20": close < row.ema20,
+                 "ema50_below_ema200": row.ema50 < row.ema200}
+    elif strategy_id == "BNB_4H_ADX_TREND":
+        checks = {
+            "ema50_above_ema200": row.ema50 > row.ema200,
+            "adx_above_20": row.adx > 20,
+            "close_above_ema50": close > row.ema50,
+        }
+        exits = {"ema50_below_ema200": row.ema50 < row.ema200,
+                 "close_below_ema50": close < row.ema50}
+    elif strategy_id == "BNB_1H_DONCHIAN_ADX25":
+        votes = sum([close > row.dh20, close > row.dh55, close > row.dh100])
+        checks = {
+            "donchian_votes_at_least_2": votes >= 2,
+            "close_above_ema200": close > row.ema200,
+            "adx_above_25": row.adx > 25,
+        }
+        exits = {"close_below_donchian_low20": close < row.dl20,
+                 "close_below_ema100": close < row.ema100}
+    elif strategy_id == "SOL_4H_DONCHIAN_VOL":
+        checks = {
+            "close_above_donchian_high55": close > row.dh55,
+            "close_above_ema200": close > row.ema200,
+            "atr_pct_below_80th_percentile": row.atr_pct < row.atr_p80,
+        }
+        exits = {"close_below_donchian_low20": close < row.dl20,
+                 "close_below_ema100": close < row.ema100}
+    elif strategy_id == "BNB_15M_EMA_TREND":
+        checks = {
+            "close_above_ema20": close > row.ema20,
+            "ema20_above_ema50": row.ema20 > row.ema50,
+            "adx_above_12": row.adx > 12,
+        }
+        exits = {"close_below_ema50": close < row.ema50,
+                 "ema20_below_ema50": row.ema20 < row.ema50}
+    else:  # BNB_1D_DONCHIAN55
+        checks = {
+            "close_above_donchian_high55": close > row.dh55,
+            "close_above_ema200": close > row.ema200,
+        }
+        exits = {"close_below_donchian_low10": close < row.dl10}
+
+    def finite_value(name):
+        value = float(row[name])
+        return round(value, 10) if math.isfinite(value) else None
+
+    return {
+        "strategy_id": strategy_id,
+        "entry_signal": all(bool(value) for value in checks.values()),
+        "entry_checks": {name: bool(value) for name, value in checks.items()},
+        "entry_blockers": [name for name, passed in checks.items() if not bool(passed)],
+        "exit_signal": any(bool(value) for value in exits.values()),
+        "exit_triggers": [name for name, active in exits.items() if bool(active)],
+        "indicators": {
+            name: finite_value(name)
+            for name in ("close", "ema20", "ema50", "ema100", "ema200",
+                         "adx", "atr", "atr_pct", "atr_p80",
+                         "keltner_upper", "dh20", "dh55", "dh100",
+                         "dl10", "dl20")
+            if name in row.index
+        },
+    }
+
 def init_db(conn):
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS shadow_accounts(
@@ -430,6 +504,15 @@ def init_db(conn):
       strategy_id TEXT NOT NULL, event TEXT NOT NULL, details TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_marks(
       strategy_id TEXT PRIMARY KEY, price REAL NOT NULL, updated_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS shadow_equity_snapshots(
+      id INTEGER PRIMARY KEY AUTOINCREMENT, snapshot_at TEXT NOT NULL,
+      strategy_id TEXT NOT NULL, cash REAL NOT NULL, equity REAL NOT NULL,
+      realized_pnl REAL NOT NULL, unrealized_pnl REAL NOT NULL, fees_total REAL NOT NULL,
+      UNIQUE(strategy_id, snapshot_at));
+    CREATE INDEX IF NOT EXISTS idx_equity_snapshots_strategy_time
+      ON shadow_equity_snapshots(strategy_id, snapshot_at);
+    CREATE INDEX IF NOT EXISTS idx_equity_snapshots_time
+      ON shadow_equity_snapshots(snapshot_at);
     CREATE TABLE IF NOT EXISTS shadow_trade_guard(
       strategy_id TEXT PRIMARY KEY, last_closed_candle TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_intrabar_state(
@@ -471,7 +554,7 @@ def reset_paper_baseline_once(conn):
     conn.execute("BEGIN IMMEDIATE")
     try:
         for table in ("shadow_positions", "shadow_trades", "shadow_state", "shadow_events",
-                      "shadow_marks", "shadow_trade_guard", "shadow_intrabar_state",
+                      "shadow_marks", "shadow_equity_snapshots", "shadow_trade_guard", "shadow_intrabar_state",
                       "shadow_intrabar_health"):
             conn.execute("DELETE FROM " + table)
         for strategy in STRATEGIES:
@@ -497,6 +580,20 @@ def reset_paper_baseline_once(conn):
 def event(conn, sid, kind, details):
     conn.execute("INSERT INTO shadow_events(created_at,strategy_id,event,details) VALUES(?,?,?,?)",
                  (now(), sid, kind, details))
+
+def log_news_veto_once(conn, sid, candle_id, headline):
+    """Persist one NEWS_VETO event per strategy, candle, and unique headline."""
+    news_id = str(headline.get("id") or "unknown")
+    title = str(headline.get("title") or "")
+    details = f"candle={candle_id}; news_id={news_id}; title={title}"
+    exists = conn.execute(
+        "SELECT 1 FROM shadow_events WHERE strategy_id=? AND event='NEWS_VETO' AND details=? LIMIT 1",
+        (sid, details),
+    ).fetchone()
+    if exists:
+        return False
+    event(conn, sid, "NEWS_VETO", details)
+    return True
 
 def close_position(conn, s, price, reason, candle_id):
     p = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (s["id"],)).fetchone()
@@ -647,14 +744,136 @@ def probe_intrabar_recovery(conn, strategy):
     return False
 
 
-def export_status(conn, worker_errors=0, successful_strategies=None):
-    # Keep status export safe for legacy/test databases created before News Intelligence.
+def equity_history_metrics(rows, starting_cash, now_dt=None):
+    """Summarize persisted marked-equity snapshots without inventing missing history."""
+    now_dt = now_dt or datetime.now(timezone.utc)
+    if now_dt.tzinfo is None:
+        now_dt = now_dt.replace(tzinfo=timezone.utc)
+
+    def parse_time(value):
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+    ordered = sorted(rows, key=lambda row: row["snapshot_at"])
+    cutoff_24h = now_dt - timedelta(hours=24)
+    cutoff_30d = now_dt - timedelta(days=30)
+    rows_30d = [
+        row for row in ordered
+        if parse_time(row["snapshot_at"]) >= cutoff_30d
+    ]
+    rows_24h = [
+        row for row in rows_30d
+        if parse_time(row["snapshot_at"]) >= cutoff_24h
+    ]
+    prior_24h = [
+        row for row in rows_30d
+        if parse_time(row["snapshot_at"]) <= cutoff_24h
+    ]
+
+    peak = float(starting_cash)
+    max_drawdown = 0.0
+    for row in rows_30d:
+        equity = float(row["equity"])
+        peak = max(peak, equity)
+        if peak > 0:
+            max_drawdown = max(max_drawdown, (peak - equity) / peak * 100.0)
+
+    latest = rows_30d[-1] if rows_30d else None
+    current_drawdown = (
+        (peak - float(latest["equity"])) / peak * 100.0
+        if latest is not None and peak > 0 else 0.0
+    )
+    pnl_24h = (
+        float(latest["equity"]) - float(prior_24h[-1]["equity"])
+        if latest is not None and prior_24h else None
+    )
+
+    recent_times = [parse_time(row["snapshot_at"]) for row in rows_24h]
+    cycle_gaps = [
+        (recent_times[i] - recent_times[i - 1]).total_seconds()
+        for i in range(1, len(recent_times))
+    ]
+    hourly = {}
+    for row in rows_30d:
+        stamp = parse_time(row["snapshot_at"])
+        bucket = stamp.replace(minute=0, second=0, microsecond=0).isoformat()
+        hourly[bucket] = row
+
+    def point(row):
+        return {
+            "timestamp": row["snapshot_at"],
+            "equity": round(float(row["equity"]), 4),
+        }
+
+    latest_age = (
+        max(0.0, (now_dt - parse_time(latest["snapshot_at"])).total_seconds())
+        if latest is not None else None
+    )
+    return {
+        "equity_curve_24h": [point(row) for row in rows_24h[-288:]],
+        "equity_curve_30d_hourly": [point(hourly[key]) for key in sorted(hourly)],
+        "pnl_24h": round(pnl_24h, 4) if pnl_24h is not None else None,
+        "max_drawdown_pct_30d": round(max_drawdown, 4),
+        "current_drawdown_pct_30d": round(current_drawdown, 4),
+        "cycle_gap_max_seconds_24h": round(max(cycle_gaps), 1) if cycle_gaps else None,
+        "latest_snapshot_age_seconds": round(latest_age, 1) if latest_age is not None else None,
+        "snapshot_history_from": rows_30d[0]["snapshot_at"] if rows_30d else None,
+        "snapshot_count_24h": len(rows_24h),
+        "snapshot_count_30d": len(rows_30d),
+    }
+
+
+def realized_equity_history(trades, starting_cash, baseline_at):
+    """Rebuild realized equity from the baseline and closed Paper trades."""
+    equity = float(starting_cash)
+    points = [{"timestamp": baseline_at, "equity": round(equity, 4)}] if baseline_at else []
+    peak = equity
+    max_drawdown = 0.0
+    for trade in sorted(trades, key=lambda row: row["closed_at"]):
+        equity += float(trade["pnl"])
+        points.append({"timestamp": trade["closed_at"], "equity": round(equity, 4)})
+        peak = max(peak, equity)
+        if peak > 0:
+            max_drawdown = max(max_drawdown, (peak - equity) / peak * 100.0)
+    return points, round(max_drawdown, 4)
+
+
+def export_status(conn, worker_errors=0, successful_strategies=None, signal_diagnostics_rows=None):
+    # Keep status export safe for legacy/test databases created before optional reporting tables.
     news.init_db(conn)
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS shadow_equity_snapshots(
+           id INTEGER PRIMARY KEY AUTOINCREMENT, snapshot_at TEXT NOT NULL,
+           strategy_id TEXT NOT NULL, cash REAL NOT NULL, equity REAL NOT NULL,
+           realized_pnl REAL NOT NULL, unrealized_pnl REAL NOT NULL, fees_total REAL NOT NULL,
+           UNIQUE(strategy_id, snapshot_at))"""
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_equity_snapshots_strategy_time ON shadow_equity_snapshots(strategy_id, snapshot_at)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_equity_snapshots_time ON shadow_equity_snapshots(snapshot_at)"
+    )
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
-    cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    snapshot_at = now()
+    snapshot_dt = datetime.fromisoformat(snapshot_at.replace("Z", "+00:00"))
+    cutoff_24h_dt = snapshot_dt - timedelta(hours=24)
+    cutoff_24h = cutoff_24h_dt.isoformat()
+    cutoff_30d = (snapshot_dt - timedelta(days=30)).isoformat()
     news_vetoes_24h = conn.execute(
         "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
+        (cutoff_24h,),
+    ).fetchone()[0]
+    news_veto_attempts_24h = conn.execute(
+        "SELECT COUNT(*) FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?",
+        (cutoff_24h,),
+    ).fetchone()[0]
+    news_veto_unique_groups_24h = conn.execute(
+        """SELECT COUNT(*) FROM (
+             SELECT strategy_id,details FROM shadow_events
+             WHERE event='NEWS_VETO' AND created_at>=?
+             GROUP BY strategy_id,details
+           )""",
         (cutoff_24h,),
     ).fetchone()[0]
     intrabar_warnings_24h = conn.execute(
@@ -664,7 +883,8 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
     ).fetchone()[0]
     baseline_id = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_id'").fetchone()
     baseline_at = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_at'").fetchone()
-    output = {"updated_at": now(), "mode": "PAPER_ONLY",
+    baseline_at_value = baseline_at["value"] if baseline_at else None
+    output = {"updated_at": snapshot_at, "mode": "PAPER_ONLY",
               "experiment": {
                   "baseline_id": baseline_id["value"] if baseline_id else None,
                   "baseline_at": baseline_at["value"] if baseline_at else None,
@@ -682,8 +902,13 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                                 "all_protections_ok": True},
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
-                                    "veto_outcomes": news.veto_outcome_stats(conn)},
+                                    "news_veto_attempts_24h": int(news_veto_attempts_24h),
+                                    "news_veto_unique_groups_24h": int(news_veto_unique_groups_24h),
+                                    "veto_outcomes": news.veto_outcome_stats(conn),
+                                    "baseline_veto_outcomes": news.veto_outcome_stats(conn, since=baseline_at_value) if baseline_at_value else None},
+              "signal_diagnostics": signal_diagnostics_rows or [],
               "accounts": []}
+    conn.execute("DELETE FROM shadow_equity_snapshots WHERE snapshot_at<?", (cutoff_30d,))
     for a in accounts:
         pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
         mark = conn.execute("SELECT price,updated_at FROM shadow_marks WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
@@ -733,6 +958,32 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             output["worker_health"]["all_protections_ok"] = False
         cash = float(a["cash"])
         equity = cash + liquidation_value
+        starting_cash = float(a["starting_cash"])
+        closed_fees = sum(float(t["fees"]) for t in trades)
+        open_entry_fee = float(pos["entry_fee"]) if pos else 0.0
+        fees_total = closed_fees + open_entry_fee
+        fees_24h = sum(
+            float(t["fees"]) for t in trades
+            if t["closed_at"] and t["closed_at"] >= cutoff_24h
+        )
+        if pos and pos["opened_at"] >= cutoff_24h:
+            fees_24h += open_entry_fee
+
+        conn.execute(
+            """INSERT OR REPLACE INTO shadow_equity_snapshots
+               (snapshot_at,strategy_id,cash,equity,realized_pnl,unrealized_pnl,fees_total)
+               VALUES(?,?,?,?,?,?,?)""",
+            (snapshot_at, a["strategy_id"], cash, equity, realized, unrealized, fees_total),
+        )
+        history_rows = conn.execute(
+            """SELECT snapshot_at,equity FROM shadow_equity_snapshots
+               WHERE strategy_id=? AND snapshot_at>=? ORDER BY snapshot_at""",
+            (a["strategy_id"], cutoff_30d),
+        ).fetchall()
+        history_metrics = equity_history_metrics(history_rows, starting_cash, snapshot_dt)
+        realized_curve, realized_drawdown = realized_equity_history(
+            trades, starting_cash, baseline_at_value
+        )
         output["accounts"].append({
             "strategy_id":a["strategy_id"],"label":a["label"],"symbol":a["symbol"],
             "timeframe":{"15":"15m","60":"1h","240":"4h","D":"1d"}.get(a["interval"],a["interval"]),
@@ -741,9 +992,16 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             "equity":round(equity,4),"net_pnl":round(equity-float(a["starting_cash"]),4),
             "realized_pnl":round(realized,4),"unrealized_pnl":round(unrealized,4),
             "return_pct":round((equity/float(a["starting_cash"])-1)*100,4),
-            "trades":len(trades),"wins":wins,"win_rate_pct":round(wins/len(trades)*100,2) if trades else 0,
+            "trades":len(trades),"wins":wins,"win_rate_pct":round(wins/len(trades)*100,2) if trades else None,
             "profit_factor":round(gross_profit/gross_loss,3) if gross_loss else (None if not gross_profit else "inf"),
-            "fees":round(sum(float(t["fees"]) for t in trades),4),
+            "fees":round(closed_fees,4),
+            "fees_total":round(fees_total,4),
+            "fees_24h":round(fees_24h,4),
+            "fee_assumption_pct_each_side":round(FEE*100,4),
+            "slippage_assumption_pct_each_side":round(SLIPPAGE*100,4),
+            "realized_equity_curve_since_baseline":realized_curve,
+            "realized_max_drawdown_pct_since_baseline":realized_drawdown,
+            **history_metrics,
             "recent_trades_30d":[
                 {"id":int(t["id"]),"entry":float(t["entry"]),"exit":float(t["exit"]),
                  "qty":float(t["qty"]),"fees":round(float(t["fees"]),6),
@@ -754,6 +1012,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             "last_price":price,"last_price_at":mark["updated_at"] if mark else None,
             "position":position
         })
+    conn.commit()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     STATUS_FILE.write_text(json.dumps(output, indent=2), encoding="utf-8")
 
@@ -768,7 +1027,9 @@ def run():
     cache = {}
     strategy_errors = 0
     successful_strategies = 0
+    signal_diagnostics_rows = []
     for s in STRATEGIES:
+        diagnostic = None
         try:
             key = (s["symbol"],s["interval"])
             if key not in cache:
@@ -782,6 +1043,11 @@ def run():
             # Re-checking the same closed-candle signal each cycle allows execution after candle
             # close without letting a still-forming candle rewrite the strategy rules.
             entry_signal, exit_signal = signals(row, s["id"])
+            diagnostic = signal_diagnostics(row, s["id"])
+            diagnostic["candle_open_at"] = datetime.fromtimestamp(
+                int(row.timestamp) / 1000, timezone.utc
+            ).isoformat()
+            diagnostic["market_price"] = round(float(price), 10)
             news_veto = None
             conn.execute("INSERT OR REPLACE INTO shadow_marks VALUES(?,?,?)",(s["id"],price,now()))
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
@@ -861,30 +1127,65 @@ def run():
             cooldown_active = bool(guard and guard["last_closed_candle"] == candle_id)
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             entry_protection_ok = probe_intrabar_recovery(conn, s) if not pos else True
+            entry_gate_blockers = list(diagnostic["entry_blockers"])
+            if pos:
+                entry_gate_blockers.append("POSITION_ALREADY_OPEN")
+            if closed_this_cycle:
+                entry_gate_blockers.append("POSITION_CLOSED_THIS_CYCLE")
+            if cooldown_active:
+                entry_gate_blockers.append("SAME_CANDLE_REENTRY_GUARD")
+            if not entry_protection_ok:
+                entry_gate_blockers.append("INTRABAR_PROTECTION_BLOCK")
+            entry_attempted = False
             if not pos and entry_signal and not closed_this_cycle and not cooldown_active and entry_protection_ok:
                 news_veto = news.high_risk_news(conn, s["symbol"])
                 if news_veto:
                     news.record_veto(conn, s["id"], s["symbol"], news_veto, price)
                     entry_signal = False
-                    event(conn, s["id"], "NEWS_VETO",
-                          f"new entry blocked by high-risk headline: {news_veto['title'][:240]}")
+                    entry_gate_blockers.append("NEWS_VETO")
+                    log_news_veto_once(conn, s["id"], candle_id, news_veto)
                 if entry_signal:
+                    entry_attempted = True
                     open_position(conn,s,price,float(row.atr))
                     pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
+                    if not pos:
+                        entry_gate_blockers.append("POSITION_SIZE_OR_DAILY_RISK_GUARD")
+            diagnostic.update({
+                "entry_signal_after_news_veto": bool(entry_signal),
+                "entry_gate_blockers": entry_gate_blockers,
+                "entry_attempted": entry_attempted,
+                "position_open_after_cycle": bool(pos),
+                "protection_probe_ok": bool(entry_protection_ok),
+                "same_candle_reentry_guard": bool(cooldown_active),
+                "closed_position_this_cycle": bool(closed_this_cycle),
+            })
             previous = conn.execute("SELECT last_candle FROM shadow_state WHERE strategy_id=?",(s["id"],)).fetchone()
             if not previous or previous["last_candle"] != candle_id:
                 conn.execute("INSERT OR REPLACE INTO shadow_state VALUES(?,?)",(s["id"],candle_id))
                 event(conn,s["id"],"CHECK",f"candle={candle_id}; candle_close={float(row.close):.6f}; live={price:.6f}; entry={entry_signal}; exit={exit_signal}; cooldown={cooldown_active}")
             conn.commit()
+            diagnostic["status"] = "OK"
+            signal_diagnostics_rows.append(diagnostic)
             successful_strategies += 1
-            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} news_veto={bool(news_veto)} cooldown={cooldown_active} position={bool(pos)}')
+            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} blockers={entry_gate_blockers} news_veto={bool(news_veto)} cooldown={cooldown_active} position={bool(pos)}')
         except Exception as exc:
             strategy_errors += 1
+            if diagnostic is None:
+                signal_diagnostics_rows.append({
+                    "strategy_id": s["id"], "status": "ERROR",
+                    "error": f"{type(exc).__name__}: {exc}"[:500],
+                })
+            else:
+                diagnostic["status"] = "ERROR"
+                diagnostic["error"] = f"{type(exc).__name__}: {exc}"[:500]
+                signal_diagnostics_rows.append(diagnostic)
             conn.rollback()
             event(conn,s["id"],"ERROR",f"{type(exc).__name__}: {exc}")
             conn.commit()
             print(f'{s["id"]}: ERROR {type(exc).__name__}: {exc}')
-    export_status(conn, worker_errors=strategy_errors, successful_strategies=successful_strategies)
+    export_status(conn, worker_errors=strategy_errors,
+                  successful_strategies=successful_strategies,
+                  signal_diagnostics_rows=signal_diagnostics_rows)
     conn.close()
     print(f"WORKER_SUMMARY strategies={len(STRATEGIES)} errors={strategy_errors}", flush=True)
     if strategy_errors:

@@ -1,0 +1,293 @@
+name: ASHUR read-only SillyDev runtime audit
+
+on:
+  push:
+    branches:
+      - ashur-signal-observability
+    paths:
+      - ".github/workflows/ashur-runtime-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read SillyDev runtime status without changing server state
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SILLYDEV_API_KEY" || -z "$SILLYDEV_SERVER_ID" ]]; then
+            echo "::error::SILLYDEV_API_KEY or SILLYDEV_SERVER_ID is missing."
+            exit 1
+          fi
+
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+
+          EXPECTED_LIVE_COMMIT="$(git ls-remote https://github.com/XoPo6o/ASHUR.git refs/heads/ashur-live-shadow | awk '{print $1}')"
+          if [[ -z "$EXPECTED_LIVE_COMMIT" ]]; then
+            echo "::error::Could not resolve the current ashur-live-shadow HEAD."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            "$API/servers/$SILLYDEV_SERVER_ID/git" "${AUTH[@]}" > /tmp/git.json
+          export EXPECTED_LIVE_COMMIT
+          python - <<'PY'
+          import json, os
+          data=json.load(open("/tmp/git.json"))
+          attrs=data.get("attributes",data)
+          matches=[d for d in attrs.get("deployments",[]) if d.get("branch")=="ashur-live-shadow"]
+          if not matches:
+              raise SystemExit("FAIL: no ashur-live-shadow deployment record found")
+          matches.sort(key=lambda d:d.get("created_at",""), reverse=True)
+          latest=matches[0]
+          deployed=(latest.get("commit") or {}).get("sha")
+          expected=os.environ["EXPECTED_LIVE_COMMIT"]
+          print(f"LIVE_BRANCH_HEAD={expected}")
+          print(f"SILLYDEV_LATEST_DEPLOYMENT_STATUS={latest.get('status')}")
+          print(f"SILLYDEV_LATEST_DEPLOYMENT_COMMIT={deployed}")
+          if latest.get("status")!="succeeded" or deployed!=expected:
+              raise SystemExit("FAIL: deployed branch/commit does not match current live branch HEAD")
+          print("DEPLOYED_SHA_MATCH=PASS")
+          PY
+
+          curl --fail-with-body --silent --show-error \
+            "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" > /tmp/resources.json
+
+          curl --fail-with-body --silent --show-error --get \
+            --data-urlencode "file=/.local/share/ashur/ashur_shadow_status.json" \
+            "$API/servers/$SILLYDEV_SERVER_ID/files/contents" "${AUTH[@]}" > /tmp/status.json
+
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          resources=json.load(open("/tmp/resources.json"))
+          attrs=resources.get("attributes",resources)
+          state=attrs.get("current_state","unknown")
+          d=json.load(open("/tmp/status.json"))
+          h=d.get("worker_health",{})
+          stamp=d.get("updated_at")
+          experiment=d.get("experiment",{})
+          baseline_id=experiment.get("baseline_id")
+          print(f"SERVER_STATE={state}")
+          print(f"MODE={d.get('mode')} BASELINE={baseline_id} BASELINE_AT={experiment.get('baseline_at')}")
+          print(f"UPDATED_AT={stamp}")
+          print(f"WORKER_OK={h.get('all_strategies_ok')} WORKER_ERRORS={h.get('error_count')} SUCCESSFUL={h.get('successful_strategies')}")
+          print(f"PROTECTION_OK={h.get('all_protections_ok')} DEGRADED_POSITIONS={h.get('protection_degraded_positions')} DEGRADED_STRATEGIES={h.get('protection_degraded_strategies')}")
+          accounts=d.get("accounts",[])
+          print(f"STRATEGY_ACCOUNTS={len(accounts)}")
+          for a in accounts:
+              p=a.get("position")
+              print(
+                  "ACCOUNT"
+                  f" id={a.get('strategy_id')}"
+                  f" tf={a.get('timeframe')}"
+                  f" equity={a.get('equity')}"
+                  f" net_pnl={a.get('net_pnl')}"
+                  f" realized={a.get('realized_pnl')}"
+                  f" unrealized={a.get('unrealized_pnl')}"
+                  f" trades={a.get('trades')}"
+                  f" fees={a.get('fees')}"
+                  f" price={a.get('last_price')}"
+                  f" position={'OPEN' if p else 'FLAT'}"
+                  f" protection={p.get('protection_status') if p else a.get('protection_status')}"
+              )
+
+
+          for a in accounts:
+              for trade in a.get("recent_trades_30d", []):
+                  print(f"TRADE strategy={a.get('strategy_id')} id={trade.get('id')} entry={trade.get('entry')} exit={trade.get('exit')} net_pnl={trade.get('net_pnl')} fees={trade.get('fees')} reason={trade.get('reason')} opened_at={trade.get('opened_at')} closed_at={trade.get('closed_at')}")
+          news=d.get("news_intelligence",{})
+          print(f"NEWS_INTELLIGENCE={news}")
+          print(f"LIVE_SIGNAL_DIAGNOSTICS={len(d.get('signal_diagnostics',[]))}")
+
+          if not stamp:
+              raise SystemExit("FAIL: missing worker heartbeat timestamp")
+          age=(datetime.now(timezone.utc)-datetime.fromisoformat(stamp.replace("Z","+00:00"))).total_seconds()
+          print(f"HEARTBEAT_AGE_SECONDS={int(age)}")
+          failures=[]
+          if state!="running": failures.append("SERVER_NOT_RUNNING")
+          if d.get("mode")!="PAPER_ONLY": failures.append("MODE_NOT_PAPER_ONLY")
+          if baseline_id!="ashur-paper-30d-2026-11-25-v2": failures.append("BASELINE_ID_MISMATCH")
+          if len(accounts)!=6: failures.append("STRATEGY_COUNT_MISMATCH")
+          if not h.get("all_strategies_ok") or h.get("error_count")!=0 or h.get("successful_strategies")!=6:
+              failures.append("WORKER_HEALTH_FAILED")
+          if h.get("all_protections_ok") is not True or h.get("protection_degraded_positions")!=0 or h.get("protection_degraded_strategies")!=0:
+              failures.append("PROTECTION_HEALTH_FAILED")
+          for a in accounts:
+              p=a.get("position")
+              if a.get("protection_status")=="DEGRADED" or (p and p.get("protection_status")!="OK"):
+                  failures.append("POSITION_PROTECTION_FAILED:"+str(a.get("strategy_id")))
+          if age<0 or age>900: failures.append("STALE_HEARTBEAT")
+          if failures:
+              print("AUDIT_RESULT=FAIL " + ",".join(failures))
+              raise SystemExit(1)
+          print("AUDIT_RESULT=PASS")
+          PY
+
+          if curl --fail-with-body --silent --show-error --get \
+            --data-urlencode "file=/.local/share/ashur/ashur_shadow.db" \
+            "$API/servers/$SILLYDEV_SERVER_ID/files/contents" "${AUTH[@]}" > /tmp/shadow-db-response; then
+            python - <<'PY'
+          import base64
+          import json
+          import sqlite3
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+
+          raw=Path("/tmp/shadow-db-response").read_bytes()
+          db_bytes=None
+          if raw.startswith(b"SQLite format 3\x00"):
+              db_bytes=raw
+          else:
+              try:
+                  payload=json.loads(raw.decode("utf-8"))
+                  candidates=[
+                      payload.get("content"),
+                      payload.get("attributes",{}).get("content"),
+                      payload.get("data",{}).get("attributes",{}).get("content"),
+                  ]
+                  encoded=next((v for v in candidates if isinstance(v,str) and v),None)
+                  encoding=payload.get("encoding") or payload.get("attributes",{}).get("encoding") or "base64"
+                  if encoded:
+                      db_bytes=base64.b64decode(encoded) if encoding=="base64" else encoded.encode("utf-8")
+              except (UnicodeDecodeError,ValueError,TypeError):
+                  pass
+
+          if not db_bytes or not db_bytes.startswith(b"SQLite format 3\x00"):
+              print("DB_AUDIT_RESULT=UNAVAILABLE response_bytes="+str(len(raw)))
+              raise SystemExit(0)
+
+          path="/tmp/ashur_shadow_readonly.db"
+          Path(path).write_bytes(db_bytes)
+          conn=sqlite3.connect("file:"+path+"?mode=ro",uri=True)
+          conn.row_factory=sqlite3.Row
+          integrity=conn.execute("PRAGMA integrity_check").fetchone()[0]
+          meta=dict(conn.execute("SELECT key,value FROM ashur_meta"))
+          check_intervals={
+              "BNB_15M_EMA_TREND":900,
+              "BNB_1H_DONCHIAN_ADX25":3600,
+              "BNB_4H_ADX_TREND":14400,
+              "BNB_4H_KELTNER_ADX":14400,
+              "SOL_4H_DONCHIAN_VOL":14400,
+              "BNB_1D_DONCHIAN55":86400,
+          }
+          check_gap_report=[]
+          check_gap_failures=[]
+          for strategy_id,expected in check_intervals.items():
+              stamps=conn.execute(
+                  "SELECT created_at FROM shadow_events WHERE event='CHECK' AND strategy_id=? ORDER BY created_at",
+                  (strategy_id,)
+              ).fetchall()
+              parsed=[datetime.fromisoformat(row[0].replace("Z","+00:00")) for row in stamps]
+              age=(datetime.now(timezone.utc)-parsed[-1]).total_seconds() if parsed else None
+              gaps=[(parsed[i]-parsed[i-1]).total_seconds() for i in range(1,len(parsed))]
+              max_gap=max(gaps) if gaps else None
+              check_gap_report.append({
+                  "strategy_id":strategy_id,"checks":len(parsed),
+                  "latest_age_seconds":round(age,1) if age is not None else None,
+                  "max_gap_seconds":round(max_gap,1) if max_gap is not None else None,
+                  "expected_interval_seconds":expected
+              })
+              if not parsed or age is None or age>expected+900:
+                  check_gap_failures.append("STALE_CHECK:"+strategy_id)
+              if max_gap is not None and max_gap>expected+900:
+                  check_gap_failures.append("CHECK_GAP:"+strategy_id)
+          checks=conn.execute(
+              """SELECT strategy_id,MAX(created_at) AS latest,COUNT(*) AS total
+                 FROM shadow_events WHERE event='CHECK' GROUP BY strategy_id"""
+          ).fetchall()
+          cutoff=(datetime.now(timezone.utc)-timedelta(hours=24)).isoformat()
+          events=conn.execute(
+              """SELECT event,COUNT(*) AS total FROM shadow_events
+                 WHERE created_at>=? GROUP BY event ORDER BY event""",(cutoff,)
+          ).fetchall()
+          veto_groups=conn.execute(
+              """SELECT strategy_id,COUNT(*) AS total,COUNT(DISTINCT details) AS unique_details,
+                        MIN(created_at) AS first_seen,MAX(created_at) AS last_seen
+                 FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?
+                 GROUP BY strategy_id ORDER BY total DESC""",(cutoff,)
+          ).fetchall()
+          veto_outcomes=conn.execute(
+              """SELECT strategy_id,symbol,headline,source,vetoed_at,entry_reference,
+                        return_1h,return_4h,return_24h
+                 FROM news_veto_outcomes ORDER BY vetoed_at DESC LIMIT 20"""
+          ).fetchall()
+          veto_outcomes_after_baseline=conn.execute(
+              "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
+              (meta.get("paper_baseline_at",""),)
+          ).fetchone()[0]
+          headline_records=conn.execute(
+              """SELECT symbol,title,published_at,fetched_at,risk_score,high_risk
+                 FROM news_items WHERE title LIKE '%Tether Have the Power%'
+                 ORDER BY fetched_at DESC LIMIT 5"""
+          ).fetchall()
+          news_errors=conn.execute(
+              """SELECT started_at,errors_json FROM news_collection_runs
+                 WHERE error_count>0 ORDER BY started_at DESC LIMIT 10"""
+          ).fetchall()
+          veto_samples=conn.execute(
+              """SELECT created_at,strategy_id,substr(details,1,240) AS details
+                 FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?
+                 ORDER BY id DESC LIMIT 12""",(cutoff,)
+          ).fetchall()
+          trades=conn.execute(
+              """SELECT strategy_id,COUNT(*) AS total,COALESCE(SUM(pnl),0) AS pnl
+                 FROM shadow_trades GROUP BY strategy_id ORDER BY strategy_id"""
+          ).fetchall()
+          positions=conn.execute("SELECT COUNT(*) FROM shadow_positions").fetchone()[0]
+          table_names={row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          if "shadow_equity_snapshots" in table_names:
+              snapshot_stats=conn.execute(
+                  "SELECT COUNT(*),MAX(snapshot_at) FROM shadow_equity_snapshots"
+              ).fetchone()
+              snapshot_history=f"AVAILABLE rows={snapshot_stats[0]} latest={snapshot_stats[1]}"
+          else:
+              snapshot_history="NOT_DEPLOYED"
+          intrabar_errors=conn.execute(
+              "SELECT COUNT(*) FROM shadow_intrabar_health WHERE last_error IS NOT NULL"
+          ).fetchone()[0]
+          conn.close()
+
+          print("DB_INTEGRITY="+str(integrity))
+          print("DB_BASELINE_ID="+str(meta.get("paper_baseline_id")))
+          print("DB_BASELINE_AT="+str(meta.get("paper_baseline_at")))
+          print("DB_CHECK_STRATEGIES="+str(len(checks)))
+          print("DB_CHECK_GAP_REPORT="+str(check_gap_report))
+          for row in checks:
+              print(f"CHECK strategy={row['strategy_id']} latest={row['latest']} count={row['total']}")
+          print("DB_TRADES="+str([dict(row) for row in trades]))
+          print("DB_OPEN_POSITIONS="+str(positions))
+          print("EQUITY_SNAPSHOT_HISTORY="+snapshot_history)
+          print("DB_INTRABAR_ERRORS="+str(intrabar_errors))
+          print("DB_EVENTS_24H="+str([dict(row) for row in events]))
+          print("NEWS_VETO_GROUPS_24H="+str([dict(row) for row in veto_groups]))
+          print("NEWS_VETO_SAMPLES_24H="+str([dict(row) for row in veto_samples]))
+          print("NEWS_VETO_OUTCOMES_TOTAL="+str(len(veto_outcomes))+" AFTER_BASELINE="+str(veto_outcomes_after_baseline))
+          print("NEWS_VETO_OUTCOME_ROWS="+str([dict(row) for row in veto_outcomes]))
+          print("VETO_HEADLINE_RECORDS="+str([dict(row) for row in headline_records]))
+          print("NEWS_FEED_ERROR_SAMPLES="+str([dict(row) for row in news_errors]))
+
+          failures=[]
+          if integrity!="ok": failures.append("SQLITE_INTEGRITY_FAILED")
+          if meta.get("paper_baseline_id")!="ashur-paper-30d-2026-11-25-v2":
+              failures.append("SQLITE_BASELINE_MISMATCH")
+          if len(checks)!=6: failures.append("CHECK_EVENT_STRATEGY_COUNT_MISMATCH")
+          failures.extend(check_gap_failures)
+          if sum(int(row["total"]) for row in trades)!=sum(int(a.get("trades",0)) for a in json.load(open("/tmp/status.json")).get("accounts",[])):
+              failures.append("STATUS_SQLITE_TRADE_COUNT_MISMATCH")
+          if failures:
+              print("DB_AUDIT_RESULT=FAIL "+",".join(failures))
+              raise SystemExit(1)
+          print("DB_AUDIT_RESULT=PASS")
+          PY
+          else
+            echo "DB_AUDIT_RESULT=UNAVAILABLE file API did not return SQLite content"
+          fi
