@@ -153,6 +153,20 @@ jobs:
               losses = [float(row["pnl"] or 0) for row in rows if float(row["pnl"] or 0) < 0]
               gross_profit = sum(wins)
               gross_loss = abs(sum(losses))
+              ordered = sorted(rows, key=lambda row: row["closed_at"] or "")
+              win_streak = loss_streak = max_win_streak = max_loss_streak = 0
+              for row in ordered:
+                  value = float(row["pnl"] or 0)
+                  if value > 0:
+                      win_streak += 1
+                      loss_streak = 0
+                  elif value < 0:
+                      loss_streak += 1
+                      win_streak = 0
+                  else:
+                      win_streak = loss_streak = 0
+                  max_win_streak = max(max_win_streak, win_streak)
+                  max_loss_streak = max(max_loss_streak, loss_streak)
               trade_stats.append({
                   "strategy_id": sid,
                   "closed_trades": len(rows),
@@ -165,7 +179,12 @@ jobs:
                   "profit_factor": (round(gross_profit / gross_loss, 6) if gross_loss else (None if not wins else "INF")),
                   "average_win": (round(gross_profit / len(wins), 8) if wins else None),
                   "average_loss": (round(sum(losses) / len(losses), 8) if losses else None),
-                  "fees": round(sum(float(row["fees"] or 0) for row in rows), 8)
+                  "fees": round(sum(float(row["fees"] or 0) for row in rows), 8),
+              "best_trade": (round(max((float(row["pnl"] or 0) for row in rows), default=0), 8) if rows else None),
+              "worst_trade": (round(min((float(row["pnl"] or 0) for row in rows), default=0), 8) if rows else None),
+              "average_hold_minutes": (round(sum((datetime.fromisoformat(row["closed_at"].replace("Z", "+00:00")) - datetime.fromisoformat(row["opened_at"].replace("Z", "+00:00"))).total_seconds() / 60 for row in rows if row["opened_at"] and row["closed_at"]) / max(1, sum(1 for row in rows if row["opened_at"] and row["closed_at"])), 2) if any(row["opened_at"] and row["closed_at"] for row in rows) else None),
+              "max_win_streak": 0,
+              "max_loss_streak": 0
               })
 
           payload = {
