@@ -117,7 +117,7 @@ jobs:
 
           raw=Path("/tmp/shadow-db-response").read_bytes()
           db_bytes=None
-          if raw.startswith(b"SQLite format 3\\x00"):
+          if raw.startswith(b"SQLite format 3\x00"):
               db_bytes=raw
           else:
               try:
@@ -134,7 +134,7 @@ jobs:
               except (UnicodeDecodeError,ValueError,TypeError):
                   pass
 
-          if not db_bytes or not db_bytes.startswith(b"SQLite format 3\\x00"):
+          if not db_bytes or not db_bytes.startswith(b"SQLite format 3\x00"):
               print("DB_AUDIT_RESULT=UNAVAILABLE response_bytes="+str(len(raw)))
               raise SystemExit(0)
 
