@@ -340,6 +340,11 @@ class TestAshurRuntime(unittest.TestCase):
 
                 closed_candle = pd.DataFrame([{
                     "timestamp": 2_000_000_000_000, "close": 100.0, "atr": 1.0,
+                    "ema20": 99.0, "ema50": 98.0, "ema100": 97.0, "ema200": 96.0,
+                    "adx": 20.0, "atr_pct": 0.01, "atr_p80": 0.02,
+                    "keltner_upper": 102.0,
+                    "dh20": 101.0, "dh55": 102.0, "dh100": 103.0,
+                    "dl10": 95.0, "dl20": 94.0,
                 }])
                 with (
                     patch.object(worker, "fetch_bybit_klines", return_value=object()),
