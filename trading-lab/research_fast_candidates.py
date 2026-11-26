@@ -1,4 +1,4 @@
-"""Research-only 15m/1h candidate screen for BNB/USDT.
+"""Research-only 15m/1h candidate screen for BNB, BTC, ETH, and SOL.
 
 Candidates are not wired into the live worker. Signals are evaluated on closed candles,
 entries execute on the next candle open, and the simulation reuses ASHUR's live risk,
@@ -156,18 +156,18 @@ def main():
                 results.append(result)
                 test = result["splits"]["test"]
                 print(json.dumps({
-                "candidate": candidate_name,
-                "symbol": symbol,
-                "timeframe": timeframe,
-                "trades": test["trades"],
-                "return_pct": test["return_pct"],
-                "profit_factor": test["profit_factor"],
-                "max_drawdown_pct": test["max_drawdown_pct"],
-                "signals_30d": result["signal_frequency"]["last_30d"]["signals"],
-                "signals_90d": result["signal_frequency"]["last_90d"]["signals"],
-                "signals_180d": result["signal_frequency"]["last_180d"]["signals"],
-                "positive_60d_windows": result["rolling_60d_oos"]["positive_windows"],
-            }, ensure_ascii=False))
+                    "candidate": candidate_name,
+                    "symbol": symbol,
+                    "timeframe": timeframe,
+                    "trades": test["trades"],
+                    "return_pct": test["return_pct"],
+                    "profit_factor": test["profit_factor"],
+                    "max_drawdown_pct": test["max_drawdown_pct"],
+                    "signals_30d": result["signal_frequency"]["last_30d"]["signals"],
+                    "signals_90d": result["signal_frequency"]["last_90d"]["signals"],
+                    "signals_180d": result["signal_frequency"]["last_180d"]["signals"],
+                    "positive_60d_windows": result["rolling_60d_oos"]["positive_windows"],
+                }, ensure_ascii=False))
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     payload = {
