@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" shape-rendering="crispEdges"><rect width="1200" height="420" fill="#4b291b"/><path fill="#d58a3c" d="M0 0h1200v70H0z"/><path fill="#9e4f28" d="M0 70h1200v25H0z"/><path fill="#e5b65e" d="M60 95h220v35H60zM360 95h220v35H360zM660 95h220v35H660zM960 95h180v35H960z"/><path fill="#b96b31" d="M0 420V210h100v-70h160v70h100v210zM350 420V190h110v-60h170v60h110v230zM750 420V210h100v-70h160v70h100v210z"/><path fill="#27150e" d="M40 420V250h280v170zM400 420V235h280v185zM800 420V250h280v170z"/><path fill="#edbd6a" d="M110 260h18v18h-18zM150 260h18v18h-18zM470 245h18v18h-18zM510 245h18v18h-18zM870 260h18v18h-18zM910 260h18v18h-18z"/><path fill="#d58a3c" d="M0 385h1200v35H0z"/><path fill="#f4ce88" d="M0 385h1200v6H0z"/><path fill="#5b3020" d="M290 90h35v330h-35zM590 90h35v330h-35zM890 90h35v330h-35z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" shape-rendering="crispEdges"><rect width="1200" height="420" fill="#4b291b"/><path fill="#d58a3c" d="M0 0h1200v70H0z"/><path fill="#9e4f28" d="M0 70h1200v25H0z"/><path fill="#e5b65e" d="M60 95h220v35H60zM360 95h220v35H360zM660 95h220v35H660zM960 95h180v35H960z"/><path fill="#b96b31" d="M0 420V210h100v-70h160v70h100v210zM350 420V190h110v-60h170v60h110v230zM750 420V210h100v-70h160v70h100v210z"/><path fill="#27150e" d="M40 420V250h280v170zM400 420V235h280v185zM800 420V250h280v170z"/><path fill="#edbd6a" d="M110 260h18v18h-18zM150 260h18v18h-18zM470 245h18v18h-18zM510 245h18v18h-18zM870 260h18v18h-18zM910 260h18v18h-18z"/><path fill="#d58a3c" d="M0 385h1200v35H0z"/><path fill="#f4ce88" d="M0 385h1200v6H0z"/><path fill="#5b3020" d="M290 90h35v330h-35zM590 90h35v330h-35zM890 90h35v330h-35z"/><g shape-rendering="crispEdges">
+<!-- stepped ziggurat and golden skyline -->
+<path fill="#e9b65d" d="M350 210h40v-45h55v-45h70v45h55v45h55v210H350z"/>
+<path fill="#6c3923" d="M380 250h270v170H380z"/>
+<path fill="#f2c879" d="M410 185h28v-48h40v-38h48v38h40v48h40v40H410z"/>
+<path fill="#7a3e25" d="M455 240h110v180H455z"/>
+<!-- date palms -->
+<path fill="#754323" d="M100 180h24v240h-24zM1020 160h24v260h-24zM1120 210h18v210h-18z"/>
+<g fill="#2d6a43"><path d="M110 188L28 132l12-18 82 44 40-90 20 8-42 100 96-20 4 22-112 20zM1030 170l-85-55 12-18 85 45 38-92 20 8-38 100 92-18 4 20-110 20zM1128 220l-65-40 10-16 64 34 30-65 16 8-32 72 65-12 4 18-78 15z"/></g>
+<!-- striped market awnings -->
+<path fill="#b33e32" d="M0 250h330v35H0zM700 235h300v35H700z"/>
+<path fill="#f4c66d" d="M0 250h35v35H0zM70 250h35v35H70zM140 250h35v35h-35zM210 250h35v35h-35zM280 250h50v35h-50zM700 235h40v35h-40zM780 235h40v35h-40zM860 235h40v35h-40zM940 235h60v35h-60z"/>
+<path fill="#5b2d1b" d="M25 285h280v135H25zM725 270h250v150H725z"/>
+<!-- lanterns -->
+<g fill="#ffd77d" stroke="#7a421f" stroke-width="5"><path d="M335 160h28v42h-28zM670 150h28v42h-28zM980 175h28v42h-28z"/></g>
+<g fill="#ffe7a2"><path d="M345 170h8v22h-8zM680 160h8v22h-8zM990 185h8v22h-8z"/></g>
+<path fill="#e6ad52" d="M0 400h1200v20H0z"/>
+</g></svg>
