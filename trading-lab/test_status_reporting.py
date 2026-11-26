@@ -34,6 +34,17 @@ def test_empty_strategy_win_rate_is_null_and_news_outcomes_are_baseline_scoped()
         ("new-strategy", "BNB/USDT", "new-news", "New headline", "Test",
          "2026-11-25T18:16:45+00:00", 600.0),
     )
+    veto_at = datetime.now(timezone.utc).isoformat()
+    for details in (
+        "new entry blocked by high-risk headline: repeated legacy headline",
+        "new entry blocked by high-risk headline: repeated legacy headline",
+        "new entry blocked by high-risk headline: repeated legacy headline",
+        "candle=1795651200000; news_id=new-id; title=second headline",
+    ):
+        conn.execute(
+            "INSERT INTO shadow_events(created_at,strategy_id,event,details) VALUES(?,?,?,?)",
+            (veto_at, "BNB_15M_EMA_TREND", "NEWS_VETO", details),
+        )
     conn.commit()
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -56,7 +67,8 @@ def test_empty_strategy_win_rate_is_null_and_news_outcomes_are_baseline_scoped()
     assert intelligence["veto_outcomes"]["tracked_vetoes"] == 2
     assert intelligence["baseline_veto_outcomes"]["tracked_vetoes"] == 1
     assert intelligence["baseline_veto_outcomes"]["avg_net_return_24h_pct"] is None
-    assert intelligence["news_veto_attempts_24h"] == 0
+    assert intelligence["news_veto_attempts_24h"] == 2
+    assert intelligence["news_veto_event_rows_24h"] == 4
     for account in status["accounts"]:
         assert len(account["equity_curve_24h"]) == 1
         assert len(account["equity_curve_30d_hourly"]) == 1
