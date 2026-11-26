@@ -33,6 +33,30 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertEqual(opener.call_count, 2)
         sleeper.assert_called_once_with(2.0)
 
+    def test_fetch_feed_uses_bounded_backoff_when_retry_after_is_missing(self):
+        url = "https://news.google.com/rss/search?q=Bitcoin"
+        rate_limited = HTTPError(url, 429, "Too Many Requests", {}, BytesIO(b""))
+        with patch.object(news.urllib.request, "urlopen",
+                          side_effect=[rate_limited, rate_limited, rate_limited]) as opener:
+            with patch.object(news.time, "sleep") as sleeper:
+                with self.assertRaises(HTTPError):
+                    news.fetch_feed(url)
+        self.assertEqual(opener.call_count, 3)
+        self.assertEqual([call.args[0] for call in sleeper.call_args_list], [1, 2])
+
+    def test_fetch_feed_uses_bounded_backoff_for_invalid_retry_after(self):
+        url = "https://news.google.com/rss/search?q=Bitcoin"
+        rate_limited = HTTPError(
+            url, 429, "Too Many Requests", {"Retry-After": "not-a-date"}, BytesIO(b"")
+        )
+        with patch.object(news.urllib.request, "urlopen",
+                          side_effect=[rate_limited, rate_limited, rate_limited]) as opener:
+            with patch.object(news.time, "sleep") as sleeper:
+                with self.assertRaises(HTTPError):
+                    news.fetch_feed(url)
+        self.assertEqual(opener.call_count, 3)
+        self.assertEqual([call.args[0] for call in sleeper.call_args_list], [1, 2])
+
     def test_retry_after_accepts_http_date(self):
         fixed_now = news.datetime(2026, 11, 26, 12, 0, 0, tzinfo=news.timezone.utc)
         retry_at = fixed_now + news.timedelta(seconds=3)
