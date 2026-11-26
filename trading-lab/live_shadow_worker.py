@@ -572,6 +572,20 @@ def event(conn, sid, kind, details):
     conn.execute("INSERT INTO shadow_events(created_at,strategy_id,event,details) VALUES(?,?,?,?)",
                  (now(), sid, kind, details))
 
+def log_news_veto_once(conn, sid, candle_id, headline):
+    """Persist one NEWS_VETO event per strategy, candle, and unique headline."""
+    news_id = str(headline.get("id") or "unknown")
+    title = str(headline.get("title") or "")
+    details = f"candle={candle_id}; news_id={news_id}; title={title}"
+    exists = conn.execute(
+        "SELECT 1 FROM shadow_events WHERE strategy_id=? AND event='NEWS_VETO' AND details=? LIMIT 1",
+        (sid, details),
+    ).fetchone()
+    if exists:
+        return False
+    event(conn, sid, "NEWS_VETO", details)
+    return True
+
 def close_position(conn, s, price, reason, candle_id):
     p = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (s["id"],)).fetchone()
     if not p:
@@ -731,6 +745,10 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
         "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
         (cutoff_24h,),
     ).fetchone()[0]
+    news_veto_attempts_24h = conn.execute(
+        "SELECT COUNT(*) FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?",
+        (cutoff_24h,),
+    ).fetchone()[0]
     intrabar_warnings_24h = conn.execute(
         """SELECT COUNT(*) FROM shadow_events
            WHERE event='INTRABAR_DATA_WARNING' AND created_at>=?""",
@@ -738,6 +756,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
     ).fetchone()[0]
     baseline_id = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_id'").fetchone()
     baseline_at = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_at'").fetchone()
+    baseline_at_value = baseline_at["value"] if baseline_at else None
     output = {"updated_at": now(), "mode": "PAPER_ONLY",
               "experiment": {
                   "baseline_id": baseline_id["value"] if baseline_id else None,
@@ -756,7 +775,9 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
                                 "all_protections_ok": True},
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
-                                    "veto_outcomes": news.veto_outcome_stats(conn)},
+                                    "news_veto_attempts_24h": int(news_veto_attempts_24h),
+                                    "veto_outcomes": news.veto_outcome_stats(conn),
+                                    "baseline_veto_outcomes": news.veto_outcome_stats(conn, since=baseline_at_value) if baseline_at_value else None},
               "signal_diagnostics": signal_diagnostics_rows or [],
               "accounts": []}
     for a in accounts:
@@ -816,7 +837,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
             "equity":round(equity,4),"net_pnl":round(equity-float(a["starting_cash"]),4),
             "realized_pnl":round(realized,4),"unrealized_pnl":round(unrealized,4),
             "return_pct":round((equity/float(a["starting_cash"])-1)*100,4),
-            "trades":len(trades),"wins":wins,"win_rate_pct":round(wins/len(trades)*100,2) if trades else 0,
+            "trades":len(trades),"wins":wins,"win_rate_pct":round(wins/len(trades)*100,2) if trades else None,
             "profit_factor":round(gross_profit/gross_loss,3) if gross_loss else (None if not gross_profit else "inf"),
             "fees":round(sum(float(t["fees"]) for t in trades),4),
             "recent_trades_30d":[
