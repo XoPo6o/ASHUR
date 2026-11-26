@@ -162,3 +162,26 @@ img, svg { max-width: 100%; }
   max-width: none !important;
   table-layout: auto !important;
 }
+
+/* Final viewport guard for strategy matrix across narrow reference panels. */
+section#compare.panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+section#compare.panel > .matrix-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+section#compare.panel > .matrix-wrap > table.matrix {
+  width: max-content !important;
+  min-width: 900px !important;
+  max-width: none !important;
+}
