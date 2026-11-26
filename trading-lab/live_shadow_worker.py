@@ -511,6 +511,8 @@ def init_db(conn):
       UNIQUE(strategy_id, snapshot_at));
     CREATE INDEX IF NOT EXISTS idx_equity_snapshots_strategy_time
       ON shadow_equity_snapshots(strategy_id, snapshot_at);
+    CREATE INDEX IF NOT EXISTS idx_equity_snapshots_time
+      ON shadow_equity_snapshots(snapshot_at);
     CREATE TABLE IF NOT EXISTS shadow_trade_guard(
       strategy_id TEXT PRIMARY KEY, last_closed_candle TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_intrabar_state(
@@ -847,6 +849,9 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
     )
     conn.execute(
         "CREATE INDEX IF NOT EXISTS idx_equity_snapshots_strategy_time ON shadow_equity_snapshots(strategy_id, snapshot_at)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_equity_snapshots_time ON shadow_equity_snapshots(snapshot_at)"
     )
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
