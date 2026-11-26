@@ -46,9 +46,9 @@ jobs:
           state=attrs.get("current_state","unknown")
           d=json.load(open("/tmp/status.json"))
           h=d.get("worker_health",{})
-          stamp=d.get("updated_at")
+          stamp=d.get("updated_at")\n          experiment=d.get("experiment",{})\n          baseline_id=experiment.get("baseline_id")
           print(f"SERVER_STATE={state}")
-          print(f"MODE={d.get('mode')} BASELINE={d.get('baseline_id')}")
+          print(f"MODE={d.get('mode')} BASELINE={baseline_id} BASELINE_AT={experiment.get('baseline_at')}")
           print(f"UPDATED_AT={stamp}")
           print(f"WORKER_OK={h.get('all_strategies_ok')} WORKER_ERRORS={h.get('error_count')} SUCCESSFUL={h.get('successful_strategies')}")
           print(f"PROTECTION_OK={h.get('all_protections_ok')} DEGRADED_POSITIONS={h.get('protection_degraded_positions')} DEGRADED_STRATEGIES={h.get('protection_degraded_strategies')}")
@@ -78,7 +78,7 @@ jobs:
           failures=[]
           if state!="running": failures.append("SERVER_NOT_RUNNING")
           if d.get("mode")!="PAPER_ONLY": failures.append("MODE_NOT_PAPER_ONLY")
-          if d.get("baseline_id")!="ashur-paper-30d-2026-11-25-v2": failures.append("BASELINE_ID_MISMATCH")
+          if baseline_id!="ashur-paper-30d-2026-11-25-v2": failures.append("BASELINE_ID_MISMATCH")
           if len(accounts)!=6: failures.append("STRATEGY_COUNT_MISMATCH")
           if not h.get("all_strategies_ok") or h.get("error_count")!=0 or h.get("successful_strategies")!=6:
               failures.append("WORKER_HEALTH_FAILED")
