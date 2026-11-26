@@ -51,7 +51,7 @@ main{padding:26px 0 55px}.hero{display:flex;justify-content:space-between;align-
 <article class="panel"><div class="panelhead"><div class="paneltitle">TRADE OUTCOMES</div><span class="tag">CLOSED</span></div><div class="panelbody"><div class="donut-wrap"><svg class="donut" id="trades-donut" viewBox="0 0 120 120"></svg><div class="donut-legend" id="trades-legend"></div></div></div></article>
 </section>
 <section class="panel" id="strategies" style="margin-bottom:13px"><div class="panelhead"><div class="paneltitle">STRATEGY ROOM / SIX GUARDIANS</div><span class="tag">1,000 USDT EACH · PAPER</span></div><div class="panelbody"><div class="grid strategy-grid" id="strategy-grid"></div></div></section>
-<section class="panel" id="compare" style="margin-bottom:13px"><div class="panelhead"><div class="paneltitle">STRATEGY PERFORMANCE MATRIX</div><span class="tag">ALL LEDGER TRADES</span></div><div class="matrix-wrap"><table class="matrix"><thead><tr><th>STRATEGY</th><th>RETURN</th><th>REALIZED</th><th>UNREALIZED</th><th>TRADES</th><th>WIN RATE</th><th>PROFIT FACTOR</th><th>AVG WIN</th><th>AVG LOSS</th><th>FEES</th><th>EXECUTION</th></tr></thead><tbody id="comparison-rows"><tr><td colspan="11" class="empty">COLLECTING VERIFIED DATA…</td></tr></tbody></table></div><div class="sample-note" id="comparison-note">Metrics are calculated from the full SQLite trade ledger. Small samples are descriptive, not predictive.</div></section>
+<section class="panel" id="compare" style="margin-bottom:13px"><div class="panelhead"><div class="paneltitle">STRATEGY PERFORMANCE MATRIX</div><span class="tag">ALL LEDGER TRADES</span></div><div class="matrix-wrap"><table class="matrix"><thead><tr><th>STRATEGY</th><th>RETURN</th><th>REALIZED</th><th>UNREALIZED</th><th>TRADES</th><th>WIN RATE</th><th>PROFIT FACTOR</th><th>AVG WIN</th><th>AVG LOSS</th><th>FEES</th><th>EXECUTION</th></tr></thead><tbody id="comparison-rows"><tr><td colspan="12" class="empty">COLLECTING VERIFIED DATA…</td></tr></tbody></table></div><div class="sample-note" id="comparison-note">B&H uses the first verified monitoring snapshot, not experiment start. Trade metrics use the full SQLite ledger; small samples are descriptive only.</div></section>
 <section class="grid twocol" style="margin-bottom:13px"><article class="panel"><div class="panelhead"><div class="paneltitle">PORTFOLIO DRAWDOWN</div><span class="tag">OBSERVED HISTORY</span></div><div class="panelbody"><svg class="chart" id="drawdown-chart" viewBox="0 0 720 190" role="img" aria-label="Portfolio drawdown from observed equity history"></svg><div class="legend" id="drawdown-legend"><span>MAX DRAWDOWN: COLLECTING HISTORY</span></div></div></article><article class="panel"><div class="panelhead"><div class="paneltitle">REALIZED / UNREALIZED P&amp;L</div><span class="tag">USDT</span></div><div class="panelbody"><svg class="chart" id="realized-chart" viewBox="0 0 420 190" role="img" aria-label="Realized and unrealized P and L by strategy"></svg><div class="legend"><span><b>━━</b> REALIZED</span><span style="color:var(--gold)">━━ UNREALIZED</span></div></div></article></section>
 <section class="grid twocol" id="trades">
 <article class="panel"><div class="panelhead"><div class="paneltitle">CLOSED TRADE HISTORY</div><span class="tag">SQLITE · LAST 300</span></div><div class="panelbody"><div class="table-wrap"><table class="trades"><thead><tr><th>STRATEGY</th><th>PAIR</th><th>ENTRY → EXIT</th><th>NET P&amp;L</th><th>REASON</th><th>CLOSED UTC</th></tr></thead><tbody id="trade-rows"><tr><td colspan="6" class="empty">LOADING LEDGER…</td></tr></tbody></table></div></div></article>
@@ -105,11 +105,31 @@ function realizedChart(accounts){
  let s='';accounts.forEach((a,i)=>{const y=T+i*(row+gap),zero=L+((W-L-R)/2),half=(W-L-R)/2;const draw=(v,yy,color)=>{const w=Math.abs(v)/max*(half-8);return '<rect x="'+(v>=0?zero:zero-w)+'" y="'+yy+'" width="'+Math.max(v===0?0:2,w)+'" height="8" fill="'+color+'"/>';};s+='<text x="'+(L-8)+'" y="'+(y+15)+'" text-anchor="end">'+esc(a.strategy_id.replace(/_/g,' ').replace('BNB ','').replace('SOL ','S '))+'</text><line x1="'+zero+'" y1="'+y+'" x2="'+zero+'" y2="'+(y+row-2)+'" stroke="#56717b"/>'+draw(n(a.realized_pnl),y+2,'#65d8d0')+draw(n(a.unrealized_pnl),y+13,'#e4b86a');});
  svg.innerHTML=s;
 }
-function comparisonTable(d){
+function buyHoldReturn(strategyId,history,currentAccount){
+ const first=history?.points?.[0]?.accounts?.find(x=>x.strategy_id===strategyId);
+ const p0=n(first?.last_price),p1=n(currentAccount?.last_price);
+ return p0>0&&p1>0?(p1/p0-1)*100:null;
+}
+function equityBenchmarkChart(history,currentEquity){
+ const pts=history?.points||[],svg=$('equity-chart');
+ if(!pts.length){lineChart('equity-chart',[currentEquity],['NOW'],{money:true});return;}
+ const first=pts[0],base=new Map((first.accounts||[]).map(a=>[a.strategy_id,a]));
+ const benchmark=pts.map(p=>(p.accounts||[]).reduce((sum,a)=>{const b=base.get(a.strategy_id),p0=n(b?.last_price),p1=n(a.last_price);return sum+(p0>0&&p1>0?n(b.equity)*p1/p0:n(b?.equity));},0));
+ const actual=pts.map(p=>n(p.total_equity)),all=actual.concat(benchmark);
+ let lo=Math.min(...all),hi=Math.max(...all);if(hi===lo){lo-=1;hi+=1;}else{const pad=(hi-lo)*.16;lo-=pad;hi+=pad;}
+ const W=720,H=250,L=58,R=18,T=18,B=34,iw=W-L-R,ih=H-T-B,x=i=>L+(pts.length===1?iw/2:i*iw/(pts.length-1)),y=v=>T+(hi-v)*ih/(hi-lo);
+ let s='';for(let j=0;j<5;j++){const yy=T+j*ih/4,v=hi-j*(hi-lo)/4;s+='<line class="gridline" x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'"/><text x="'+(L-8)+'" y="'+(yy+3)+'" text-anchor="end">'+fmt(v)+'</text>';}
+ const path=(arr,color,width,dash)=>'<polyline points="'+arr.map((v,i)=>x(i)+','+y(v)).join(' ')+'" fill="none" stroke="'+color+'" stroke-width="'+width+'" '+(dash?'stroke-dasharray="6 5"':'')+' stroke-linejoin="round" stroke-linecap="round"/>';
+ s+=path(actual,'#65d8d0',3,false)+path(benchmark,'#e4b86a',2,true);
+ [0,Math.floor((pts.length-1)/2),pts.length-1].forEach(i=>s+='<text x="'+x(i)+'" y="'+(H-9)+'" text-anchor="middle">'+esc(new Date(pts[i].generated_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'}))+'</text>');
+ svg.innerHTML=s;
+}
+function comparisonTable(d,history){
  const stats=new Map((d.trade_stats||[]).map(x=>[x.strategy_id,x]));
  const a=d.accounts||[],health=d.worker_health||{};
  $('comparison-rows').innerHTML=a.map(x=>{const s=stats.get(x.strategy_id)||{},fmtMetric=v=>v===null||v===undefined?'—':fmt(v),pf=s.profit_factor==='INF'?'∞':(s.profit_factor===null||s.profit_factor===undefined?'—':fmt(s.profit_factor));
- return '<tr><td>'+esc(x.strategy_id)+'</td><td class="'+(n(x.return_pct)>=0?'mini-positive':'mini-negative')+'">'+fmtMetric(x.return_pct)+'%</td><td class="'+(n(x.realized_pnl)>=0?'mini-positive':'mini-negative')+'">'+signed(x.realized_pnl)+'</td><td>'+signed(x.unrealized_pnl)+'</td><td>'+esc(s.closed_trades??x.trades??0)+'</td><td>'+fmtMetric(s.win_rate_pct)+'%</td><td>'+pf+'</td><td>'+fmtMetric(s.average_win)+'</td><td>'+fmtMetric(s.average_loss)+'</td><td>'+fmtMetric(s.fees??x.fees)+'</td><td><span class="grade">'+(health.all_strategies_ok?'OK':'CHECK')+'</span></td></tr>';
+ const bh=buyHoldReturn(x.strategy_id,history,x);
+ return '<tr><td>'+esc(x.strategy_id)+'</td><td class="'+(n(x.return_pct)>=0?'mini-positive':'mini-negative')+'">'+fmtMetric(x.return_pct)+'%</td><td class="'+(n(x.realized_pnl)>=0?'mini-positive':'mini-negative')+'">'+signed(x.realized_pnl)+'</td><td>'+signed(x.unrealized_pnl)+'</td><td>'+esc(s.closed_trades??x.trades??0)+'</td><td>'+fmtMetric(s.win_rate_pct)+'%</td><td>'+pf+'</td><td>'+(bh===null?'—':fmt(bh)+'%')+'</td><td>'+fmtMetric(s.average_win)+'</td><td>'+fmtMetric(s.average_loss)+'</td><td>'+fmtMetric(s.fees??x.fees)+'</td><td><span class="grade">'+(health.all_strategies_ok?'EXEC OK':'EXEC CHECK')+'</span></td></tr>';
  }).join('');
  const total=(d.trade_stats||[]).reduce((sum,x)=>sum+n(x.closed_trades),0);
  $('comparison-note').textContent='FULL LEDGER SAMPLE: '+total+' CLOSED TRADES · Win rate and Profit Factor use all SQLite trades. A small sample is descriptive only; ∞ means no recorded losing trades, not proof of edge.';
@@ -127,9 +147,10 @@ function render(d,history){
  const points=history?.points||[];
  const equityValues=points.map(p=>n(p.total_equity));
  const equityLabels=points.map(p=>new Date(p.generated_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'}));
- lineChart('equity-chart',equityValues.length?equityValues:[equity],equityLabels.length?equityLabels:['NOW'],{money:true});
- $('equity-range').textContent=points.length+' OBSERVED SNAPSHOTS · FROM '+localStamp(history?.history_started_at||points[0]?.generated_at||d.generated_at);
- drawdownChart(history);realizedChart(a);comparisonTable(d);
+ equityBenchmarkChart(history,equity);
+ $('equity-range').textContent=points.length+' OBSERVED SNAPSHOTS · SOLID: ASHUR · DASHED: BUY & HOLD';
+ $('history-time').textContent=localStamp(history?.history_started_at||points[0]?.generated_at);
+ drawdownChart(history);realizedChart(a);comparisonTable(d,history);
  const total=a.reduce((s,x)=>s+n(x.equity),0)||1;
  donut('allocation-donut','6','ACCOUNTS',a.map((x,i)=>({value:n(x.equity)/total,color:colors[i%colors.length]})));
  legend('allocation-legend',a.map((x,i)=>({color:colors[i%colors.length],label:x.strategy_id.replace(/_/g,' '),value:(n(x.equity)/total*100).toFixed(1)+'%'})));
