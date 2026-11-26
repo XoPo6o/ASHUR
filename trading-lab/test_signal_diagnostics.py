@@ -1,6 +1,7 @@
 """Regression tests for the read-only Paper/Shadow signal diagnostics."""
 import math
 
+import numpy as np
 import pandas as pd
 
 import live_shadow_worker as worker
@@ -45,3 +46,21 @@ def test_non_finite_indicator_values_are_json_safe_nulls():
     diagnostic = worker.signal_diagnostics(row, "SOL_4H_DONCHIAN_VOL")
     assert diagnostic["indicators"]["atr_p80"] is None
     assert math.isfinite(diagnostic["indicators"]["close"])
+
+
+
+def test_diagnostics_match_live_signals_across_randomized_indicator_rows():
+    rng = np.random.default_rng(20261126)
+    indicator_columns = [
+        "close", "ema20", "ema50", "ema100", "ema200", "adx", "atr",
+        "atr_pct", "atr_p80", "keltner_upper", "dh20", "dh55", "dh100",
+        "dl10", "dl20",
+    ]
+    for strategy in worker.STRATEGIES:
+        for _ in range(250):
+            row = sample_row()
+            for column in indicator_columns:
+                row[column] = float(rng.uniform(0.01, 1000.0))
+            expected = worker.signals(row, strategy["id"])
+            diagnostic = worker.signal_diagnostics(row, strategy["id"])
+            assert (diagnostic["entry_signal"], diagnostic["exit_signal"]) == expected
