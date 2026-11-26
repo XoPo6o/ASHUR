@@ -1,0 +1,42 @@
+name: Cloudflare Workers access check
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - ".github/workflows/cloudflare-workers-access-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-workers-access-check
+  cancel-in-progress: true
+
+jobs:
+  read-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read Workers list (no changes)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          response="$(curl --fail-with-body --silent --show-error \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/scripts" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json")"
+          printf '%s' "$response" | python -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          if data.get("success") is not True:
+              print("Workers API access check failed (details withheld).")
+              raise SystemExit(1)
+          result = data.get("result") or []
+          print(f"Workers API read access confirmed. Existing Workers found: {len(result)}.")
+          '
