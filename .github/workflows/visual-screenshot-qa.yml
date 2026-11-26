@@ -109,7 +109,7 @@ jobs:
             }
             fs.writeFileSync('screenshots/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='KI.LAM / THE WALL' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || !x.navHidden || !x.heroSceneHidden || x.healthColumns !== (x.mode==='mobile'?1:2) || x.tradeLedgerColumns !== 1 || !x.riskInAdvanced || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
+            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='KI.LAM / THE WALL' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || !x.navHidden || !x.heroSceneHidden || x.healthColumns !== 2 || x.tradeLedgerColumns !== 1 || !x.riskInAdvanced || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
           })();
           EOF
           node capture.cjs
