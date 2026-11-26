@@ -93,7 +93,7 @@ jobs:
                     matrixRows: document.querySelectorAll('#comparison-rows tr').length,
                     horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
                     chartPresent: !!document.querySelector('#equity-chart')?.children.length,
-              sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css?v=20261126-4')),
+              sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css?v=20261126-5')),
               navHidden: getComputedStyle(document.querySelector('.nav')).display === 'none',
               heroSceneHidden: getComputedStyle(document.querySelector('.hero'),'::before').display === 'none',
               healthColumns: getComputedStyle(document.querySelector('main>section.grid.threecol')).gridTemplateColumns.split(' ').length,
