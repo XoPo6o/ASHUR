@@ -33,3 +33,7 @@ main>.footer{order:99!important}
 
 /* Gallery remains available through the ASHUR brand link. */
 .skin-dock{display:none!important}
+
+/* Core health row mirrors the two-panel reference composition. */
+main>section.grid.threecol{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media(max-width:650px){main>section.grid.threecol{grid-template-columns:minmax(0,1fr)!important}}
