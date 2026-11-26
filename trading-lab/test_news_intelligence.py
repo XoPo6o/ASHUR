@@ -1,6 +1,9 @@
 """"Offline tests for free-source ASHUR News Intelligence."""
 import importlib.util
 import sqlite3
+from io import BytesIO
+from unittest.mock import patch
+from urllib.error import HTTPError
 import unittest
 from email.utils import format_datetime
 from pathlib import Path
@@ -11,6 +14,69 @@ news = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(news)
 
 class TestNewsIntelligence(unittest.TestCase):
+    def test_fetch_feed_retries_429_and_honors_retry_after(self):
+        url = "https://news.google.com/rss/search?q=Bitcoin"
+        rate_limited = HTTPError(url, 429, "Too Many Requests",
+                                 {"Retry-After": "2"}, BytesIO(b""))
+        class Response:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self, limit):
+                return b"<rss><channel /></rss>"
+
+        with patch.object(news.urllib.request, "urlopen",
+                          side_effect=[rate_limited, Response()]) as opener:
+            with patch.object(news.time, "sleep") as sleeper:
+                self.assertEqual(news.fetch_feed(url), [])
+        self.assertEqual(opener.call_count, 2)
+        sleeper.assert_called_once_with(2.0)
+
+    def test_fetch_feed_uses_bounded_backoff_when_retry_after_is_missing(self):
+        url = "https://news.google.com/rss/search?q=Bitcoin"
+        rate_limited = HTTPError(url, 429, "Too Many Requests", {}, BytesIO(b""))
+        with patch.object(news.urllib.request, "urlopen",
+                          side_effect=[rate_limited, rate_limited, rate_limited]) as opener:
+            with patch.object(news.time, "sleep") as sleeper:
+                with self.assertRaises(HTTPError):
+                    news.fetch_feed(url)
+        self.assertEqual(opener.call_count, 3)
+        self.assertEqual([call.args[0] for call in sleeper.call_args_list], [1, 2])
+
+    def test_fetch_feed_uses_bounded_backoff_for_invalid_retry_after(self):
+        url = "https://news.google.com/rss/search?q=Bitcoin"
+        rate_limited = HTTPError(
+            url, 429, "Too Many Requests", {"Retry-After": "not-a-date"}, BytesIO(b"")
+        )
+        with patch.object(news.urllib.request, "urlopen",
+                          side_effect=[rate_limited, rate_limited, rate_limited]) as opener:
+            with patch.object(news.time, "sleep") as sleeper:
+                with self.assertRaises(HTTPError):
+                    news.fetch_feed(url)
+        self.assertEqual(opener.call_count, 3)
+        self.assertEqual([call.args[0] for call in sleeper.call_args_list], [1, 2])
+
+    def test_retry_after_accepts_http_date(self):
+        fixed_now = news.datetime(2026, 11, 26, 12, 0, 0, tzinfo=news.timezone.utc)
+        retry_at = fixed_now + news.timedelta(seconds=3)
+        with patch.object(news, "utc_now", return_value=fixed_now):
+            self.assertEqual(
+                news._retry_after_seconds(format_datetime(retry_at)), 3.0
+            )
+
+    def test_fetch_feed_does_not_retry_when_retry_after_exceeds_safe_wait(self):
+        url = "https://news.google.com/rss/search?q=Bitcoin"
+        rate_limited = HTTPError(url, 429, "Too Many Requests",
+                                 {"Retry-After": "60"}, BytesIO(b""))
+        with patch.object(news.urllib.request, "urlopen",
+                          side_effect=rate_limited) as opener:
+            with patch.object(news.time, "sleep") as sleeper:
+                with self.assertRaises(HTTPError):
+                    news.fetch_feed(url)
+        opener.assert_called_once()
+        sleeper.assert_not_called()
+
     def test_google_news_source_is_free_rss_without_api_key(self):
         url = news.google_news_url("Bitcoin")
         self.assertTrue(url.startswith("https://news.google.com/rss/search?"))

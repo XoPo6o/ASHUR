@@ -7,6 +7,7 @@ import os
 import re
 import sqlite3
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -16,6 +17,8 @@ from pathlib import Path
 DATA_DIR = Path(os.environ.get("ASHUR_DATA_DIR", str(Path.home() / ".local/share/ashur"))).expanduser()
 DB = DATA_DIR / "ashur_shadow.db"
 USER_AGENT = "ASHUR-News-Intelligence/0.1 (paper research)"
+MAX_429_RETRIES = 2
+MAX_RETRY_AFTER_SECONDS = 5.0
 SYMBOL_QUERIES = {
     "BTC/USDT": '"Bitcoin" OR BTC crypto',
     "ETH/USDT": '"Ethereum" OR ETH crypto',
@@ -38,10 +41,39 @@ def google_news_url(query):
     params = urllib.parse.urlencode({"q": query + " when:24h", "hl": "en-US", "gl": "US", "ceid": "US:en"})
     return "https://news.google.com/rss/search?" + params
 
+def _retry_after_seconds(value):
+    """Parse Retry-After as seconds or an HTTP date; return None if absent/invalid."""
+    if value is None:
+        return None
+    try:
+        return max(0.0, float(value))
+    except (TypeError, ValueError):
+        try:
+            retry_at = parsedate_to_datetime(str(value))
+            if retry_at.tzinfo is None:
+                retry_at = retry_at.replace(tzinfo=timezone.utc)
+            return max(0.0, (retry_at - utc_now()).total_seconds())
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+
 def fetch_feed(url, timeout=12):
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/rss+xml, application/xml"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        payload = response.read(2_000_000)
+    for attempt in range(MAX_429_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                payload = response.read(2_000_000)
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code != 429 or attempt >= MAX_429_RETRIES:
+                raise
+            retry_after = _retry_after_seconds(exc.headers.get("Retry-After") if exc.headers else None)
+            delay = retry_after if retry_after is not None else min(2 ** attempt, MAX_RETRY_AFTER_SECONDS)
+            # Never retry earlier than a long server-requested cooldown. Defer this
+            # feed until the next scheduled collection instead of sleeping too long.
+            if delay > MAX_RETRY_AFTER_SECONDS:
+                raise
+            time.sleep(delay)
     root = ET.fromstring(payload)
     items = []
     for node in root.findall(".//item"):

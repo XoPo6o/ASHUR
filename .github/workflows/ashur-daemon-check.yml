@@ -15,6 +15,19 @@ on:
       - "ashur_sillydev_start.py"
       - "requirements.txt"
       - ".github/workflows/ashur-daemon-check.yml"
+  pull_request:
+    branches: [ashur-live-shadow]
+    paths:
+      - "trading-lab/ashur_daemon.py"
+      - "trading-lab/live_shadow_worker.py"
+      - "trading-lab/news_intelligence.py"
+      - "trading-lab/test_ashur_daemon.py"
+      - "trading-lab/test_news_intelligence.py"
+      - "trading-lab/ashur_supervisor.py"
+      - "trading-lab/test_ashur_supervisor.py"
+      - "ashur_sillydev_start.py"
+      - "requirements.txt"
+      - ".github/workflows/ashur-daemon-check.yml"
   workflow_dispatch:
 
 permissions:
@@ -25,10 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Checkout paper branch
+      - name: Check out the triggering commit
         uses: actions/checkout@v4
-        with:
-          ref: ashur-live-shadow
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
