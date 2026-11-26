@@ -1,0 +1,51 @@
+name: Cloudflare token verification
+
+on:
+  push:
+    branches: [ashur-live-shadow]
+    paths:
+      - ".github/workflows/cloudflare-token-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-token-verify
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify Cloudflare account token (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check required secrets are present
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CF_TOKEN" || { echo "::error::CLOUDFLARE_API_TOKEN is missing"; exit 1; }
+          test -n "$CF_ACCOUNT_ID" || { echo "::error::CLOUDFLARE_ACCOUNT_ID is missing"; exit 1; }
+          echo "Both required secrets are available to this workflow."
+
+      - name: Verify token against Cloudflare account API
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          response="$(curl --fail-with-body --silent --show-error \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/tokens/verify" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json")"
+          printf '%s' "$response" | python -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          result = data.get("result") or {}
+          if data.get("success") is not True or result.get("status") != "active":
+              print("Cloudflare token verification failed (details withheld).")
+              raise SystemExit(1)
+          print("Cloudflare token verified: active.")
+          '
