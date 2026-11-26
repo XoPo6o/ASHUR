@@ -11,6 +11,8 @@ on:
       - "trading-lab/test_news_intelligence.py"
       - "trading-lab/test_status_reporting.py"
       - "trading-lab/test_news_veto_logging.py"
+      - "trading-lab/test_ashur_daemon.py"
+      - "trading-lab/test_ashur_supervisor.py"
       - ".github/workflows/signal-diagnostics-checks.yml"
   pull_request:
     branches:
@@ -22,6 +24,8 @@ on:
       - "trading-lab/test_news_intelligence.py"
       - "trading-lab/test_status_reporting.py"
       - "trading-lab/test_news_veto_logging.py"
+      - "trading-lab/test_ashur_daemon.py"
+      - "trading-lab/test_ashur_supervisor.py"
       - ".github/workflows/signal-diagnostics-checks.yml"
 
 permissions:
@@ -41,7 +45,7 @@ jobs:
         run: python -m pip install "numpy<3" "pandas<3" pytest
       - name: Compile worker and diagnostics tests
         working-directory: trading-lab
-        run: python -m py_compile live_shadow_worker.py news_intelligence.py test_signal_diagnostics.py test_news_intelligence.py test_status_reporting.py test_news_veto_logging.py
+        run: python -m py_compile live_shadow_worker.py news_intelligence.py ashur_daemon.py ashur_supervisor.py test_signal_diagnostics.py test_news_intelligence.py test_status_reporting.py test_news_veto_logging.py test_ashur_daemon.py test_ashur_supervisor.py
       - name: Run signal diagnostics regression tests
         working-directory: trading-lab
-        run: python -m pytest -q test_signal_diagnostics.py test_news_intelligence.py test_status_reporting.py test_news_veto_logging.py
+        run: python -m pytest -q
