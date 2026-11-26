@@ -504,6 +504,13 @@ def init_db(conn):
       strategy_id TEXT NOT NULL, event TEXT NOT NULL, details TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_marks(
       strategy_id TEXT PRIMARY KEY, price REAL NOT NULL, updated_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS shadow_equity_snapshots(
+      id INTEGER PRIMARY KEY AUTOINCREMENT, snapshot_at TEXT NOT NULL,
+      strategy_id TEXT NOT NULL, cash REAL NOT NULL, equity REAL NOT NULL,
+      realized_pnl REAL NOT NULL, unrealized_pnl REAL NOT NULL, fees_total REAL NOT NULL,
+      UNIQUE(strategy_id, snapshot_at));
+    CREATE INDEX IF NOT EXISTS idx_equity_snapshots_strategy_time
+      ON shadow_equity_snapshots(strategy_id, snapshot_at);
     CREATE TABLE IF NOT EXISTS shadow_trade_guard(
       strategy_id TEXT PRIMARY KEY, last_closed_candle TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS shadow_intrabar_state(
@@ -545,7 +552,7 @@ def reset_paper_baseline_once(conn):
     conn.execute("BEGIN IMMEDIATE")
     try:
         for table in ("shadow_positions", "shadow_trades", "shadow_state", "shadow_events",
-                      "shadow_marks", "shadow_trade_guard", "shadow_intrabar_state",
+                      "shadow_marks", "shadow_equity_snapshots", "shadow_trade_guard", "shadow_intrabar_state",
                       "shadow_intrabar_health"):
             conn.execute("DELETE FROM " + table)
         for strategy in STRATEGIES:
