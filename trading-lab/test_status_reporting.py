@@ -102,3 +102,41 @@ def test_realized_equity_curve_reconstructs_baseline_and_trade_closes():
     )
     assert [point["equity"] for point in curve] == [1000.0, 995.0, 1005.0]
     assert max_drawdown == 0.5
+
+
+
+def test_baseline_reset_clears_persisted_equity_snapshots():
+    with tempfile.TemporaryDirectory() as tmp:
+        old_data_dir, old_db, old_status = worker.DATA_DIR, worker.DB, worker.STATUS_FILE
+        worker.DATA_DIR = Path(tmp)
+        worker.DB = Path(tmp) / "ashur_shadow.db"
+        worker.STATUS_FILE = Path(tmp) / "ashur_shadow_status.json"
+        try:
+            conn = sqlite3.connect(worker.DB)
+            conn.row_factory = sqlite3.Row
+            worker.init_db(conn)
+            conn.execute(
+                "INSERT INTO ashur_meta(key,value) VALUES('paper_baseline_id','old-baseline')"
+            )
+            conn.execute(
+                "INSERT INTO ashur_meta(key,value) VALUES('paper_baseline_at','2026-11-20T00:00:00+00:00')"
+            )
+            conn.execute(
+                """INSERT INTO shadow_equity_snapshots
+                   (snapshot_at,strategy_id,cash,equity,realized_pnl,unrealized_pnl,fees_total)
+                   VALUES(?,?,?,?,?,?,?)""",
+                ("2026-11-20T01:00:00+00:00", "BNB_15M_EMA_TREND", 995, 995, -5, 0, 1),
+            )
+            conn.commit()
+
+            assert worker.reset_paper_baseline_once(conn) is True
+            assert conn.execute(
+                "SELECT COUNT(*) FROM shadow_equity_snapshots"
+            ).fetchone()[0] == 0
+            assert conn.execute(
+                "SELECT value FROM ashur_meta WHERE key='paper_baseline_id'"
+            ).fetchone()[0] == worker.PAPER_BASELINE_ID
+            assert (Path(tmp) / f"ashur_shadow.pre_{worker.PAPER_BASELINE_ID}.sqlite3").exists()
+            conn.close()
+        finally:
+            worker.DATA_DIR, worker.DB, worker.STATUS_FILE = old_data_dir, old_db, old_status
