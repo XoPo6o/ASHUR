@@ -1,0 +1,35 @@
+/* ASHUR / THE WALL — shared responsive and information architecture overrides */
+
+@media(max-width:650px){
+ #charts{grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+ #charts>.panel{min-width:0!important;width:100%!important}
+ #charts .panelbody{min-width:0!important;overflow:hidden}
+ #charts .chart{display:block;width:100%!important;max-width:100%!important;height:auto!important}
+ #charts .pnl-plaque .panelbody{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:6px 10px}
+ #charts .pnl-plaque .plaque-divider{display:none}
+ #charts .pnl-plaque .plaque-value{margin:0!important}
+ #charts .pnl-plaque .plaque-label{margin:0!important}
+ .shell{max-width:100%;overflow-x:clip}
+ .panel{min-width:0}
+ .matrix{max-width:100%;overflow-x:auto}
+}
+
+
+#charts{grid-template-columns:minmax(0,1fr)!important}
+#charts .pnl-plaque{display:none!important}
+.game-menu{display:none!important}
+.advanced-analytics{margin:12px 0 14px;border:0}
+.advanced-analytics>summary{cursor:pointer;list-style:none;text-align:center;padding:12px 14px;border:4px ridge var(--gold);background:linear-gradient(90deg,var(--panel),var(--panel2));color:var(--gold);font:8px var(--pixel);letter-spacing:1px;box-shadow:0 4px var(--shadow)}
+.advanced-analytics>summary::-webkit-details-marker{display:none}
+.advanced-analytics[open]>summary{margin-bottom:12px}
+.advanced-analytics>section{margin-top:12px}
+@media(max-width:650px){#charts{grid-template-columns:minmax(0,1fr)!important}#charts .chart{width:100%!important;max-width:100%!important}}
+
+
+main>.advanced-analytics{order:6!important}
+main>#trades{order:7!important}
+main>.footer{order:99!important}
+
+
+/* Gallery remains available through the ASHUR brand link. */
+.skin-dock{display:none!important}
