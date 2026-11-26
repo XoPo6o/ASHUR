@@ -51,20 +51,20 @@ def prepare_timeframe(timeframe, interval_ms):
         (x.ema50 > x.ema200) & (previous.rsi < 40) &
         (x.rsi >= 40) & (x.close > x.ema50)
     )
-    x["ema_pullback_rsi40_exit"] = (x.rsi < 40) | (x.close < x.ema100)
+    x["ema_pullback_rsi40_exit"] = (x.rsi < 40) | (x.close < x.ema50)
 
     x["triple_momentum_all_entry"] = (
         (x.ret20 > 0) & (x.ret60 > 0) & (x.ret120 > 0) &
         (x.close > x.ema200) & (x.adx > 15)
     )
-    x["triple_momentum_all_exit"] = (x.ret20 < 0) | (x.close < x.ema100)
+    x["triple_momentum_all_exit"] = (x.ret20 < 0) | (x.close < x.ema200)
 
     x["donchian20_adx_volume_entry"] = (
         (x.close > x.donchian20) & (x.close > x.ema200) &
         (x.adx > 20) & (x.volume > 1.2 * x.volume_sma20)
     )
     x["donchian20_adx_volume_exit"] = (
-        (x.close < x.donchian10low) | (x.close < x.ema100)
+        (x.close < x.donchian10low) | (x.close < x.ema200)
     )
 
     lab.STRATEGIES["ema_pullback_rsi40"] = (
@@ -85,7 +85,10 @@ def prepare_timeframe(timeframe, interval_ms):
 
 
 def research_candidate(x, timeframe, candidate_name, signal_name):
-    entry_col, _ = lab.STRATEGIES[signal_name]
+    entry_col, exit_col = lab.STRATEGIES[signal_name]
+    overlap_bars = int((x[entry_col].fillna(False) & x[exit_col].fillna(False)).sum())
+    if overlap_bars:
+        raise AssertionError(f"{candidate_name} has {overlap_bars} candles with simultaneous entry and exit signals")
     n = len(x)
     train_end = int(n * 0.60)
     validation_end = int(n * 0.80)
@@ -114,6 +117,7 @@ def research_candidate(x, timeframe, candidate_name, signal_name):
         "symbol": "BNB/USDT",
         "timeframe": timeframe,
         "candles": n,
+        "entry_exit_overlap_bars": overlap_bars,
         "period_start": x.timestamp.iloc[0].isoformat(),
         "period_end": x.timestamp.iloc[-1].isoformat(),
         "signal_frequency": {
@@ -187,7 +191,7 @@ def main():
         encoding="utf-8",
     )
     fields = [
-        "candidate", "timeframe", "candles",
+        "candidate", "timeframe", "candles", "entry_exit_overlap_bars",
         "train_return_pct", "validation_return_pct", "test_return_pct",
         "test_trades", "test_win_rate_pct", "test_profit_factor",
         "test_max_drawdown_pct", "test_fees_usdt",
@@ -202,7 +206,7 @@ def main():
             test = result["splits"]["test"]
             writer.writerow({
                 "candidate": result["candidate"], "timeframe": result["timeframe"],
-                "candles": result["candles"],
+                "candles": result["candles"], "entry_exit_overlap_bars": result["entry_exit_overlap_bars"],
                 "train_return_pct": result["splits"]["train"]["return_pct"],
                 "validation_return_pct": result["splits"]["validation"]["return_pct"],
                 "test_return_pct": test["return_pct"], "test_trades": test["trades"],
