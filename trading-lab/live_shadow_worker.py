@@ -742,6 +742,99 @@ def probe_intrabar_recovery(conn, strategy):
     return False
 
 
+def equity_history_metrics(rows, starting_cash, now_dt=None):
+    """Summarize persisted marked-equity snapshots without inventing missing history."""
+    now_dt = now_dt or datetime.now(timezone.utc)
+    if now_dt.tzinfo is None:
+        now_dt = now_dt.replace(tzinfo=timezone.utc)
+
+    def parse_time(value):
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+    ordered = sorted(rows, key=lambda row: row["snapshot_at"])
+    cutoff_24h = now_dt - timedelta(hours=24)
+    cutoff_30d = now_dt - timedelta(days=30)
+    rows_30d = [
+        row for row in ordered
+        if parse_time(row["snapshot_at"]) >= cutoff_30d
+    ]
+    rows_24h = [
+        row for row in rows_30d
+        if parse_time(row["snapshot_at"]) >= cutoff_24h
+    ]
+    prior_24h = [
+        row for row in rows_30d
+        if parse_time(row["snapshot_at"]) <= cutoff_24h
+    ]
+
+    peak = float(starting_cash)
+    max_drawdown = 0.0
+    for row in rows_30d:
+        equity = float(row["equity"])
+        peak = max(peak, equity)
+        if peak > 0:
+            max_drawdown = max(max_drawdown, (peak - equity) / peak * 100.0)
+
+    latest = rows_30d[-1] if rows_30d else None
+    current_drawdown = (
+        (peak - float(latest["equity"])) / peak * 100.0
+        if latest is not None and peak > 0 else 0.0
+    )
+    pnl_24h = (
+        float(latest["equity"]) - float(prior_24h[-1]["equity"])
+        if latest is not None and prior_24h else None
+    )
+
+    recent_times = [parse_time(row["snapshot_at"]) for row in rows_24h]
+    cycle_gaps = [
+        (recent_times[i] - recent_times[i - 1]).total_seconds()
+        for i in range(1, len(recent_times))
+    ]
+    hourly = {}
+    for row in rows_30d:
+        stamp = parse_time(row["snapshot_at"])
+        bucket = stamp.replace(minute=0, second=0, microsecond=0).isoformat()
+        hourly[bucket] = row
+
+    def point(row):
+        return {
+            "timestamp": row["snapshot_at"],
+            "equity": round(float(row["equity"]), 4),
+        }
+
+    latest_age = (
+        max(0.0, (now_dt - parse_time(latest["snapshot_at"])).total_seconds())
+        if latest is not None else None
+    )
+    return {
+        "equity_curve_24h": [point(row) for row in rows_24h[-288:]],
+        "equity_curve_30d_hourly": [point(hourly[key]) for key in sorted(hourly)],
+        "pnl_24h": round(pnl_24h, 4) if pnl_24h is not None else None,
+        "max_drawdown_pct_30d": round(max_drawdown, 4),
+        "current_drawdown_pct_30d": round(current_drawdown, 4),
+        "cycle_gap_max_seconds_24h": round(max(cycle_gaps), 1) if cycle_gaps else None,
+        "latest_snapshot_age_seconds": round(latest_age, 1) if latest_age is not None else None,
+        "snapshot_history_from": rows_30d[0]["snapshot_at"] if rows_30d else None,
+        "snapshot_count_24h": len(rows_24h),
+        "snapshot_count_30d": len(rows_30d),
+    }
+
+
+def realized_equity_history(trades, starting_cash, baseline_at):
+    """Rebuild realized equity from the baseline and closed Paper trades."""
+    equity = float(starting_cash)
+    points = [{"timestamp": baseline_at, "equity": round(equity, 4)}] if baseline_at else []
+    peak = equity
+    max_drawdown = 0.0
+    for trade in sorted(trades, key=lambda row: row["closed_at"]):
+        equity += float(trade["pnl"])
+        points.append({"timestamp": trade["closed_at"], "equity": round(equity, 4)})
+        peak = max(peak, equity)
+        if peak > 0:
+            max_drawdown = max(max_drawdown, (peak - equity) / peak * 100.0)
+    return points, round(max_drawdown, 4)
+
+
 def export_status(conn, worker_errors=0, successful_strategies=None, signal_diagnostics_rows=None):
     # Keep status export safe for legacy/test databases created before News Intelligence.
     news.init_db(conn)
