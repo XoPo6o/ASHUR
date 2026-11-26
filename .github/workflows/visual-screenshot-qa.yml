@@ -59,23 +59,46 @@ jobs:
                     await page.waitForTimeout(2500);
                     body = await page.locator('body').innerText().catch(()=> '');
                     html = await page.content().catch(()=> '');
-                    const hasData = !body.includes('DATA UNAVAILABLE') && (body.includes('USDT') || body.includes('PAPER ONLY'));
+                    const readiness = await page.evaluate(() => {
+                      const txt = id => document.querySelector('#'+id)?.textContent?.trim() || '';
+                      return {
+                        snapshot: !!txt('snapshot-time') && !/WAITING|UNAVAILABLE/i.test(txt('snapshot-time')),
+                        worker: !!txt('worker-time') && !/WAITING|UNAVAILABLE/i.test(txt('worker-time')),
+                        equity: !!txt('total-equity') && !/^—$/.test(txt('total-equity')),
+                        strategies: document.querySelectorAll('#strategy-grid > *').length,
+                        matrixRows: document.querySelectorAll('#comparison-rows tr').length
+                      };
+                    });
                     const fixedPath = html.includes('../wall-data.json') && html.includes('../wall-history.json');
-                    if (response && response.status()===200 && hasData && fixedPath) break;
+                    const ready = readiness.snapshot && readiness.worker && readiness.equity && readiness.strategies >= 6 && readiness.matrixRows >= 6;
+                    const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2);
+                    if (response && response.status()===200 && ready && noOverflow && fixedPath) break;
                   } catch (e) { errors.push(String(e)); }
                   await page.waitForTimeout(10000);
                 }
                 const title = await page.title().catch(()=> '');
                 body = await page.locator('body').innerText().catch(()=> '');
+                const diagnostics = await page.evaluate(() => {
+                  const txt = id => document.querySelector('#'+id)?.textContent?.trim() || '';
+                  return {
+                    heading: document.querySelector('h1')?.textContent?.trim() || '',
+                    snapshot: txt('snapshot-time'), workerUpdated: txt('worker-time'),
+                    equity: txt('total-equity'),
+                    strategyCount: document.querySelectorAll('#strategy-grid > *').length,
+                    matrixRows: document.querySelectorAll('#comparison-rows tr').length,
+                    horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+                    chartPresent: !!document.querySelector('#equity-chart path')
+                  };
+                });
                 const file = `screenshots/${mode}/${name}.png`;
                 await page.screenshot({path:file,fullPage:true,animations:'disabled'});
-                results.push({name,mode,status:response?.status() ?? null,title,bodyLength:body.length,bodyStart:body.slice(0,180),errors,screenshot:file});
+                results.push({name,mode,status:response?.status() ?? null,title,bodyLength:body.length,bodyStart:body.slice(0,180),errors,...diagnostics,screenshot:file});
                 await context.close();
               }
             }
             fs.writeFileSync('screenshots/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE'))) process.exitCode=1;
+            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='KI.LAM / THE WALL' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
           })();
           EOF
           node capture.cjs
