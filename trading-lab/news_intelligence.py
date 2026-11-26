@@ -170,8 +170,10 @@ def record_veto(conn, strategy_id, symbol, headline, price):
         VALUES(?,?,?,?,?,?,?)""",
         (strategy_id, symbol, headline["id"], headline["title"], headline["source"],
          utc_now().isoformat(), float(price)))
-    conn.commit()
-    return cursor.rowcount == 1
+    inserted = cursor.rowcount == 1
+    if inserted:
+        conn.commit()
+    return inserted
 
 def update_veto_outcomes(conn, symbol, price, at=None):
     price = float(price)
@@ -212,16 +214,24 @@ def update_veto_outcomes(conn, symbol, price, at=None):
     conn.commit()
     return updated
 
-def veto_outcome_stats(conn):
-    rows = conn.execute("""SELECT COUNT(*), SUM(return_1h IS NOT NULL), SUM(return_4h IS NOT NULL),
+def veto_outcome_stats(conn, since=None):
+    query = """SELECT COUNT(*), SUM(return_1h IS NOT NULL), SUM(return_4h IS NOT NULL),
         SUM(return_24h IS NOT NULL), AVG(return_1h), AVG(return_4h), AVG(return_24h),
         SUM(return_1h < 0), SUM(return_1h > 0), SUM(return_4h < 0), SUM(return_4h > 0),
-        SUM(return_24h < 0), SUM(return_24h > 0) FROM news_veto_outcomes""").fetchone()
-    return {"tracked_vetoes": int(rows[0] or 0), "measured_1h": int(rows[1] or 0),
-            "measured_4h": int(rows[2] or 0), "measured_24h": int(rows[3] or 0),
-            "avg_net_return_1h_pct": round(float(rows[4] or 0) * 100, 4),
-            "avg_net_return_4h_pct": round(float(rows[5] or 0) * 100, 4),
-            "avg_net_return_24h_pct": round(float(rows[6] or 0) * 100, 4),
+        SUM(return_24h < 0), SUM(return_24h > 0) FROM news_veto_outcomes"""
+    params = ()
+    if since:
+        query += " WHERE vetoed_at>=?"
+        params = (since,)
+    rows = conn.execute(query, params).fetchone()
+    measured_1h, measured_4h, measured_24h = (
+        int(rows[1] or 0), int(rows[2] or 0), int(rows[3] or 0)
+    )
+    return {"tracked_vetoes": int(rows[0] or 0), "measured_1h": measured_1h,
+            "measured_4h": measured_4h, "measured_24h": measured_24h,
+            "avg_net_return_1h_pct": round(float(rows[4]) * 100, 4) if measured_1h else None,
+            "avg_net_return_4h_pct": round(float(rows[5]) * 100, 4) if measured_4h else None,
+            "avg_net_return_24h_pct": round(float(rows[6]) * 100, 4) if measured_24h else None,
             "avoided_loss_1h": int(rows[7] or 0), "missed_gain_1h": int(rows[8] or 0),
             "avoided_loss_4h": int(rows[9] or 0), "missed_gain_4h": int(rows[10] or 0),
             "avoided_loss_24h": int(rows[11] or 0), "missed_gain_24h": int(rows[12] or 0)}
