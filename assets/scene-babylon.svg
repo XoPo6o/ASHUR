@@ -1,1 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" shape-rendering="crispEdges"><defs><linearGradient id="s" x2="0" y2="1"><stop stop-color="#07152e"/><stop offset="1" stop-color="#315d91"/></linearGradient></defs><rect width="1200" height="420" fill="url(#s)"/><circle cx="930" cy="88" r="48" fill="#f4d38a"/><g fill="#c8dcf2"><path d="M110 50h8v8h-8zM260 90h6v6h-6zM690 44h7v7h-7zM1080 160h7v7h-7zM560 110h5v5h-5z"/></g><path fill="#102b4f" d="M0 250h80v-55h60v-35h70v35h50v-65h55v-35h45v35h55v65h60v-25h65v25h55v-80h70v-45h55v45h60v80h65v-40h70v40h60v-90h55v-35h45v35h60v80h65v-35h75v170H0z"/><path fill="#d59b4c" d="M80 420V210h50v-55h100v55h50v210z"/><path fill="#203f69" d="M105 420V220h150v200z"/><path fill="#e7b75d" d="M145 420V265h75v155z"/><path fill="#07162d" d="M155 420V290h55v130z"/><path fill="#d9a451" d="M0 420V290h75v-30h55v160zM270 420V280h75v-35h65v175z"/><path fill="#8e5e31" d="M340 420V185h90v-45h90v45h90v235z"/><path fill="#e5b65d" d="M380 420V205h190v215z"/><path fill="#142c4e" d="M410 420V250h130v170z"/><path fill="#d8a24e" d="M700 420V230h80v-55h90v55h80v190z"/><path fill="#19365d" d="M740 420V255h170v165z"/><path fill="#d8a24e" d="M930 420V250h80v-45h100v45h90v170z"/><path fill="#142d50" d="M970 420V280h150v140z"/><path fill="#f3d18a" d="M485 160h10v10h-10zM510 160h10v10h-10zM535 160h10v10h-10zM485 185h10v10h-10zM510 185h10v10h-10zM535 185h10v10h-10z"/><path fill="#b17a3e" d="M0 385h1200v35H0z"/><path fill="#254f72" d="M0 400h1200v20H0z"/><path fill="#f1bd65" d="M0 400h1200v4H0z"/><g fill="#d8a24e"><path d="M610 250h14v14h-14zM635 250h14v14h-14zM660 250h14v14h-14zM610 280h14v14h-14zM635 280h14v14h-14zM660 280h14v14h-14z"/></g><path fill="#e5bd76" d="M40 330h20v10H40zM65 310h10v35H65zM1120 320h18v10h-18zM1145 300h10v40h-10z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" shape-rendering="crispEdges"><defs><linearGradient id="s" x2="0" y2="1"><stop stop-color="#28345f"/><stop offset="1" stop-color="#f1a35a"/></linearGradient></defs><rect width="1200" height="420" fill="url(#s)"/><circle cx="930" cy="88" r="48" fill="#f4d38a"/><g fill="#c8dcf2"><path d="M110 50h8v8h-8zM260 90h6v6h-6zM690 44h7v7h-7zM1080 160h7v7h-7zM560 110h5v5h-5z"/></g><path fill="#102b4f" d="M0 250h80v-55h60v-35h70v35h50v-65h55v-35h45v35h55v65h60v-25h65v25h55v-80h70v-45h55v45h60v80h65v-40h70v40h60v-90h55v-35h45v35h60v80h65v-35h75v170H0z"/><path fill="#d59b4c" d="M80 420V210h50v-55h100v55h50v210z"/><path fill="#203f69" d="M105 420V220h150v200z"/><path fill="#e7b75d" d="M145 420V265h75v155z"/><path fill="#07162d" d="M155 420V290h55v130z"/><path fill="#d9a451" d="M0 420V290h75v-30h55v160zM270 420V280h75v-35h65v175z"/><path fill="#8e5e31" d="M340 420V185h90v-45h90v45h90v235z"/><path fill="#e5b65d" d="M380 420V205h190v215z"/><path fill="#142c4e" d="M410 420V250h130v170z"/><path fill="#d8a24e" d="M700 420V230h80v-55h90v55h80v190z"/><path fill="#19365d" d="M740 420V255h170v165z"/><path fill="#d8a24e" d="M930 420V250h80v-45h100v45h90v170z"/><path fill="#142d50" d="M970 420V280h150v140z"/><path fill="#f3d18a" d="M485 160h10v10h-10zM510 160h10v10h-10zM535 160h10v10h-10zM485 185h10v10h-10zM510 185h10v10h-10zM535 185h10v10h-10z"/><path fill="#b17a3e" d="M0 385h1200v35H0z"/><path fill="#254f72" d="M0 400h1200v20H0z"/><path fill="#f1bd65" d="M0 400h1200v4H0z"/><g fill="#d8a24e"><path d="M610 250h14v14h-14zM635 250h14v14h-14zM660 250h14v14h-14zM610 280h14v14h-14zM635 280h14v14h-14zM660 280h14v14h-14z"/></g><path fill="#e5bd76" d="M40 330h20v10H40zM65 310h10v35H65zM1120 320h18v10h-18zM1145 300h10v40h-10z"/><g shape-rendering="crispEdges">
+<!-- foreground Lamassu: monumental winged bull guarding Babylon -->
+<path fill="#6f4827" d="M54 420V270h32v-30h26v-22h38v-20h54v18h35v28h26v36h28v140z"/>
+<path fill="#d7a24f" stroke="#38251c" stroke-width="8" d="M88 420V292h38v-30h42v-28h102v22h42v38h34v126z"/>
+<path fill="#f0cc79" d="M116 294h30v-24h34v-18h70v18h36v30h24v120H116z"/>
+<path fill="#9a6836" d="M132 420V320h32v100zM272 420V320h30v100zM180 420V346h28v74zM226 420V346h28v74z"/>
+<path fill="#f6d88f" d="M124 300h18v18h-18zM150 300h18v18h-18zM176 300h18v18h-18zM202 300h18v18h-18zM228 300h18v18h-18zM254 300h18v18h-18z"/>
+<!-- wing and feather rows -->
+<path fill="#d9b56d" stroke="#4b3323" stroke-width="7" d="M148 278L122 224l18-44 38-35 68-10 44 22 36 48-18 62-42 25z"/>
+<path fill="#f3d58d" d="M151 224l-7-39 33-30 16 34-16 34zM188 211l7-55 32-12 11 48-23 33zM230 202l23-46 32 9 5 46-34 21zM270 218l29-31 22 24-13 40-32 8z"/>
+<path fill="#8d6335" d="M164 222l17-24 15 10-17 27zM207 213l16-31 15 7-13 35zM251 211l20-24 13 11-19 27zM286 229l17-18 10 12-14 23z"/>
+<!-- bull body and four legs -->
+<path fill="#c58d43" stroke="#4b3323" stroke-width="7" d="M172 260h134l35 26-8 70-30 26H171l-28-28v-65z"/>
+<path fill="#e7bd6b" d="M176 274h119l25 20-9 48-23 19H177l-18-22v-42z"/>
+<path fill="#9b6836" d="M174 350h28v70h-28zM218 350h26v70h-26zM273 348h27v72h-27zM313 344h25v76h-25z"/>
+<path fill="#f4d58a" d="M174 405h30v15h-30zM218 405h28v15h-28zM272 405h30v15h-30zM312 405h28v15h-28z"/>
+<!-- human-like crowned head, beard and horned cap -->
+<path fill="#d8a45a" stroke="#4b3323" stroke-width="6" d="M132 178h86v72h-86z"/>
+<path fill="#f3d28b" d="M144 187h60v42h-60z"/>
+<path fill="#38251c" d="M147 198h12v12h-12zM185 198h12v12h-12z"/>
+<path fill="#fff0c1" d="M158 220h32v8h-32z"/>
+<path fill="#7b4d2c" d="M139 232h72v36h-72zM148 260h56v16h-56z"/>
+<path fill="#e0b46c" d="M132 164h14v-18h12v-12h30v12h12v18z"/>
+<path fill="#f5d995" d="M148 148h12v-12h20v12h12v12h-44z"/>
+<!-- stepped palace relief and palms -->
+<path fill="#f2bd67" d="M0 205h18v-38h18v-25h18v25h18v38h18v12H0z"/>
+<path fill="#6e4a2c" d="M0 220h94v12H0z"/>
+<path fill="#234b3b" d="M1050 190h12v-48h12v-30h12v30h12v48h12v12h-60z"/>
+<path fill="#286447" d="M1080 145l-56-38 10-12 62 28 43-52 12 9-39 64 66-13 4 15-82 18z"/>
+<path fill="#286447" d="M1084 145l-20-74 14-4 23 70 42-63 13 8-42 71z"/>
+<path fill="#80502d" d="M1080 190h14v230h-14z"/>
+<path fill="#e6b45e" d="M1030 420h170v8h-170zM0 410h1200v10H0z"/>
+</g></svg>
