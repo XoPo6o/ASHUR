@@ -1,0 +1,39 @@
+name: ASHUR signal diagnostics checks
+
+on:
+  push:
+    branches:
+      - ashur-signal-observability
+    paths:
+      - "trading-lab/live_shadow_worker.py"
+      - "trading-lab/test_signal_diagnostics.py"
+      - ".github/workflows/signal-diagnostics-checks.yml"
+  pull_request:
+    branches:
+      - ashur-live-shadow
+    paths:
+      - "trading-lab/live_shadow_worker.py"
+      - "trading-lab/test_signal_diagnostics.py"
+      - ".github/workflows/signal-diagnostics-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  signal-diagnostics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated test dependencies
+        run: python -m pip install "numpy<3" "pandas<3" pytest
+      - name: Compile worker and diagnostics tests
+        working-directory: trading-lab
+        run: python -m py_compile live_shadow_worker.py news_intelligence.py test_signal_diagnostics.py
+      - name: Run signal diagnostics regression tests
+        working-directory: trading-lab
+        run: python -m pytest -q test_signal_diagnostics.py
