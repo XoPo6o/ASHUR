@@ -159,6 +159,24 @@ jobs:
                  FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?
                  GROUP BY strategy_id ORDER BY total DESC""",(cutoff,)
           ).fetchall()
+          veto_outcomes=conn.execute(
+              """SELECT strategy_id,symbol,headline,source,vetoed_at,entry_reference,
+                        return_1h,return_4h,return_24h
+                 FROM news_veto_outcomes ORDER BY vetoed_at DESC LIMIT 20"""
+          ).fetchall()
+          veto_outcomes_after_baseline=conn.execute(
+              "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
+              (meta.get("paper_baseline_at",""),)
+          ).fetchone()[0]
+          headline_records=conn.execute(
+              """SELECT symbol,title,published_at,fetched_at,risk_score,high_risk
+                 FROM news_items WHERE title LIKE '%Tether Have the Power%'
+                 ORDER BY fetched_at DESC LIMIT 5"""
+          ).fetchall()
+          news_errors=conn.execute(
+              """SELECT started_at,errors_json FROM news_collection_runs
+                 WHERE error_count>0 ORDER BY started_at DESC LIMIT 10"""
+          ).fetchall()
           veto_samples=conn.execute(
               """SELECT created_at,strategy_id,substr(details,1,240) AS details
                  FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?
@@ -186,6 +204,10 @@ jobs:
           print("DB_EVENTS_24H="+str([dict(row) for row in events]))
           print("NEWS_VETO_GROUPS_24H="+str([dict(row) for row in veto_groups]))
           print("NEWS_VETO_SAMPLES_24H="+str([dict(row) for row in veto_samples]))
+          print("NEWS_VETO_OUTCOMES_TOTAL="+str(len(veto_outcomes))+" AFTER_BASELINE="+str(veto_outcomes_after_baseline))
+          print("NEWS_VETO_OUTCOME_ROWS="+str([dict(row) for row in veto_outcomes]))
+          print("VETO_HEADLINE_RECORDS="+str([dict(row) for row in headline_records]))
+          print("NEWS_FEED_ERROR_SAMPLES="+str([dict(row) for row in news_errors]))
 
           failures=[]
           if integrity!="ok": failures.append("SQLITE_INTEGRITY_FAILED")
