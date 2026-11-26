@@ -43,3 +43,70 @@ main>section.grid.threecol{grid-template-columns:repeat(2,minmax(0,1fr))!importa
 .daystamp{display:none!important}
 main>.hero:before,main>.hero:after{display:none!important}
 #trades{grid-template-columns:minmax(0,1fr)!important}
+
+
+/* Reference-match pass 01: reproduce the compact five-column board composition. */
+@media(max-width:650px){
+  .topbar{position:relative}
+  .topinner{min-height:38px!important;gap:4px!important;padding:3px 0!important}
+  .brand{gap:5px!important}
+  .sig{width:22px!important;height:22px!important}
+  .brandname{font-size:7px!important}
+  .brandname small{display:none!important}
+  .nav,.skin-dock,.live{display:none!important}
+  main{padding:5px 0 12px!important}
+  .hero{min-height:0!important;height:auto!important;padding:7px 8px!important;margin:0 0 7px!important;border-width:1px!important;box-shadow:none!important}
+  .hero:before,.hero:after{display:none!important;content:none!important}
+  .hero>div:first-child{padding:0!important}
+  .eyebrow{font-size:5px!important;line-height:1.5!important}
+  h1{font-size:8px!important;line-height:1.6!important;margin:3px 0!important}
+  .subtitle{font-size:5px!important;line-height:1.5!important}
+  .data-meta,.daystamp{display:none!important}
+  .metrics{gap:4px!important;margin-bottom:5px!important}
+  .metric{padding:5px 6px!important;min-height:0!important}
+  .metric .label{font-size:5px!important}
+  .metric .value{font-size:10px!important;line-height:1.4!important}
+  .metric .foot{font-size:4px!important;margin-top:2px!important}
+  #strategies{margin-bottom:5px!important}
+  #strategies .panelhead,#compare .panelhead,#trades .panelhead{padding:4px 6px!important;min-height:0!important}
+  #strategies .paneltitle,#compare .paneltitle,#trades .paneltitle{font-size:5px!important}
+  #strategies .tag,#compare .tag,#trades .tag{font-size:4px!important}
+  #strategies .panelbody{padding:4px!important}
+  .strategy-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3px!important}
+  .strategy{min-height:0!important;padding:4px 3px!important}
+  .strategy:before{display:none!important}
+  .strategy-top{min-height:0!important}
+  .strategy-name{font-size:4px!important;line-height:1.35!important;min-height:0!important}
+  .strategy-return{font-size:7px!important;margin:2px 0!important}
+  .strategy-meta{font-size:4px!important;min-height:0!important}
+  .strategy-stats{gap:2px!important}
+  .strategy-stat{padding:2px 1px!important}
+  .strategy-stat span{font-size:3px!important}
+  .strategy-stat b{font-size:4px!important}
+  #charts{grid-template-columns:minmax(0,1fr)!important;gap:4px!important;margin-bottom:5px!important}
+  #charts>.pnl-plaque{display:none!important}
+  #charts .panelhead{padding:4px 6px!important}
+  #charts .paneltitle{font-size:5px!important}
+  #charts .panelbody{padding:4px!important}
+  #charts .chart{height:56px!important}
+  .game-menu{display:none!important}
+  main>section.grid.threecol{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;margin-bottom:5px!important}
+  main>section.grid.threecol .panelhead{padding:4px 5px!important}
+  main>section.grid.threecol .paneltitle{font-size:4px!important}
+  main>section.grid.threecol .panelbody{padding:4px!important}
+  main>section.grid.threecol .donut{width:36px!important;height:36px!important}
+  main>section.grid.threecol .chart{height:52px!important}
+  #compare{margin-bottom:5px!important}
+  #compare .matrix-wrap{overflow:hidden!important}
+  #compare .matrix{width:100%!important;min-width:0!important;font-size:4px!important}
+  #compare .matrix th,#compare .matrix td{padding:3px 2px!important;white-space:nowrap!important}
+  #compare .matrix th:nth-child(n+5),#compare .matrix td:nth-child(n+5){display:none!important}
+  #compare .sample-note{display:none!important}
+  .advanced-analytics{display:none!important}
+  #trades{grid-template-columns:minmax(0,1fr)!important;margin-bottom:5px!important}
+  #trades .panelbody{padding:4px!important}
+  #trades .trades{font-size:4px!important}
+  #trades .trades th,#trades .trades td{padding:3px 2px!important}
+  #trades .trades th:nth-child(n+3),#trades .trades td:nth-child(n+3){display:none!important}
+  main>.footer{padding:5px 7px!important;font-size:4px!important}
+}
