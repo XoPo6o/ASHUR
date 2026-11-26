@@ -408,6 +408,80 @@ def signals(row, strategy_id):
         exit_ = close < row.dl10
     return bool(entry), bool(exit_)
 
+def signal_diagnostics(row, strategy_id):
+    """Explain the exact closed-candle conditions behind each strategy signal."""
+    close = float(row.close)
+    checks = {}
+    exits = {}
+    if strategy_id == "BNB_4H_KELTNER_ADX":
+        checks = {
+            "close_above_keltner_upper": close > row.keltner_upper,
+            "ema50_above_ema200": row.ema50 > row.ema200,
+            "adx_above_15": row.adx > 15,
+        }
+        exits = {"close_below_ema20": close < row.ema20,
+                 "ema50_below_ema200": row.ema50 < row.ema200}
+    elif strategy_id == "BNB_4H_ADX_TREND":
+        checks = {
+            "ema50_above_ema200": row.ema50 > row.ema200,
+            "adx_above_20": row.adx > 20,
+            "close_above_ema50": close > row.ema50,
+        }
+        exits = {"ema50_below_ema200": row.ema50 < row.ema200,
+                 "close_below_ema50": close < row.ema50}
+    elif strategy_id == "BNB_1H_DONCHIAN_ADX25":
+        votes = sum([close > row.dh20, close > row.dh55, close > row.dh100])
+        checks = {
+            "donchian_votes_at_least_2": votes >= 2,
+            "close_above_ema200": close > row.ema200,
+            "adx_above_25": row.adx > 25,
+        }
+        exits = {"close_below_donchian_low20": close < row.dl20,
+                 "close_below_ema100": close < row.ema100}
+    elif strategy_id == "SOL_4H_DONCHIAN_VOL":
+        checks = {
+            "close_above_donchian_high55": close > row.dh55,
+            "close_above_ema200": close > row.ema200,
+            "atr_pct_below_80th_percentile": row.atr_pct < row.atr_p80,
+        }
+        exits = {"close_below_donchian_low20": close < row.dl20,
+                 "close_below_ema100": close < row.ema100}
+    elif strategy_id == "BNB_15M_EMA_TREND":
+        checks = {
+            "close_above_ema20": close > row.ema20,
+            "ema20_above_ema50": row.ema20 > row.ema50,
+            "adx_above_12": row.adx > 12,
+        }
+        exits = {"close_below_ema50": close < row.ema50,
+                 "ema20_below_ema50": row.ema20 < row.ema50}
+    else:  # BNB_1D_DONCHIAN55
+        checks = {
+            "close_above_donchian_high55": close > row.dh55,
+            "close_above_ema200": close > row.ema200,
+        }
+        exits = {"close_below_donchian_low10": close < row.dl10}
+
+    def finite_value(name):
+        value = float(row[name])
+        return round(value, 10) if math.isfinite(value) else None
+
+    return {
+        "strategy_id": strategy_id,
+        "entry_signal": all(bool(value) for value in checks.values()),
+        "entry_checks": {name: bool(value) for name, value in checks.items()},
+        "entry_blockers": [name for name, passed in checks.items() if not bool(passed)],
+        "exit_signal": any(bool(value) for value in exits.values()),
+        "exit_triggers": [name for name, active in exits.items() if bool(active)],
+        "indicators": {
+            name: finite_value(name)
+            for name in ("close", "ema20", "ema50", "ema100", "ema200",
+                         "adx", "atr", "atr_pct", "atr_p80",
+                         "keltner_upper", "dh20", "dh55", "dh100",
+                         "dl10", "dl20")
+            if name in row.index
+        },
+    }
+
 def init_db(conn):
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS shadow_accounts(
@@ -647,7 +721,7 @@ def probe_intrabar_recovery(conn, strategy):
     return False
 
 
-def export_status(conn, worker_errors=0, successful_strategies=None):
+def export_status(conn, worker_errors=0, successful_strategies=None, signal_diagnostics_rows=None):
     # Keep status export safe for legacy/test databases created before News Intelligence.
     news.init_db(conn)
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
@@ -683,6 +757,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
                                     "veto_outcomes": news.veto_outcome_stats(conn)},
+              "signal_diagnostics": signal_diagnostics_rows or [],
               "accounts": []}
     for a in accounts:
         pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
@@ -768,7 +843,9 @@ def run():
     cache = {}
     strategy_errors = 0
     successful_strategies = 0
+    signal_diagnostics_rows = []
     for s in STRATEGIES:
+        diagnostic = None
         try:
             key = (s["symbol"],s["interval"])
             if key not in cache:
@@ -782,6 +859,11 @@ def run():
             # Re-checking the same closed-candle signal each cycle allows execution after candle
             # close without letting a still-forming candle rewrite the strategy rules.
             entry_signal, exit_signal = signals(row, s["id"])
+            diagnostic = signal_diagnostics(row, s["id"])
+            diagnostic["candle_open_at"] = datetime.fromtimestamp(
+                int(row.timestamp) / 1000, timezone.utc
+            ).isoformat()
+            diagnostic["market_price"] = round(float(price), 10)
             news_veto = None
             conn.execute("INSERT OR REPLACE INTO shadow_marks VALUES(?,?,?)",(s["id"],price,now()))
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
@@ -861,30 +943,66 @@ def run():
             cooldown_active = bool(guard and guard["last_closed_candle"] == candle_id)
             pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
             entry_protection_ok = probe_intrabar_recovery(conn, s) if not pos else True
+            entry_gate_blockers = list(diagnostic["entry_blockers"])
+            if pos:
+                entry_gate_blockers.append("POSITION_ALREADY_OPEN")
+            if closed_this_cycle:
+                entry_gate_blockers.append("POSITION_CLOSED_THIS_CYCLE")
+            if cooldown_active:
+                entry_gate_blockers.append("SAME_CANDLE_REENTRY_GUARD")
+            if not entry_protection_ok:
+                entry_gate_blockers.append("INTRABAR_PROTECTION_BLOCK")
+            entry_attempted = False
             if not pos and entry_signal and not closed_this_cycle and not cooldown_active and entry_protection_ok:
                 news_veto = news.high_risk_news(conn, s["symbol"])
                 if news_veto:
                     news.record_veto(conn, s["id"], s["symbol"], news_veto, price)
                     entry_signal = False
+                    entry_gate_blockers.append("NEWS_VETO")
                     event(conn, s["id"], "NEWS_VETO",
                           f"new entry blocked by high-risk headline: {news_veto['title'][:240]}")
                 if entry_signal:
+                    entry_attempted = True
                     open_position(conn,s,price,float(row.atr))
                     pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?",(s["id"],)).fetchone()
+                    if not pos:
+                        entry_gate_blockers.append("POSITION_SIZE_OR_DAILY_RISK_GUARD")
+            diagnostic.update({
+                "entry_signal_after_news_veto": bool(entry_signal),
+                "entry_gate_blockers": entry_gate_blockers,
+                "entry_attempted": entry_attempted,
+                "position_open_after_cycle": bool(pos),
+                "protection_probe_ok": bool(entry_protection_ok),
+                "same_candle_reentry_guard": bool(cooldown_active),
+                "closed_position_this_cycle": bool(closed_this_cycle),
+            })
             previous = conn.execute("SELECT last_candle FROM shadow_state WHERE strategy_id=?",(s["id"],)).fetchone()
             if not previous or previous["last_candle"] != candle_id:
                 conn.execute("INSERT OR REPLACE INTO shadow_state VALUES(?,?)",(s["id"],candle_id))
                 event(conn,s["id"],"CHECK",f"candle={candle_id}; candle_close={float(row.close):.6f}; live={price:.6f}; entry={entry_signal}; exit={exit_signal}; cooldown={cooldown_active}")
             conn.commit()
+            diagnostic["status"] = "OK"
+            signal_diagnostics_rows.append(diagnostic)
             successful_strategies += 1
-            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} news_veto={bool(news_veto)} cooldown={cooldown_active} position={bool(pos)}')
+            print(f'{s["id"]}: OK price={price:.6f} entry={entry_signal} exit={exit_signal} blockers={entry_gate_blockers} news_veto={bool(news_veto)} cooldown={cooldown_active} position={bool(pos)}')
         except Exception as exc:
             strategy_errors += 1
+            if diagnostic is None:
+                signal_diagnostics_rows.append({
+                    "strategy_id": s["id"], "status": "ERROR",
+                    "error": f"{type(exc).__name__}: {exc}"[:500],
+                })
+            else:
+                diagnostic["status"] = "ERROR"
+                diagnostic["error"] = f"{type(exc).__name__}: {exc}"[:500]
+                signal_diagnostics_rows.append(diagnostic)
             conn.rollback()
             event(conn,s["id"],"ERROR",f"{type(exc).__name__}: {exc}")
             conn.commit()
             print(f'{s["id"]}: ERROR {type(exc).__name__}: {exc}')
-    export_status(conn, worker_errors=strategy_errors, successful_strategies=successful_strategies)
+    export_status(conn, worker_errors=strategy_errors,
+                  successful_strategies=successful_strategies,
+                  signal_diagnostics_rows=signal_diagnostics_rows)
     conn.close()
     print(f"WORKER_SUMMARY strategies={len(STRATEGIES)} errors={strategy_errors}", flush=True)
     if strategy_errors:
