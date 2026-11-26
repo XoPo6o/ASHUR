@@ -45,6 +45,26 @@ A tunnel token is a secret. Do not paste it into chat, source control, logs, or 
 
 Use this only if the provider supplies TLS termination and a stable HTTPS hostname. Proxy only the dashboard listener. Preserve same-origin requests and do not expose unrelated panel or filesystem routes. Enable HTTPS redirect and HSTS at the proxy after certificate validation.
 
+## Temporary private preview without a custom domain
+
+Cloudflare Quick Tunnels can provide an HTTPS `trycloudflare.com` URL without a Cloudflare account or owned domain. The current `cloudflared` release also supports email allow-listing with `--allowed-mail`, which requires a one-time email PIN before a visitor reaches the local service.
+
+Example for a temporary preview only:
+
+```bash
+cloudflared tunnel --url "http://127.0.0.1:$SERVER_PORT" --allowed-mail "OWNER_EMAIL"
+```
+
+Operational limits:
+- The hostname is temporary and changes when the Quick Tunnel is restarted.
+- Anyone not on the allow-list must be denied before traffic reaches the dashboard.
+- The tunnel process must remain running; stopping it disables the URL.
+- This is suitable for a short private review, not a stable production hostname or a substitute for persistent storage and off-host backups.
+- Never publish the dashboard through an unrestricted Quick Tunnel.
+- Do not place an email address or tunnel configuration containing secrets in source control.
+
+For a stable production hostname, use a named Cloudflare Tunnel and a domain routed through Cloudflare. If no suitable free domain and identity-aware access setup are available, keep The Wall private.
+
 ## Environment and storage
 
 - `SERVER_PORT`: use the exact port assigned by the hosting panel.
