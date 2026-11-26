@@ -840,7 +840,11 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
     news.init_db(conn)
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
-    cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    snapshot_at = now()
+    snapshot_dt = datetime.fromisoformat(snapshot_at.replace("Z", "+00:00"))
+    cutoff_24h_dt = snapshot_dt - timedelta(hours=24)
+    cutoff_24h = cutoff_24h_dt.isoformat()
+    cutoff_30d = (snapshot_dt - timedelta(days=30)).isoformat()
     news_vetoes_24h = conn.execute(
         "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
         (cutoff_24h,),
@@ -857,7 +861,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
     baseline_id = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_id'").fetchone()
     baseline_at = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_at'").fetchone()
     baseline_at_value = baseline_at["value"] if baseline_at else None
-    output = {"updated_at": now(), "mode": "PAPER_ONLY",
+    output = {"updated_at": snapshot_at, "mode": "PAPER_ONLY",
               "experiment": {
                   "baseline_id": baseline_id["value"] if baseline_id else None,
                   "baseline_at": baseline_at["value"] if baseline_at else None,
@@ -929,6 +933,36 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
             output["worker_health"]["all_protections_ok"] = False
         cash = float(a["cash"])
         equity = cash + liquidation_value
+        starting_cash = float(a["starting_cash"])
+        closed_fees = sum(float(t["fees"]) for t in trades)
+        open_entry_fee = float(pos["entry_fee"]) if pos else 0.0
+        fees_total = closed_fees + open_entry_fee
+        fees_24h = sum(
+            float(t["fees"]) for t in trades
+            if t["closed_at"] and t["closed_at"] >= cutoff_24h
+        )
+        if pos and pos["opened_at"] >= cutoff_24h:
+            fees_24h += open_entry_fee
+
+        conn.execute(
+            """INSERT OR REPLACE INTO shadow_equity_snapshots
+               (snapshot_at,strategy_id,cash,equity,realized_pnl,unrealized_pnl,fees_total)
+               VALUES(?,?,?,?,?,?,?)""",
+            (snapshot_at, a["strategy_id"], cash, equity, realized, unrealized, fees_total),
+        )
+        conn.execute(
+            "DELETE FROM shadow_equity_snapshots WHERE snapshot_at<?",
+            (cutoff_30d,),
+        )
+        history_rows = conn.execute(
+            """SELECT snapshot_at,equity FROM shadow_equity_snapshots
+               WHERE strategy_id=? AND snapshot_at>=? ORDER BY snapshot_at""",
+            (a["strategy_id"], cutoff_30d),
+        ).fetchall()
+        history_metrics = equity_history_metrics(history_rows, starting_cash, snapshot_dt)
+        realized_curve, realized_drawdown = realized_equity_history(
+            trades, starting_cash, baseline_at_value
+        )
         output["accounts"].append({
             "strategy_id":a["strategy_id"],"label":a["label"],"symbol":a["symbol"],
             "timeframe":{"15":"15m","60":"1h","240":"4h","D":"1d"}.get(a["interval"],a["interval"]),
@@ -939,7 +973,14 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
             "return_pct":round((equity/float(a["starting_cash"])-1)*100,4),
             "trades":len(trades),"wins":wins,"win_rate_pct":round(wins/len(trades)*100,2) if trades else None,
             "profit_factor":round(gross_profit/gross_loss,3) if gross_loss else (None if not gross_profit else "inf"),
-            "fees":round(sum(float(t["fees"]) for t in trades),4),
+            "fees":round(closed_fees,4),
+            "fees_total":round(fees_total,4),
+            "fees_24h":round(fees_24h,4),
+            "fee_assumption_pct_each_side":round(FEE*100,4),
+            "slippage_assumption_pct_each_side":round(SLIPPAGE*100,4),
+            "realized_equity_curve_since_baseline":realized_curve,
+            "realized_max_drawdown_pct_since_baseline":realized_drawdown,
+            **history_metrics,
             "recent_trades_30d":[
                 {"id":int(t["id"]),"entry":float(t["entry"]),"exit":float(t["exit"]),
                  "qty":float(t["qty"]),"fees":round(float(t["fees"]),6),
@@ -950,6 +991,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
             "last_price":price,"last_price_at":mark["updated_at"] if mark else None,
             "position":position
         })
+    conn.commit()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     STATUS_FILE.write_text(json.dumps(output, indent=2), encoding="utf-8")
 
