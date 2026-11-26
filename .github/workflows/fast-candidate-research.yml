@@ -1,4 +1,4 @@
-name: ASHUR 15m and 1h candidate research
+name: ASHUR cross-asset 15m and 1h candidate research
 
 on:
   push:
@@ -20,7 +20,7 @@ concurrency:
 jobs:
   candidate-research:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - name: Check out isolated research branch
         uses: actions/checkout@v4
@@ -33,16 +33,16 @@ jobs:
       - name: Compile candidate research modules
         working-directory: trading-lab
         run: python -m py_compile research_fast_candidates.py research_live_six.py strategy_lab_v3.py live_shadow_worker.py
-      - name: Run 15m and 1h candidate OOS research
+      - name: Run cross-asset 15m and 1h candidate OOS research
         working-directory: trading-lab
         run: python research_fast_candidates.py
       - name: Upload candidate research report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ashur-fast-candidate-research
+          name: ashur-cross-asset-candidate-research
           path: |
-            trading-lab/research-output/fast_candidate_research.json
-            trading-lab/research-output/fast_candidate_research.csv
+            trading-lab/research-output/cross_asset_candidate_research.json
+            trading-lab/research-output/cross_asset_candidate_research.csv
           if-no-files-found: warn
           retention-days: 30
