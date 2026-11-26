@@ -141,6 +141,33 @@ jobs:
           """).fetchall()
           positions = [dict(row) for row in open_rows]
 
+          all_trade_rows = db.execute("""
+              SELECT strategy_id, pnl, fees, opened_at, closed_at
+              FROM shadow_trades ORDER BY id
+          """).fetchall()
+          trade_stats = []
+          for account in accounts:
+              sid = account["strategy_id"]
+              rows = [row for row in all_trade_rows if row["strategy_id"] == sid]
+              wins = [float(row["pnl"] or 0) for row in rows if float(row["pnl"] or 0) > 0]
+              losses = [float(row["pnl"] or 0) for row in rows if float(row["pnl"] or 0) < 0]
+              gross_profit = sum(wins)
+              gross_loss = abs(sum(losses))
+              trade_stats.append({
+                  "strategy_id": sid,
+                  "closed_trades": len(rows),
+                  "wins": len(wins),
+                  "losses": len(losses),
+                  "flats": len(rows) - len(wins) - len(losses),
+                  "win_rate_pct": (len(wins) / len(rows) * 100) if rows else None,
+                  "gross_profit": round(gross_profit, 8),
+                  "gross_loss": round(gross_loss, 8),
+                  "profit_factor": (round(gross_profit / gross_loss, 6) if gross_loss else (None if not wins else "INF")),
+                  "average_win": (round(gross_profit / len(wins), 8) if wins else None),
+                  "average_loss": (round(sum(losses) / len(losses), 8) if losses else None),
+                  "fees": round(sum(float(row["fees"] or 0) for row in rows), 8)
+              })
+
           payload = {
               "schema_version": 1,
               "generated_at": now.isoformat(),
@@ -159,6 +186,7 @@ jobs:
                               "protection_degraded_strategies")
               },
               "accounts": accounts,
+              "trade_stats": trade_stats,
               "open_positions": positions,
               "closed_trades": trades,
               "recent_events": events,
@@ -171,6 +199,38 @@ jobs:
               }
           }
           Path("wall-data.json").write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+          history_path = Path("wall-history.json")
+          if history_path.exists():
+              history = json.loads(history_path.read_text())
+          else:
+              history = {"schema_version": 1, "retention_days": 90, "points": []}
+          point = {
+              "generated_at": payload["generated_at"],
+              "source_updated_at": payload["source_updated_at"],
+              "total_equity": round(sum(float(a.get("equity") or 0) for a in accounts), 8),
+              "total_net_pnl": round(sum(float(a.get("net_pnl") or 0) for a in accounts), 8),
+              "closed_trades": payload["ledger"]["total_closed_trades"],
+              "accounts": [{
+                  "strategy_id": a["strategy_id"],
+                  "equity": a.get("equity"),
+                  "net_pnl": a.get("net_pnl"),
+                  "return_pct": a.get("return_pct"),
+                  "last_price": a.get("last_price"),
+                  "symbol": a.get("symbol")
+              } for a in accounts]
+          }
+          points = history.get("points", [])
+          if not points or points[-1].get("generated_at") != point["generated_at"]:
+              points.append(point)
+          cutoff = now.timestamp() - 90 * 86400
+          history["points"] = [
+              p for p in points
+              if datetime.fromisoformat(p["generated_at"].replace("Z", "+00:00")).timestamp() >= cutoff
+          ][-9000:]
+          history["history_started_at"] = history["points"][0]["generated_at"] if history["points"] else payload["generated_at"]
+          history["last_updated_at"] = payload["generated_at"]
+          Path("wall-history.json").write_text(json.dumps(history, ensure_ascii=False, separators=(",", ":")) + "\n")
           print("Verified snapshot built:", len(accounts), "strategies;", len(trades), "closed trades;", len(positions), "open positions")
           PY
 
