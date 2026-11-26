@@ -67,8 +67,8 @@ def test_empty_strategy_win_rate_is_null_and_news_outcomes_are_baseline_scoped()
     assert intelligence["veto_outcomes"]["tracked_vetoes"] == 2
     assert intelligence["baseline_veto_outcomes"]["tracked_vetoes"] == 1
     assert intelligence["baseline_veto_outcomes"]["avg_net_return_24h_pct"] is None
-    assert intelligence["news_veto_attempts_24h"] == 2
-    assert intelligence["news_veto_event_rows_24h"] == 4
+    assert intelligence["news_veto_attempts_24h"] == 4
+    assert intelligence["news_veto_unique_groups_24h"] == 2
     for account in status["accounts"]:
         assert len(account["equity_curve_24h"]) == 1
         assert len(account["equity_curve_30d_hourly"]) == 1
