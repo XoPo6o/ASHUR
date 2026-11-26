@@ -52,17 +52,21 @@ jobs:
                 const page = await context.newPage();
                 const errors = [];
                 page.on('pageerror', e => errors.push(String(e)));
-                let response = null;
-                for (let attempt=0; attempt<8; attempt++) {
+                let response = null, body = '', html = '';
+                for (let attempt=0; attempt<12; attempt++) {
                   try {
                     response = await page.goto(base+path, {waitUntil:'networkidle',timeout:45000});
-                    if (response && response.ok()) break;
-                  } catch (e) { if (attempt===7) errors.push(String(e)); }
+                    await page.waitForTimeout(2500);
+                    body = await page.locator('body').innerText().catch(()=> '');
+                    html = await page.content().catch(()=> '');
+                    const hasData = !body.includes('DATA UNAVAILABLE') && (body.includes('USDT') || body.includes('PAPER ONLY'));
+                    const fixedPath = html.includes('../wall-data.json') && html.includes('../wall-history.json');
+                    if (response && response.status()===200 && hasData && fixedPath) break;
+                  } catch (e) { errors.push(String(e)); }
                   await page.waitForTimeout(10000);
                 }
-                await page.waitForTimeout(2500);
                 const title = await page.title().catch(()=> '');
-                const body = await page.locator('body').innerText().catch(()=> '');
+                body = await page.locator('body').innerText().catch(()=> '');
                 const file = `screenshots/${mode}/${name}.png`;
                 await page.screenshot({path:file,fullPage:true,animations:'disabled'});
                 results.push({name,mode,status:response?.status() ?? null,title,bodyLength:body.length,bodyStart:body.slice(0,180),errors,screenshot:file});
@@ -71,7 +75,7 @@ jobs:
             }
             fs.writeFileSync('screenshots/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length)) process.exitCode=1;
+            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE'))) process.exitCode=1;
           })();
           EOF
           node capture.cjs
@@ -79,6 +83,7 @@ jobs:
       - name: Build visual contact sheets
         if: always()
         run: |
+          python -m pip install --quiet pillow
           python - <<'PY'
           from PIL import Image, ImageOps, ImageDraw
           import glob, os
