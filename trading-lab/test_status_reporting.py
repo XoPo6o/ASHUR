@@ -46,6 +46,10 @@ def test_empty_strategy_win_rate_is_null_and_news_outcomes_are_baseline_scoped()
         finally:
             worker.DATA_DIR, worker.STATUS_FILE = old_data_dir, old_status_file
 
+    assert status["mode"] == "PAPER_ONLY"
+    assert status["experiment"]["baseline_id"] == "ashur-paper-30d-2026-11-25-v2"
+    assert status["worker_health"]["all_strategies_ok"] is True
+    assert status["worker_health"]["all_protections_ok"] is True
     assert len(status["accounts"]) == 6
     assert all(a["trades"] == 0 and a["win_rate_pct"] is None for a in status["accounts"])
     intelligence = status["news_intelligence"]
