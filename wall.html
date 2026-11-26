@@ -127,7 +127,7 @@ function render(d,history){
  const points=history?.points||[];
  const equityValues=points.map(p=>n(p.total_equity));
  const equityLabels=points.map(p=>new Date(p.generated_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'}));
- lineChart('equity-chart',equityValues.length?equityValues:[equity],[equityLabels.length?equityLabels:['NOW'],equityLabels.length?equityLabels:['NOW']].flat(),{money:true});
+ lineChart('equity-chart',equityValues.length?equityValues:[equity],equityLabels.length?equityLabels:['NOW'],{money:true});
  $('equity-range').textContent=points.length+' OBSERVED SNAPSHOTS · FROM '+localStamp(history?.history_started_at||points[0]?.generated_at||d.generated_at);
  drawdownChart(history);realizedChart(a);comparisonTable(d);
  const total=a.reduce((s,x)=>s+n(x.equity),0)||1;
