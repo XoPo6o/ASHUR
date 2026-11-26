@@ -12,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: ashur-wall-data-sync
@@ -20,6 +22,11 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     timeout-minutes: 8
     steps:
       - name: Checkout site
@@ -266,3 +273,20 @@ jobs:
           fi
           git commit -m "data: refresh verified ASHUR Wall paper snapshot"
           git push origin HEAD:main
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload refreshed ASHUR site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+      - name: Wait for Pages artifact registration
+        run: sleep 20
+
+      - name: Deploy refreshed ASHUR site
+        id: deployment
+        uses: actions/deploy-pages@v4
