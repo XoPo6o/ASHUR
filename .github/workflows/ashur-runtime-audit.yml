@@ -1,0 +1,96 @@
+name: ASHUR read-only SillyDev runtime audit
+
+on:
+  push:
+    branches:
+      - ashur-signal-observability
+    paths:
+      - ".github/workflows/ashur-runtime-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read SillyDev runtime status without changing server state
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SILLYDEV_API_KEY" || -z "$SILLYDEV_SERVER_ID" ]]; then
+            echo "::error::SILLYDEV_API_KEY or SILLYDEV_SERVER_ID is missing."
+            exit 1
+          fi
+
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+
+          curl --fail-with-body --silent --show-error \
+            "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" > /tmp/resources.json
+
+          curl --fail-with-body --silent --show-error --get \
+            --data-urlencode "file=/.local/share/ashur/ashur_shadow_status.json" \
+            "$API/servers/$SILLYDEV_SERVER_ID/files/contents" "${AUTH[@]}" > /tmp/status.json
+
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          resources=json.load(open("/tmp/resources.json"))
+          attrs=resources.get("attributes",resources)
+          state=attrs.get("current_state","unknown")
+          d=json.load(open("/tmp/status.json"))
+          h=d.get("worker_health",{})
+          stamp=d.get("updated_at")
+          print(f"SERVER_STATE={state}")
+          print(f"MODE={d.get('mode')} BASELINE={d.get('baseline_id')}")
+          print(f"UPDATED_AT={stamp}")
+          print(f"WORKER_OK={h.get('all_strategies_ok')} WORKER_ERRORS={h.get('error_count')} SUCCESSFUL={h.get('successful_strategies')}")
+          print(f"PROTECTION_OK={h.get('all_protections_ok')} DEGRADED_POSITIONS={h.get('protection_degraded_positions')} DEGRADED_STRATEGIES={h.get('protection_degraded_strategies')}")
+          accounts=d.get("accounts",[])
+          print(f"STRATEGY_ACCOUNTS={len(accounts)}")
+          for a in accounts:
+              p=a.get("position")
+              print(
+                  "ACCOUNT"
+                  f" id={a.get('strategy_id')}"
+                  f" tf={a.get('timeframe')}"
+                  f" equity={a.get('equity')}"
+                  f" net_pnl={a.get('net_pnl')}"
+                  f" realized={a.get('realized_pnl')}"
+                  f" unrealized={a.get('unrealized_pnl')}"
+                  f" trades={a.get('trades')}"
+                  f" fees={a.get('fees')}"
+                  f" price={a.get('last_price')}"
+                  f" position={'OPEN' if p else 'FLAT'}"
+                  f" protection={p.get('protection_status') if p else a.get('protection_status')}"
+              )
+
+          if not stamp:
+              raise SystemExit("FAIL: missing worker heartbeat timestamp")
+          age=(datetime.now(timezone.utc)-datetime.fromisoformat(stamp.replace("Z","+00:00"))).total_seconds()
+          print(f"HEARTBEAT_AGE_SECONDS={int(age)}")
+          failures=[]
+          if state!="running": failures.append("SERVER_NOT_RUNNING")
+          if d.get("mode")!="PAPER_ONLY": failures.append("MODE_NOT_PAPER_ONLY")
+          if d.get("baseline_id")!="ashur-paper-30d-2026-11-25-v2": failures.append("BASELINE_ID_MISMATCH")
+          if len(accounts)!=6: failures.append("STRATEGY_COUNT_MISMATCH")
+          if not h.get("all_strategies_ok") or h.get("error_count")!=0 or h.get("successful_strategies")!=6:
+              failures.append("WORKER_HEALTH_FAILED")
+          if h.get("all_protections_ok") is not True or h.get("protection_degraded_positions")!=0 or h.get("protection_degraded_strategies")!=0:
+              failures.append("PROTECTION_HEALTH_FAILED")
+          for a in accounts:
+              p=a.get("position")
+              if a.get("protection_status")=="DEGRADED" or (p and p.get("protection_status")!="OK"):
+                  failures.append("POSITION_PROTECTION_FAILED:"+str(a.get("strategy_id")))
+          if age<0 or age>900: failures.append("STALE_HEARTBEAT")
+          if failures:
+              print("AUDIT_RESULT=FAIL " + ",".join(failures))
+              raise SystemExit(1)
+          print("AUDIT_RESULT=PASS")
+          PY
