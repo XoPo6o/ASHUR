@@ -216,6 +216,14 @@ jobs:
                  FROM shadow_trades GROUP BY strategy_id ORDER BY strategy_id"""
           ).fetchall()
           positions=conn.execute("SELECT COUNT(*) FROM shadow_positions").fetchone()[0]
+          table_names={row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          if "shadow_equity_snapshots" in table_names:
+              snapshot_stats=conn.execute(
+                  "SELECT COUNT(*),MAX(snapshot_at) FROM shadow_equity_snapshots"
+              ).fetchone()
+              snapshot_history=f"AVAILABLE rows={snapshot_stats[0]} latest={snapshot_stats[1]}"
+          else:
+              snapshot_history="NOT_DEPLOYED"
           intrabar_errors=conn.execute(
               "SELECT COUNT(*) FROM shadow_intrabar_health WHERE last_error IS NOT NULL"
           ).fetchone()[0]
@@ -230,6 +238,7 @@ jobs:
               print(f"CHECK strategy={row['strategy_id']} latest={row['latest']} count={row['total']}")
           print("DB_TRADES="+str([dict(row) for row in trades]))
           print("DB_OPEN_POSITIONS="+str(positions))
+          print("EQUITY_SNAPSHOT_HISTORY="+snapshot_history)
           print("DB_INTRABAR_ERRORS="+str(intrabar_errors))
           print("DB_EVENTS_24H="+str([dict(row) for row in events]))
           print("NEWS_VETO_GROUPS_24H="+str([dict(row) for row in veto_groups]))
