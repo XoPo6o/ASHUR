@@ -2,6 +2,7 @@
 import json
 import sqlite3
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import live_shadow_worker as worker
@@ -52,4 +53,48 @@ def test_empty_strategy_win_rate_is_null_and_news_outcomes_are_baseline_scoped()
     assert intelligence["baseline_veto_outcomes"]["tracked_vetoes"] == 1
     assert intelligence["baseline_veto_outcomes"]["avg_net_return_24h_pct"] is None
     assert intelligence["news_veto_attempts_24h"] == 0
+    for account in status["accounts"]:
+        assert len(account["equity_curve_24h"]) == 1
+        assert len(account["equity_curve_30d_hourly"]) == 1
+        assert account["pnl_24h"] is None
+        assert account["cycle_gap_max_seconds_24h"] is None
+        assert account["fees_total"] == 0
+        assert account["fees_24h"] == 0
+        assert account["fee_assumption_pct_each_side"] == 0.1
+        assert account["slippage_assumption_pct_each_side"] == 0.05
+        assert len(account["realized_equity_curve_since_baseline"]) == 1
+    assert conn.execute("SELECT COUNT(*) FROM shadow_equity_snapshots").fetchone()[0] == 6
     conn.close()
+
+
+def test_equity_history_metrics_calculates_24h_pnl_drawdown_and_cycle_gaps():
+    rows = [
+        {"snapshot_at": "2026-11-25T11:55:00+00:00", "equity": 990.0},
+        {"snapshot_at": "2026-11-25T12:05:00+00:00", "equity": 1000.0},
+        {"snapshot_at": "2026-11-26T11:55:00+00:00", "equity": 1010.0},
+        {"snapshot_at": "2026-11-26T12:00:00+00:00", "equity": 1005.0},
+    ]
+    now_dt = datetime(2026, 11, 26, 12, 0, tzinfo=timezone.utc)
+    metrics = worker.equity_history_metrics(rows, 1000.0, now_dt)
+
+    assert metrics["pnl_24h"] == 15.0
+    assert metrics["max_drawdown_pct_30d"] == 1.0
+    assert metrics["current_drawdown_pct_30d"] == 0.495
+    assert metrics["cycle_gap_max_seconds_24h"] == 85800.0
+    assert metrics["latest_snapshot_age_seconds"] == 0.0
+    assert metrics["snapshot_count_24h"] == 3
+    assert metrics["snapshot_count_30d"] == 4
+    assert len(metrics["equity_curve_24h"]) == 3
+    assert len(metrics["equity_curve_30d_hourly"]) == 4
+
+
+def test_realized_equity_curve_reconstructs_baseline_and_trade_closes():
+    trades = [
+        {"closed_at": "2026-11-25T12:00:00+00:00", "pnl": -5.0},
+        {"closed_at": "2026-11-25T13:00:00+00:00", "pnl": 10.0},
+    ]
+    curve, max_drawdown = worker.realized_equity_history(
+        trades, 1000.0, "2026-11-25T10:00:00+00:00"
+    )
+    assert [point["equity"] for point in curve] == [1000.0, 995.0, 1005.0]
+    assert max_drawdown == 0.5
