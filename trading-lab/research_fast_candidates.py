@@ -16,6 +16,7 @@ import research_live_six as common
 
 LOOKBACK_DAYS = 1095
 OUTPUT_DIR = Path(__file__).resolve().parent / "research-output"
+SYMBOLS = ["BNB/USDT", "BTC/USDT", "ETH/USDT", "SOL/USDT"]
 TIMEFRAMES = {"15m": 900_000, "1h": 3_600_000}
 CANDIDATES = {
     "EMA20_RECLAIM_TREND": "ema20_reclaim_trend",
@@ -27,14 +28,14 @@ CANDIDATES = {
 }
 
 
-def prepare_timeframe(timeframe, interval_ms):
+def prepare_timeframe(symbol, timeframe, interval_ms):
     lab.LOOKBACK_DAYS = LOOKBACK_DAYS
-    raw = lab.fetch_history("BNB/USDT", timeframe, interval_ms)
+    raw = lab.fetch_history(symbol, timeframe, interval_ms)
     gaps = raw["timestamp"].diff().dropna()
     expected = pd.Timedelta(milliseconds=interval_ms)
     if not gaps.eq(expected).all():
         raise RuntimeError(
-            f"OHLCV continuity failure for BNB/USDT {timeframe}: "
+            f"OHLCV continuity failure for {symbol} {timeframe}: "
             f"{int((gaps != expected).sum())} irregular gaps"
         )
     x = lab.signal_columns(lab.indicators(raw))
@@ -84,7 +85,7 @@ def prepare_timeframe(timeframe, interval_ms):
     return x
 
 
-def research_candidate(x, timeframe, candidate_name, signal_name):
+def research_candidate(x, symbol, timeframe, candidate_name, signal_name):
     entry_col, exit_col = lab.STRATEGIES[signal_name]
     overlap_bars = int((x[entry_col].fillna(False) & x[exit_col].fillna(False)).sum())
     if overlap_bars:
@@ -114,7 +115,7 @@ def research_candidate(x, timeframe, candidate_name, signal_name):
     test = splits["test"]
     return {
         "candidate": candidate_name,
-        "symbol": "BNB/USDT",
+        "symbol": symbol,
         "timeframe": timeframe,
         "candles": n,
         "entry_exit_overlap_bars": overlap_bars,
@@ -146,15 +147,17 @@ def research_candidate(x, timeframe, candidate_name, signal_name):
 
 def main():
     results = []
-    print("ASHUR 15m/1h candidate screen | 1095d | chronological 60/20/20")
-    for timeframe, interval_ms in TIMEFRAMES.items():
-        x = prepare_timeframe(timeframe, interval_ms)
+    print("ASHUR cross-asset 15m/1h candidate screen | 1095d | chronological 60/20/20")
+    for symbol in SYMBOLS:
+      for timeframe, interval_ms in TIMEFRAMES.items():
+        x = prepare_timeframe(symbol, timeframe, interval_ms)
         for candidate_name, signal_name in CANDIDATES.items():
-            result = research_candidate(x, timeframe, candidate_name, signal_name)
+            result = research_candidate(x, symbol, timeframe, candidate_name, signal_name)
             results.append(result)
             test = result["splits"]["test"]
             print(json.dumps({
                 "candidate": candidate_name,
+                "symbol": symbol,
                 "timeframe": timeframe,
                 "trades": test["trades"],
                 "return_pct": test["return_pct"],
@@ -178,20 +181,21 @@ def main():
             "max_notional_fraction": lab.MAX_NOTIONAL_FRACTION,
             "fee_each_side": lab.FEE_RATE,
             "slippage_each_side": lab.SLIPPAGE_RATE,
+            "symbols": SYMBOLS,
             "timeframes": list(TIMEFRAMES),
             "candidates": list(CANDIDATES),
             "enabled_in_live_worker": False,
         },
         "results": results,
     }
-    json_path = OUTPUT_DIR / "fast_candidate_research.json"
-    csv_path = OUTPUT_DIR / "fast_candidate_research.csv"
+    json_path = OUTPUT_DIR / "cross_asset_candidate_research.json"
+    csv_path = OUTPUT_DIR / "cross_asset_candidate_research.csv"
     json_path.write_text(
         json.dumps(payload, indent=2, ensure_ascii=False, allow_nan=False),
         encoding="utf-8",
     )
     fields = [
-        "candidate", "timeframe", "candles", "entry_exit_overlap_bars",
+        "candidate", "symbol", "timeframe", "candles", "entry_exit_overlap_bars",
         "train_return_pct", "validation_return_pct", "test_return_pct",
         "test_trades", "test_win_rate_pct", "test_profit_factor",
         "test_max_drawdown_pct", "test_fees_usdt",
@@ -205,7 +209,7 @@ def main():
         for result in results:
             test = result["splits"]["test"]
             writer.writerow({
-                "candidate": result["candidate"], "timeframe": result["timeframe"],
+                "candidate": result["candidate"], "symbol": result["symbol"], "timeframe": result["timeframe"],
                 "candles": result["candles"], "entry_exit_overlap_bars": result["entry_exit_overlap_bars"],
                 "train_return_pct": result["splits"]["train"]["return_pct"],
                 "validation_return_pct": result["splits"]["validation"]["return_pct"],
@@ -222,7 +226,7 @@ def main():
                 "positive_60d_windows": result["rolling_60d_oos"]["positive_windows"],
                 "rolling_window_count": result["rolling_60d_oos"]["window_count"],
             })
-    print(f"FAST_CANDIDATE_RESEARCH_COMPLETE candidates={len(results)} json={json_path} csv={csv_path}")
+    print(f"CROSS_ASSET_CANDIDATE_RESEARCH_COMPLETE combinations={len(results)} json={json_path} csv={csv_path}")
 
 
 if __name__ == "__main__":
