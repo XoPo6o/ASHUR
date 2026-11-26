@@ -23,6 +23,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate dashboard JavaScript and data
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+          html = Path("wall.html").read_text()
+          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+          if len(scripts) != 1:
+              raise SystemExit(f"Expected one inline dashboard script, found {len(scripts)}")
+          Path("/tmp/ashur-wall.js").write_text(scripts[0])
+          data = json.loads(Path("wall-data.json").read_text())
+          history = json.loads(Path("wall-history.json").read_text())
+          if data.get("mode") != "PAPER_ONLY" or len(data.get("accounts", [])) != 6:
+              raise SystemExit("Dashboard snapshot failed Paper/Shadow schema validation")
+          if len(data.get("trade_stats", [])) != 6:
+              raise SystemExit("Expected trade statistics for all six strategies")
+          if not history.get("points"):
+              raise SystemExit("No verified equity history points found")
+          print("Dashboard assets validated:", len(history["points"]), "history points")
+          PY
+          node --check /tmp/ashur-wall.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
