@@ -45,9 +45,11 @@ jobs:
             const browser = await chromium.launch({headless:true});
             const results = [];
             for (const [path,name] of pages) {
-              for (const mode of ['desktop','mobile']) {
+              for (const mode of ['desktop','mobile','reference']) {
                 const context = await browser.newContext(mode === 'desktop'
                   ? { viewport:{width:1440,height:1000}, deviceScaleFactor:1 }
+                  : mode === 'reference'
+                  ? { viewport:{width:266,height:885}, deviceScaleFactor:1, isMobile:true, hasTouch:true }
                   : { viewport:{width:390,height:844}, deviceScaleFactor:1, isMobile:true, hasTouch:true });
                 const page = await context.newPage();
                 const errors = [];
