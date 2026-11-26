@@ -1,131 +1,70 @@
-/* ASHUR / THE WALL — shared responsive and information architecture overrides */
+/* ASHUR / THE WALL — conservative responsive rules.
+   Keep each variant's own art direction and the approved game-board elements visible. */
 
-@media(max-width:650px){
- #charts{grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
- #charts>.panel{min-width:0!important;width:100%!important}
- #charts .panelbody{min-width:0!important;overflow:hidden}
- #charts .chart{display:block;width:100%!important;max-width:100%!important;height:auto!important}
- #charts .pnl-plaque .panelbody{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:6px 10px}
- #charts .pnl-plaque .plaque-divider{display:none}
- #charts .pnl-plaque .plaque-value{margin:0!important}
- #charts .pnl-plaque .plaque-label{margin:0!important}
- .shell{max-width:100%;overflow-x:clip}
- .panel{min-width:0}
- .matrix{max-width:100%;overflow-x:auto}
+* { min-width: 0; }
+html, body { max-width: 100%; }
+img, svg { max-width: 100%; }
+
+.shell { width: min(1440px, calc(100% - 36px)); margin-inline: auto; }
+.panel { min-width: 0; }
+.matrix-wrap, .table-wrap { max-width: 100%; overflow-x: auto; }
+
+#charts {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(190px, .85fr);
+  gap: 13px;
+}
+#charts > .panel { min-width: 0; }
+#charts .chart { display: block; width: 100%; height: auto; }
+
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.game-menu {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.nav { display: flex; }
+.daystamp { display: block; }
+.skin-dock { display: flex; }
+
+@media (max-width: 900px) {
+  .shell { width: min(100% - 24px, 900px); }
+  .topinner { flex-wrap: wrap; }
+  .nav { order: 3; width: 100%; justify-content: center; }
+  .strategy-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-
-#charts{grid-template-columns:minmax(0,1fr)!important}
-#charts .pnl-plaque{display:none!important}
-.game-menu{display:none!important}
-.advanced-analytics{margin:12px 0 14px;border:0}
-.advanced-analytics>summary{cursor:pointer;list-style:none;text-align:center;padding:12px 14px;border:4px ridge var(--gold);background:linear-gradient(90deg,var(--panel),var(--panel2));color:var(--gold);font:8px var(--pixel);letter-spacing:1px;box-shadow:0 4px var(--shadow)}
-.advanced-analytics>summary::-webkit-details-marker{display:none}
-.advanced-analytics[open]>summary{margin-bottom:12px}
-.advanced-analytics>section{margin-top:12px}
-@media(max-width:650px){#charts{grid-template-columns:minmax(0,1fr)!important}#charts .chart{width:100%!important;max-width:100%!important}}
-
-
-main>.advanced-analytics{order:6!important}
-main>#trades{order:7!important}
-main>.footer{order:99!important}
-
-
-/* Gallery remains available through the ASHUR brand link. */
-.skin-dock{display:none!important}
-
-/* Core health row mirrors the two-panel reference composition. */
-main>section.grid.threecol{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-@media(max-width:650px){main>section.grid.threecol{grid-template-columns:minmax(0,1fr)!important}}
-
-/* Match the approved compact Wall header and full-width ledger. */
-.nav{display:none!important}
-.daystamp{display:none!important}
-main>.hero:before,main>.hero:after{display:none!important}
-#trades{grid-template-columns:minmax(0,1fr)!important}
-
-
-/* Reference-match pass 01: reproduce the compact five-column board composition. */
-@media(max-width:650px){
-  .topbar{position:relative}
-  .topinner{min-height:38px!important;gap:4px!important;padding:3px 0!important}
-  .brand{gap:5px!important}
-  .sig{width:22px!important;height:22px!important}
-  .brandname{font-size:7px!important}
-  .brandname small{display:none!important}
-  .nav,.skin-dock,.live{display:none!important}
-  main{padding:5px 0 12px!important}
-  .hero{min-height:0!important;height:auto!important;padding:7px 8px!important;margin:0 0 7px!important;border-width:1px!important;box-shadow:none!important}
-  .hero:before,.hero:after{display:none!important;content:none!important}
-  .hero>div:first-child{padding:0!important}
-  .eyebrow{font-size:5px!important;line-height:1.5!important}
-  h1{font-size:8px!important;line-height:1.6!important;margin:3px 0!important}
-  .subtitle{font-size:5px!important;line-height:1.5!important}
-  .data-meta,.daystamp{display:none!important}
-  .metrics{gap:4px!important;margin-bottom:5px!important}
-  .metric{padding:5px 6px!important;min-height:0!important}
-  .metric .label{font-size:5px!important}
-  .metric .value{font-size:10px!important;line-height:1.4!important}
-  .metric .foot{font-size:4px!important;margin-top:2px!important}
-  #strategies{margin-bottom:5px!important}
-  #strategies .panelhead,#compare .panelhead,#trades .panelhead{padding:4px 6px!important;min-height:0!important}
-  #strategies .paneltitle,#compare .paneltitle,#trades .paneltitle{font-size:5px!important}
-  #strategies .tag,#compare .tag,#trades .tag{font-size:4px!important}
-  #strategies .panelbody{padding:4px!important}
-  .strategy-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
-  .strategy{min-height:0!important;padding:4px 3px!important}
-  .strategy:before{display:none!important}
-  .strategy-top{min-height:0!important}
-  .strategy-name{font-size:4px!important;line-height:1.35!important;min-height:0!important}
-  .strategy-return{font-size:7px!important;margin:2px 0!important}
-  .strategy-meta{font-size:4px!important;min-height:0!important}
-  .strategy-stats{gap:2px!important}
-  .strategy-stat{padding:2px 1px!important}
-  .strategy-stat span{font-size:3px!important}
-  .strategy-stat b{font-size:4px!important}
-  #charts{grid-template-columns:minmax(0,1fr)!important;gap:4px!important;margin-bottom:5px!important}
-  #charts>.pnl-plaque{display:none!important}
-  #charts .panelhead{padding:4px 6px!important}
-  #charts .paneltitle{font-size:5px!important}
-  #charts .panelbody{padding:4px!important}
-  #charts .chart{height:56px!important}
-  .game-menu{display:none!important}
-  main>section.grid.threecol{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;margin-bottom:5px!important}
-  main>section.grid.threecol .panelhead{padding:4px 5px!important}
-  main>section.grid.threecol .paneltitle{font-size:4px!important}
-  main>section.grid.threecol .panelbody{padding:4px!important}
-  main>section.grid.threecol .donut{width:36px!important;height:36px!important}
-  main>section.grid.threecol .chart{height:52px!important}
-  #compare{margin-bottom:5px!important}
-  #compare .matrix-wrap{overflow:hidden!important}
-  #compare .matrix{width:100%!important;min-width:0!important;font-size:4px!important}
-  #compare .matrix th,#compare .matrix td{padding:3px 2px!important;white-space:nowrap!important}
-  #compare .matrix th:nth-child(n+5),#compare .matrix td:nth-child(n+5){display:none!important}
-  #compare .sample-note{display:none!important}
-  #trades{grid-template-columns:minmax(0,1fr)!important;margin-bottom:5px!important}
-  #trades .panelbody{padding:4px!important}
-  #trades .trades{font-size:4px!important}
-  #trades .trades th,#trades .trades td{padding:3px 2px!important}
-  #trades .trades th:nth-child(n+3),#trades .trades td:nth-child(n+3){display:none!important}
-  main>.footer{padding:5px 7px!important;font-size:4px!important}
+@media (max-width: 650px) {
+  .shell { width: calc(100% - 16px); }
+  main { padding: 12px 0 24px; }
+  .hero { min-height: 150px; padding: 14px 12px; }
+  .data-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #charts { grid-template-columns: minmax(0, 1fr); }
+  #charts .pnl-plaque .panelbody {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    align-items: center;
+  }
+  #charts .pnl-plaque .plaque-divider { display: none; }
+  .strategy-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .game-menu { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .game-menu a { min-width: 0; padding: 5px 2px; }
+  .game-menu span { overflow-wrap: anywhere; }
+  main > section.grid.threecol { grid-template-columns: minmax(0, 1fr); }
+  #trades { grid-template-columns: minmax(0, 1fr); }
+  .matrix { min-width: 760px; }
 }
 
-@media(max-width:650px){
-  .strategy{padding:7px 6px!important}
-  .strategy-name{font-size:6px!important;line-height:1.5!important}
-  .strategy-return{font-size:9px!important}
-  .strategy-meta{font-size:6px!important}
-  .strategy-stat span{font-size:5px!important}
-  .strategy-stat b{font-size:7px!important}
-  .advanced-analytics{display:block!important}
+@media (max-width: 390px) {
+  .topinner { gap: 6px; }
+  .nav { gap: 2px; }
+  .nav a { padding: 7px 5px; }
+  .metrics { gap: 6px; }
+  .metric { padding: 9px; }
+  .strategy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
-/* Six CSS pixel sprites — native shapes, no external image assets. */
-.strategy{position:relative!important;padding-top:42px!important;overflow:hidden}
-.strategy:before{content:"";position:absolute;top:12px;left:50%;width:4px;height:4px;background:var(--gold);border:0!important;opacity:1!important;transform:none!important;box-shadow:0 4px var(--gold),4px 8px var(--gold),8px 4px var(--gold),12px 0 var(--gold),12px -4px var(--gold),16px -8px var(--gold),16px -4px var(--gold),16px 0 var(--gold)}
-.strategy:nth-child(2):before{box-shadow:0 0 var(--gold),4px 0 var(--gold),8px 0 var(--gold),12px 0 var(--gold),0 4px var(--gold),0 8px var(--gold),0 12px var(--gold),0 16px var(--gold),4px 16px var(--gold),8px 16px var(--gold),12px 16px var(--gold),12px 12px var(--gold),12px 8px var(--gold),12px 4px var(--gold)}
-.strategy:nth-child(3):before{box-shadow:4px 0 var(--gold),8px 0 var(--gold),12px 4px var(--gold),12px 8px var(--gold),8px 12px var(--gold),4px 16px var(--gold),0 12px var(--gold),0 8px var(--gold),0 4px var(--gold),4px 4px var(--gold),8px 8px var(--gold)}
-.strategy:nth-child(4):before{box-shadow:0 0 var(--gold),4px 0 var(--gold),8px 0 var(--gold),12px 0 var(--gold),16px 0 var(--gold),0 8px var(--gold),4px 8px var(--gold),8px 8px var(--gold),12px 8px var(--gold),16px 8px var(--gold),0 16px var(--gold),4px 16px var(--gold),8px 16px var(--gold),12px 16px var(--gold),16px 16px var(--gold)}
-.strategy:nth-child(5):before{box-shadow:8px -4px var(--gold),4px 0 var(--gold),8px 0 var(--gold),0 4px var(--gold),4px 4px var(--gold),8px 4px var(--gold),12px 4px var(--gold),4px 8px var(--gold),8px 8px var(--gold),12px 8px var(--gold),8px 12px var(--gold),4px 16px var(--gold)}
-.strategy:nth-child(6):before{box-shadow:8px -4px var(--gold),4px 0 var(--gold),8px 0 var(--gold),12px 0 var(--gold),0 4px var(--gold),4px 4px var(--gold),8px 4px var(--gold),12px 4px var(--gold),16px 4px var(--gold),4px 8px var(--gold),8px 8px var(--gold),12px 8px var(--gold),8px 12px var(--gold)}
-@media(max-width:650px){.strategy{padding-top:34px!important}.strategy:before{top:8px;transform:scale(.8)!important;transform-origin:top center}}
