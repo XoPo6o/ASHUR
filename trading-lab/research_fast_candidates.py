@@ -149,13 +149,13 @@ def main():
     results = []
     print("ASHUR cross-asset 15m/1h candidate screen | 1095d | chronological 60/20/20")
     for symbol in SYMBOLS:
-      for timeframe, interval_ms in TIMEFRAMES.items():
-        x = prepare_timeframe(symbol, timeframe, interval_ms)
-        for candidate_name, signal_name in CANDIDATES.items():
-            result = research_candidate(x, symbol, timeframe, candidate_name, signal_name)
-            results.append(result)
-            test = result["splits"]["test"]
-            print(json.dumps({
+        for timeframe, interval_ms in TIMEFRAMES.items():
+            x = prepare_timeframe(symbol, timeframe, interval_ms)
+            for candidate_name, signal_name in CANDIDATES.items():
+                result = research_candidate(x, symbol, timeframe, candidate_name, signal_name)
+                results.append(result)
+                test = result["splits"]["test"]
+                print(json.dumps({
                 "candidate": candidate_name,
                 "symbol": symbol,
                 "timeframe": timeframe,
