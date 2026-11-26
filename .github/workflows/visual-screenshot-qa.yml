@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: ashur-visual-screenshot-qa
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   capture:
