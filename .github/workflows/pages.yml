@@ -33,8 +33,8 @@ jobs:
           if len(scripts) != 1:
               raise SystemExit(f"Expected one inline dashboard script, found {len(scripts)}")
           Path("/tmp/ashur-wall.js").write_text(scripts[0])
-          ids = set(re.findall(r'\\bid="([^"]+)"', html))
-          refs = set(re.findall(r"\\$\\('([^']+)'\\)", scripts[0]))
+          ids = set(re.findall(r'\bid="([^"]+)"', html))
+          refs = set(re.findall(r"\$\('([^']+)'\)", scripts[0]))
           missing = refs - ids
           if missing:
               raise SystemExit("Dashboard references missing DOM IDs: " + ", ".join(sorted(missing)))
