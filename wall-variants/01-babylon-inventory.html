@@ -98,6 +98,20 @@ main>section:not(.metrics):not(#charts):not(#strategies){order:5}
 .game-menu b{font:24px/1 serif;color:#f3ca73;text-shadow:2px 2px #2c1c12}
 .game-menu a:hover{background:#d7a64b;color:#2c1c12}
 @media(max-width:650px){.game-menu{gap:3px;padding:4px}.game-menu a{min-height:48px;gap:2px;flex-direction:column;font-size:5px}.game-menu b{font-size:18px}}
+</style><style id="ashur-card-art-1">
+.hero:before{content:"🐂";position:absolute;z-index:2;left:18px;bottom:12px;font:58px/1 serif;filter:drop-shadow(3px 3px 0 #080b12) drop-shadow(0 0 8px #f3ca73);opacity:.95}
+.hero>div:first-child{padding-left:76px}
+.strategy{padding:9px 8px 10px!important;min-height:164px!important;overflow:hidden}
+.strategy:before{font-size:38px!important;line-height:1.25!important;margin:1px auto 7px!important;min-height:46px!important;filter:drop-shadow(2px 2px 0 #070b12)}
+.strategy-top{justify-content:center!important;min-height:28px}
+.strategy-top .status{position:absolute;right:5px;top:5px;font-size:5px!important;padding:3px 4px!important}
+.strategy-name{font-size:6px!important;line-height:1.55!important;min-height:28px!important;text-align:center!important}
+.strategy-return{font:700 16px var(--mono)!important;text-align:center;margin:3px 0 4px;text-shadow:2px 2px #060912}
+.strategy-meta{font-size:7px!important;line-height:1.4!important;text-align:center;margin:2px 0 5px!important;min-height:16px}
+.strategy-stats{grid-template-columns:1fr 1fr!important;gap:3px!important}
+.strategy-stat{padding:4px 3px!important;text-align:center}
+.strategy-stat span{font-size:6px!important}.strategy-stat b{font-size:8px!important}
+@media(max-width:650px){.hero:before{font-size:42px;left:8px}.hero>div:first-child{padding-left:50px}.strategy{min-height:145px!important}.strategy:before{font-size:31px!important;min-height:37px!important}.strategy-return{font-size:14px!important}}
 </style></head>
 <body class="skin-babylon">
 <header class="topbar"><div class="shell topinner">
@@ -290,7 +304,7 @@ function render(d,history){window.__ashurHistory=history;
  donut('trades-donut',String(closed.length),'CLOSED',[{value:wins,color:'#83d59b'},{value:losses,color:'#ed7774'},{value:flat,color:'#d9ad62'}]);
  legend('trades-legend',[{color:'#83d59b',label:'WINS',value:String(wins)},{color:'#ed7774',label:'LOSSES',value:String(losses)},{color:'#d9ad62',label:'FLAT',value:String(flat)}]);
  barChart('pnl-chart',a);
- $('strategy-grid').innerHTML=a.map((x,i)=>'<article class="panel strategy"><div class="strategy-top"><div class="strategy-name">'+esc(x.strategy_id.replace(/_/g,' '))+'</div><span class="status">'+(health.all_strategies_ok?'OK':'CHECK')+'</span></div><div class="strategy-meta">'+esc(x.symbol)+' · '+esc(x.grade)+'</div><div class="strategy-stats"><div class="strategy-stat"><span>EQUITY</span><b>'+fmt(x.equity)+'</b></div><div class="strategy-stat"><span>NET P&amp;L</span><b class="'+(n(x.net_pnl)>=0?'positive':'negative')+'">'+signed(x.net_pnl)+'</b></div><div class="strategy-stat"><span>TRADES</span><b>'+esc(x.trades)+'</b></div></div></article>').join('');
+ $('strategy-grid').innerHTML=a.map((x,i)=>'<article class="panel strategy"><div class="strategy-top"><div class="strategy-name">'+esc(x.strategy_id.replace(/_/g,' '))+'</div><span class="status">'+(health.all_strategies_ok?'OK':'CHECK')+'</span></div><div class="strategy-return '+(n(x.return_pct)>=0?'positive':'negative')+'">'+(n(x.return_pct)>=0?'+':'')+fmt(x.return_pct)+'%</div><div class="strategy-meta">'+esc(x.symbol)+' · '+esc(x.grade)+'</div><div class="strategy-stats"><div class="strategy-stat"><span>EQUITY</span><b>'+fmt(x.equity)+'</b></div><div class="strategy-stat"><span>NET P&amp;L</span><b class="'+(n(x.net_pnl)>=0?'positive':'negative')+'">'+signed(x.net_pnl)+'</b></div><div class="strategy-stat"><span>TRADES</span><b>'+esc(x.trades)+'</b></div></div></article>').join('');
  $('trade-rows').innerHTML=closed.length?closed.slice().reverse().map(t=>'<tr><td>'+esc(t.strategy_id)+'</td><td>'+esc(t.symbol)+'</td><td>'+fmt(t.entry)+' → '+fmt(t.exit)+'</td><td class="'+(n(t.pnl)>=0?'positive':'negative')+'">'+signed(t.pnl)+'</td><td>'+esc(t.reason)+'</td><td>'+esc(new Date(t.closed_at).toLocaleString('en-GB',{timeZone:'UTC'}))+'</td></tr>').join(''):'<tr><td colspan="6" class="empty">NO CLOSED TRADES YET</td></tr>';
  riskChart(d);$('footer-state').textContent='SNAPSHOT '+new Date(d.generated_at).toISOString()+' · SQLITE '+(d.ledger?.integrity||'UNKNOWN');
 }
