@@ -55,10 +55,10 @@ jobs:
                 const errors = [];
                 page.on('pageerror', e => errors.push(String(e)));
                 let response = null, body = '', html = '';
-                for (let attempt=0; attempt<8; attempt++) {
+                for (let attempt=0; attempt<1; attempt++) {
                   try {
-                    response = await page.goto(base+path, {waitUntil:'domcontentloaded',timeout:30000});
-                    await page.waitForTimeout(2500);
+                    response = await page.goto(base+path, {waitUntil:'domcontentloaded',timeout:20000});
+                    await page.waitForTimeout(1500);
                     await page.evaluate(() => document.fonts.ready).catch(()=>{});
                     body = await page.locator('body').innerText().catch(()=> '');
                     html = await page.content().catch(()=> '');
@@ -79,7 +79,7 @@ jobs:
                     const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2);
                     if (response && response.status()===200 && ready && noOverflow && fixedPath && deployedLatest && sharedCssLoaded) break;
                   } catch (e) { errors.push(String(e)); }
-                  await page.waitForTimeout(5000);
+                  await page.waitForTimeout(500);
                 }
                 const title = await page.title().catch(()=> '');
                 body = await page.locator('body').innerText().catch(()=> '');
