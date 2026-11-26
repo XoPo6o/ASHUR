@@ -70,3 +70,38 @@ img, svg { max-width: 100%; }
 }
 
 @media(max-width:650px){.strategy:before{display:block!important}}
+
+/* Approved board hierarchy: four status plaques, six guardians, chart + activity, game dock. */
+#strategies {
+  margin: 0 0 12px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+#strategies > .panelhead { display: none !important; }
+#strategies > .panelbody { padding: 0 !important; }
+#strategies .strategy-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+#strategies .strategy {
+  min-height: 78px !important;
+  padding: 42px 5px 7px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+#strategies .strategy-top { min-height: 0 !important; justify-content: center !important; }
+#strategies .strategy-name { font: 6px/1.45 var(--pixel) !important; min-height: 0 !important; }
+#strategies .strategy .status,
+#strategies .strategy-return,
+#strategies .strategy-meta,
+#strategies .strategy-stats { display: none !important; }
+
+@media (max-width: 650px) {
+  #strategies .strategy-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; gap: 4px !important; }
+  #strategies .strategy { min-height: 62px !important; padding: 36px 1px 4px !important; }
+  #strategies .strategy-name { display: none !important; }
+}
