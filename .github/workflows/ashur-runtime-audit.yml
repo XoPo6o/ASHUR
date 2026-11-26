@@ -153,6 +153,17 @@ jobs:
               """SELECT event,COUNT(*) AS total FROM shadow_events
                  WHERE created_at>=? GROUP BY event ORDER BY event""",(cutoff,)
           ).fetchall()
+          veto_groups=conn.execute(
+              """SELECT strategy_id,COUNT(*) AS total,COUNT(DISTINCT details) AS unique_details,
+                        MIN(created_at) AS first_seen,MAX(created_at) AS last_seen
+                 FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?
+                 GROUP BY strategy_id ORDER BY total DESC""",(cutoff,)
+          ).fetchall()
+          veto_samples=conn.execute(
+              """SELECT created_at,strategy_id,substr(details,1,240) AS details
+                 FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?
+                 ORDER BY id DESC LIMIT 12""",(cutoff,)
+          ).fetchall()
           trades=conn.execute(
               """SELECT strategy_id,COUNT(*) AS total,COALESCE(SUM(pnl),0) AS pnl
                  FROM shadow_trades GROUP BY strategy_id ORDER BY strategy_id"""
@@ -173,6 +184,8 @@ jobs:
           print("DB_OPEN_POSITIONS="+str(positions))
           print("DB_INTRABAR_ERRORS="+str(intrabar_errors))
           print("DB_EVENTS_24H="+str([dict(row) for row in events]))
+          print("NEWS_VETO_GROUPS_24H="+str([dict(row) for row in veto_groups]))
+          print("NEWS_VETO_SAMPLES_24H="+str([dict(row) for row in veto_samples]))
 
           failures=[]
           if integrity!="ok": failures.append("SQLITE_INTEGRITY_FAILED")
