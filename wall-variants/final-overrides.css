@@ -105,3 +105,22 @@ img, svg { max-width: 100%; }
   #strategies .strategy { min-height: 62px !important; padding: 36px 1px 4px !important; }
   #strategies .strategy-name { display: none !important; }
 }
+
+/* Hero treatment from the approved reference: illustrated title plaque + update stamp. */
+#overview > .hero { min-height: 210px !important; align-items: center !important; }
+#overview > .hero .eyebrow,
+#overview > .hero .subtitle,
+#overview > .hero .data-meta { display: none !important; }
+#overview > .hero h1 {
+  font-size: clamp(22px, 3vw, 34px) !important;
+  line-height: 1.35 !important;
+  letter-spacing: .02em !important;
+  text-shadow: 3px 3px 0 #17101a, 0 0 12px currentColor !important;
+}
+#overview > .hero .daystamp {
+  display: block !important;
+  min-width: 175px;
+  background: #101321e8 !important;
+  border: 3px ridge var(--gold) !important;
+  box-shadow: 3px 3px 0 #050812 !important;
+}
