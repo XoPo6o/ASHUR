@@ -1,0 +1,108 @@
+name: ASHUR Visual Screenshot QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wall-variants/**'
+      - 'wall.html'
+      - '.github/workflows/visual-screenshot-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-visual-screenshot-qa
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Capture published pages
+        run: |
+          mkdir -p screenshots/desktop screenshots/mobile
+          cat > capture.cjs <<'EOF'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+          const base = 'https://xopo6o.github.io/ASHUR/wall-variants/';
+          const pages = [
+            ['01-babylon-inventory.html','01-babylon-inventory'],
+            ['02-arcade-dendy.html','02-arcade-dendy'],
+            ['03-assyrian-royal.html','03-assyrian-royal'],
+            ['04-neon-night-market.html','04-neon-night-market'],
+            ['05-obsidian-analytics.html','05-obsidian-analytics']
+          ];
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const results = [];
+            for (const [path,name] of pages) {
+              for (const mode of ['desktop','mobile']) {
+                const context = await browser.newContext(mode === 'desktop'
+                  ? { viewport:{width:1440,height:1000}, deviceScaleFactor:1 }
+                  : { viewport:{width:390,height:844}, deviceScaleFactor:1, isMobile:true, hasTouch:true });
+                const page = await context.newPage();
+                const errors = [];
+                page.on('pageerror', e => errors.push(String(e)));
+                let response = null;
+                for (let attempt=0; attempt<8; attempt++) {
+                  try {
+                    response = await page.goto(base+path, {waitUntil:'networkidle',timeout:45000});
+                    if (response && response.ok()) break;
+                  } catch (e) { if (attempt===7) errors.push(String(e)); }
+                  await page.waitForTimeout(10000);
+                }
+                await page.waitForTimeout(2500);
+                const title = await page.title().catch(()=> '');
+                const body = await page.locator('body').innerText().catch(()=> '');
+                const file = `screenshots/${mode}/${name}.png`;
+                await page.screenshot({path:file,fullPage:true,animations:'disabled'});
+                results.push({name,mode,status:response?.status() ?? null,title,bodyLength:body.length,bodyStart:body.slice(0,180),errors,screenshot:file});
+                await context.close();
+              }
+            }
+            fs.writeFileSync('screenshots/results.json',JSON.stringify(results,null,2));
+            await browser.close();
+            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length)) process.exitCode=1;
+          })();
+          EOF
+          node capture.cjs
+
+      - name: Build visual contact sheets
+        if: always()
+        run: |
+          python - <<'PY'
+          from PIL import Image, ImageOps, ImageDraw
+          import glob, os
+          for mode in ('desktop','mobile'):
+              files=sorted(glob.glob(f'screenshots/{mode}/*.png'))
+              if not files: continue
+              thumbs=[]
+              for f in files:
+                  im=Image.open(f).convert('RGB')
+                  im.thumbnail((420,560) if mode=='desktop' else (220,560))
+                  tile=Image.new('RGB',(440 if mode=='desktop' else 240,600),'#101827')
+                  tile.paste(im,((tile.width-im.width)//2,28))
+                  ImageDraw.Draw(tile).text((12,8),os.path.basename(f),fill='white')
+                  thumbs.append(tile)
+              sheet=Image.new('RGB',(len(thumbs)*thumbs[0].width,600),'#101827')
+              for i,im in enumerate(thumbs): sheet.paste(im,(i*im.width,0))
+              sheet.save(f'screenshots/{mode}-contact-sheet.jpg',quality=90)
+          PY
+
+      - name: Upload screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashur-visual-screenshot-qa
+          path: screenshots/
+          if-no-files-found: warn
+          retention-days: 14
