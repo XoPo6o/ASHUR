@@ -32,6 +32,22 @@
  .wall-page .sub,.wall-page .hint,.wall-page .note,
  .wall-page .listitem p,.wall-page .disclaimer { font-size:14px !important; }
 }
+
+.live-paper{margin:14px 0 24px}
+.live-paper .live-status{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.live-paper .live-status .tag{font-family:"Press Start 2P",monospace;font-size:7px;padding:8px 10px}
+.live-paper .live-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.live-paper .live-metric{background:rgba(17,25,35,.88);border:1px solid rgba(239,189,103,.25);padding:14px;min-width:0}
+.live-paper .live-metric .label{font-family:"Press Start 2P",monospace;font-size:7px;line-height:2;color:#b9a987}
+.live-paper .live-metric .value{font-family:"Pixelify Sans",sans-serif;font-size:25px;font-weight:700;overflow-wrap:anywhere}
+.live-paper .live-table{width:100%;border-collapse:collapse;min-width:720px}
+.live-paper .live-table th,.live-paper .live-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;white-space:nowrap}
+.live-paper .live-table th{font-family:"Press Start 2P",monospace;font-size:7px;color:#efbd67}
+.live-paper .live-table td{font-size:14px}
+.live-paper .live-table-wrap{overflow-x:auto}
+.live-paper .live-note{font-size:13px;color:#b8bdc7;margin-top:10px}
+.live-paper .live-error{border-color:rgba(237,55,109,.55)}
+@media(max-width:700px){.live-paper .live-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.live-paper .live-metric{padding:10px}.live-paper .live-metric .value{font-size:21px}.live-paper .live-table td{font-size:13px}}
 </style>
 </head>
 <body class="wall-page">
@@ -136,7 +152,9 @@
 </section>
 
 <section id="paper">
-<div class="section-head"><div><div class="eyebrow">05 / Forward paper monitoring</div><h2>Paper trading · последний срез</h2></div><p>Снимок состояния после цикла 24 ноября 2026, 01:50 UTC. Это не накопленный финансовый результат и не полная equity curve.</p></div>
+<div class="section-head"><div><div class="eyebrow">05 / Forward paper monitoring</div><h2>Paper trading · live snapshot</h2></div><p>Автоматически проверяемые данные Paper/Shadow из SQLite и runtime. Обновление примерно раз в 15 минут.</p></div>
+<div id="livePaperData" class="live-paper" aria-live="polite"><div class="panel"><h3>ЗАГРУЗКА PAPER/SHADOW ДАННЫХ</h3><p class="sub">Проверяю свежесть heartbeat, шесть стратегий и торговый ledger…</p></div></div>
+<div class="section-head" style="margin-top:22px"><div><div class="eyebrow">ARCHIVE / 24 NOV 2026</div><h2>Архивный снимок · не текущие данные</h2></div><p>Исторические значения ниже сохранены для сравнения. Текущий баланс и P&amp;L отображаются в блоке live snapshot выше.</p></div>
 <div class="grid4">
 <div class="metric"><div class="label">Virtual cash</div><div class="value">9,997.84</div><div class="hint">USDT · после цикла</div></div>
 <div class="metric"><div class="label">Open positions</div><div class="value">0</div><div class="hint">портфель flat</div></div>
@@ -180,6 +198,43 @@
 function filterRows(){const q=document.getElementById('filter').value.toLowerCase();document.querySelectorAll('#candidateTable tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
 function sortTable(col){const table=document.getElementById('candidateTable'),body=table.tBodies[0],rows=[...body.rows];const asc=table.dataset.sortCol==col?table.dataset.sortDir!=='asc':true;rows.sort((a,b)=>{let x=a.cells[col].innerText.replace(/[+%−]/g,'').trim(),y=b.cells[col].innerText.replace(/[+%−]/g,'').trim();let nx=Number(x),ny=Number(y);return Number.isNaN(nx)||Number.isNaN(ny)?x.localeCompare(y)*(asc?1:-1):(nx-ny)*(asc?1:-1)});rows.forEach(r=>body.appendChild(r));table.dataset.sortCol=col;table.dataset.sortDir=asc?'asc':'desc'}
 function downloadCSV(){const rows=[['Pair','TF','ADX','ATR','Test trades','Test return','Signal'],...([...document.querySelectorAll('#candidateTable tbody tr')].map(r=>[...r.cells].map(c=>c.innerText)))];const csv=rows.map(r=>r.map(v=>'"'+v.replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='ASHUR_v4.1_candidates.csv';a.click();URL.revokeObjectURL(a.href)}
+
+async function loadLivePaperData(){
+ const root=document.getElementById('livePaperData');
+ const esc=v=>String(v??'—').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+ const num=v=>Number.isFinite(Number(v))?Number(v):0;
+ const money=v=>num(v).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const stamp=v=>v?new Date(v).toLocaleString('ru-RU',{dateStyle:'short',timeStyle:'short',timeZone:'UTC'})+' UTC':'—';
+ try{
+  const response=await fetch('./wall-data.json?ts='+Date.now(),{cache:'no-store'});
+  if(!response.ok) throw new Error('HTTP '+response.status);
+  const d=await response.json();
+  if(d.mode!=='PAPER_ONLY'||!Array.isArray(d.accounts)||d.accounts.length!==6) throw new Error('Проверка режима или состава стратегий не пройдена');
+  const accounts=d.accounts;
+  const cash=accounts.reduce((s,a)=>s+num(a.cash),0);
+  const equity=accounts.reduce((s,a)=>s+num(a.equity),0);
+  const pnl=accounts.reduce((s,a)=>s+num(a.net_pnl),0);
+  const trades=Number(d.ledger?.total_closed_trades??d.closed_trades?.length??0);
+  const healthy=d.worker_health?.all_strategies_ok===true&&d.worker_health?.all_protections_ok===true&&d.worker_health?.error_count===0;
+  const rows=accounts.map(a=>'<tr><td><b>'+esc(a.strategy_id)+'</b></td><td>'+esc(a.symbol)+'</td><td>'+money(a.equity)+'</td><td class="'+(num(a.net_pnl)>=0?'positive':'negative')+'">'+(num(a.net_pnl)>=0?'+':'')+money(a.net_pnl)+'</td><td>'+esc(a.trades)+'</td><td>'+money(a.fees)+'</td><td>'+money(a.last_price)+'</td></tr>').join('');
+  const closed=(d.closed_trades||[]).slice(-20).reverse();
+  const tradeRows=closed.length?closed.map(t=>'<tr><td>'+esc(t.strategy_id)+'</td><td>'+esc(t.symbol)+'</td><td>'+money(t.entry)+' → '+money(t.exit)+'</td><td class="'+(num(t.pnl)>=0?'positive':'negative')+'">'+(num(t.pnl)>=0?'+':'')+money(t.pnl)+'</td><td>'+esc(t.reason)+'</td><td>'+esc(stamp(t.closed_at))+'</td></tr>').join(''):'<tr><td colspan="6">Закрытых сделок пока нет</td></tr>';
+  root.innerHTML=
+   '<div class="live-status"><span class="tag">'+(healthy?'RUNTIME HEALTHY':'HEALTH WARNING')+'</span><span class="tag">PAPER ONLY · REAL ORDERS OFF</span><span class="tag">HEARTBEAT '+esc(d.source_heartbeat_age_seconds)+' SEC AGO</span></div>'+
+   '<div class="live-metrics">'+
+    '<div class="live-metric"><div class="label">TOTAL CASH</div><div class="value">'+money(cash)+' <small>USDT</small></div></div>'+
+    '<div class="live-metric"><div class="label">TOTAL EQUITY</div><div class="value">'+money(equity)+' <small>USDT</small></div></div>'+
+    '<div class="live-metric"><div class="label">NET P&amp;L</div><div class="value '+(pnl>=0?'positive':'negative')+'">'+(pnl>=0?'+':'')+money(pnl)+' <small>USDT</small></div></div>'+
+    '<div class="live-metric"><div class="label">CLOSED TRADES</div><div class="value">'+esc(trades)+'</div></div>'+
+   '</div>'+
+   '<div class="panel"><h3>ШЕСТЬ PAPER-СТРАТЕГИЙ</h3><p class="sub">Equity и P&amp;L рассчитаны по изолированным paper-счетам</p><div class="live-table-wrap"><table class="live-table"><thead><tr><th>Strategy</th><th>Pair</th><th>Equity</th><th>Net P&amp;L</th><th>Trades</th><th>Fees</th><th>Last price</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+   '<div class="panel" style="margin-top:12px"><h3>ПОСЛЕДНИЕ ЗАКРЫТЫЕ СДЕЛКИ</h3><p class="sub">Последние '+closed.length+' сделок из SQLite ledger</p><div class="live-table-wrap"><table class="live-table"><thead><tr><th>Strategy</th><th>Pair</th><th>Entry → Exit</th><th>Net P&amp;L</th><th>Reason</th><th>Closed UTC</th></tr></thead><tbody>'+tradeRows+'</tbody></table></div></div>'+
+   '<p class="live-note">Источник: SillyDev runtime + SQLite ledger · Snapshot: '+esc(stamp(d.generated_at))+' · Baseline: '+esc(d.experiment?.baseline_id)+' · Ledger integrity: '+esc(d.ledger?.integrity)+' · История ограничена последними 300 закрытыми сделками.</p>';
+ }catch(error){
+  root.innerHTML='<div class="panel live-error"><h3>LIVE PAPER DATA UNAVAILABLE</h3><p class="sub">Не удалось подтвердить актуальность данных. Старые цифры не выдаются за текущие.</p><p class="live-note">'+esc(error.message)+'</p></div>';
+ }
+}
+loadLivePaperData();
 </script>
 
 </body></html>
