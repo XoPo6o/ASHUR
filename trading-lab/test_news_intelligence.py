@@ -33,6 +33,14 @@ class TestNewsIntelligence(unittest.TestCase):
         self.assertEqual(opener.call_count, 2)
         sleeper.assert_called_once_with(2.0)
 
+    def test_retry_after_accepts_http_date(self):
+        fixed_now = news.datetime(2026, 11, 26, 12, 0, 0, tzinfo=news.timezone.utc)
+        retry_at = fixed_now + news.timedelta(seconds=3)
+        with patch.object(news, "utc_now", return_value=fixed_now):
+            self.assertEqual(
+                news._retry_after_seconds(format_datetime(retry_at)), 3.0
+            )
+
     def test_fetch_feed_does_not_retry_when_retry_after_exceeds_safe_wait(self):
         url = "https://news.google.com/rss/search?q=Bitcoin"
         rate_limited = HTTPError(url, 429, "Too Many Requests",
