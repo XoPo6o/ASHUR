@@ -71,9 +71,10 @@ jobs:
                       };
                     });
                     const fixedPath = html.includes('../wall-data.json') && html.includes('../wall-history.json');
+                    const deployedLatest = html.includes('ashur-advanced-order-fix') && html.includes('ashur-reference-compact-core');
                     const ready = readiness.snapshot && readiness.worker && readiness.equity && readiness.strategies >= 6 && readiness.matrixRows >= 6;
                     const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2);
-                    if (response && response.status()===200 && ready && noOverflow && fixedPath) break;
+                    if (response && response.status()===200 && ready && noOverflow && fixedPath && deployedLatest) break;
                   } catch (e) { errors.push(String(e)); }
                   await page.waitForTimeout(10000);
                 }
@@ -88,7 +89,7 @@ jobs:
                     strategyCount: document.querySelectorAll('#strategy-grid > *').length,
                     matrixRows: document.querySelectorAll('#comparison-rows tr').length,
                     horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
-                    chartPresent: !!document.querySelector('#equity-chart path')
+                    chartPresent: !!document.querySelector('#equity-chart')?.children.length
                   };
                 });
                 const file = `screenshots/${mode}/${name}.png`;
