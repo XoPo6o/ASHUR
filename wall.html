@@ -2,239 +2,120 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080a0d">
-<meta name="description" content="Стена ASHUR — исследования, испытания и результаты, стратегия v4.0/v4.1, результаты тестов и paper trading.">
-<title>ASHUR | Стена</title>
+<meta name="theme-color" content="#0b141d">
+<title>ASHUR · THE WALL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ashur-theme.css">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Shared pixel typography hierarchy */
-.wall-page, .wall-page * { font-family:"Pixelify Sans",sans-serif !important; font-synthesis:none; }
-.wall-page h1,.wall-page h2,.wall-page h3,.wall-page .brand,
-.wall-page .eyebrow,.wall-page .tag,.wall-page .label,.wall-page .smalllabel,
-.wall-page .k,.wall-page .pill,.wall-page .statusline,.wall-page .navlinks a,
-.wall-page .toolbar,.wall-page .footer,.wall-page .btn {
-  font-family:"Press Start 2P",monospace !important;
-}
-.wall-page { font-size:17px; line-height:1.6; }
-.wall-page p,.wall-page li,.wall-page td,.wall-page th,
-.wall-page .sub,.wall-page .hint,.wall-page .note,
-.wall-page .listitem p,.wall-page .disclaimer { font-size:15px !important; line-height:1.7 !important; }
-.wall-page h1 { font-size:clamp(18px,3vw,28px) !important; line-height:1.8 !important; }
-.wall-page h2 { font-size:clamp(14px,2vw,20px) !important; line-height:1.8 !important; }
-.wall-page h3 { font-size:10px !important; line-height:2 !important; }
-.wall-page .eyebrow,.wall-page .tag,.wall-page .label,.wall-page .smalllabel,
-.wall-page .k,.wall-page .pill,.wall-page .statusline,.wall-page .navlinks a,
-.wall-page .toolbar,.wall-page .footer { font-size:7px !important; line-height:2 !important; }
-@media(max-width:700px) {
- .wall-page p,.wall-page li,.wall-page td,.wall-page th,
- .wall-page .sub,.wall-page .hint,.wall-page .note,
- .wall-page .listitem p,.wall-page .disclaimer { font-size:14px !important; }
-}
-
-.live-paper{margin:14px 0 24px}
-.live-paper .live-status{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
-.live-paper .live-status .tag{font-family:"Press Start 2P",monospace;font-size:7px;padding:8px 10px}
-.live-paper .live-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
-.live-paper .live-metric{background:rgba(17,25,35,.88);border:1px solid rgba(239,189,103,.25);padding:14px;min-width:0}
-.live-paper .live-metric .label{font-family:"Press Start 2P",monospace;font-size:7px;line-height:2;color:#b9a987}
-.live-paper .live-metric .value{font-family:"Pixelify Sans",sans-serif;font-size:25px;font-weight:700;overflow-wrap:anywhere}
-.live-paper .live-table{width:100%;border-collapse:collapse;min-width:720px}
-.live-paper .live-table th,.live-paper .live-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;white-space:nowrap}
-.live-paper .live-table th{font-family:"Press Start 2P",monospace;font-size:7px;color:#efbd67}
-.live-paper .live-table td{font-size:14px}
-.live-paper .live-table-wrap{overflow-x:auto}
-.live-paper .live-note{font-size:13px;color:#b8bdc7;margin-top:10px}
-.live-paper .live-error{border-color:rgba(237,55,109,.55)}
-@media(max-width:700px){.live-paper .live-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.live-paper .live-metric{padding:10px}.live-paper .live-metric .value{font-size:21px}.live-paper .live-table td{font-size:13px}}
+:root{color-scheme:dark;--bg:#0b141d;--panel:#142633;--panel2:#1b3340;--line:#365564;--gold:#e4b86a;--cyan:#65d8d0;--green:#65d69a;--red:#ed7774;--ink:#e9e5d6;--muted:#9ab0b6;--pixel:'Press Start 2P',monospace;--mono:'IBM Plex Mono',monospace;--shadow:#050a0e}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 14% 0%,#65d8d01c,transparent 38%),radial-gradient(ellipse at 88% 12%,#e4b86a18,transparent 32%),linear-gradient(145deg,#09121a,#101e2a 48%,#0b141d);background-attachment:fixed;color:var(--ink);font:14px/1.5 Inter,Arial,sans-serif}
+a{color:inherit;text-decoration:none}.shell{width:min(1440px,calc(100% - 36px));margin:auto}
+.topbar{position:sticky;top:0;z-index:20;background:#0b151ef2;border-bottom:2px solid #3a5963;box-shadow:0 5px 0 #050a0e;backdrop-filter:blur(12px)}
+.topinner{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;align-items:center;gap:12px;color:#f4d99d}.sig{width:39px;height:39px;display:grid;place-items:center}.sig svg{width:100%;filter:drop-shadow(0 0 10px #65d8d055)}.brandname{font:13px var(--pixel)}.brandname small{display:block;margin-top:7px;font:9px var(--mono);letter-spacing:.18em;color:var(--muted)}
+.nav{display:flex;gap:6px;flex-wrap:wrap}.nav a{padding:10px 11px;color:var(--muted);font:8px var(--pixel);border:1px solid transparent}.nav a:hover{color:var(--cyan);border-color:#416c78;background:#132a35}
+.live{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #497b69;color:var(--green);font:8px var(--pixel);white-space:nowrap}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+main{padding:26px 0 55px}.hero{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:6px 0 20px}.eyebrow{font:8px var(--pixel);color:var(--gold);letter-spacing:.1em}h1{font:clamp(16px,2.2vw,23px)/1.8 var(--pixel);color:#f0d8a5;margin:10px 0}.subtitle{color:var(--muted);font-size:11px}.daystamp{border:2px solid #9c7746;padding:11px 14px;text-align:right;background:#152733;box-shadow:3px 3px 0 var(--shadow)}.daystamp strong{display:block;color:var(--gold);font:10px var(--pixel);line-height:1.8}.daystamp span{font:10px var(--mono);color:var(--muted)}
+.grid{display:grid;gap:13px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:13px}.panel{position:relative;min-width:0;background:linear-gradient(145deg,#192f3c,#11232e);border:2px solid var(--line);box-shadow:4px 4px 0 var(--shadow)}.panel:before{content:"";position:absolute;inset:4px;border:1px solid #41606a;pointer-events:none;opacity:.35}
+.metric{padding:17px;min-height:116px}.label{font:7px/1.8 var(--pixel);color:var(--muted);min-height:26px}.value{font:clamp(20px,2.3vw,29px) var(--mono);font-weight:700;color:var(--gold);margin-top:8px;letter-spacing:-.04em}.foot{font:10px var(--mono);color:var(--muted);margin-top:5px}.positive{color:var(--green)!important}.negative{color:var(--red)!important}.cyan{color:var(--cyan)!important}
+.twocol{grid-template-columns:minmax(0,1.5fr) minmax(280px,.85fr);margin-bottom:13px}.threecol{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:13px}.panelhead{padding:14px 16px 11px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #355260}.paneltitle{font:9px/1.8 var(--pixel);color:#f0d8a5}.tag{font:7px var(--pixel);color:var(--cyan);border:1px solid #376d76;padding:6px 7px;white-space:nowrap}.panelbody{padding:15px}.chart{width:100%;height:auto;display:block;overflow:visible}.chart text{font-family:var(--mono);fill:#9ab0b6;font-size:10px}.chart .gridline{stroke:#385361;stroke-dasharray:3 5}.chart .axis{stroke:#6b8a91}.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font:10px var(--mono);margin-top:8px}.legend b{color:var(--cyan)}
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:16px;min-height:190px}.donut{width:min(165px,45%);height:auto;overflow:visible}.donut .track{fill:none;stroke:#294451;stroke-width:15}.donut .arc{fill:none;stroke:var(--cyan);stroke-width:15;stroke-linecap:butt;transform:rotate(-90deg);transform-origin:60px 60px}.donut .arc.gold{stroke:var(--gold)}.donut .arc.green{stroke:var(--green)}.donut .arc.red{stroke:var(--red)}.donut .center{font:700 17px var(--mono);fill:var(--ink);text-anchor:middle}.donut .center-sub{font:7px var(--pixel);fill:var(--muted);text-anchor:middle}.donut-legend{display:grid;gap:9px;min-width:0}.donut-legend div{display:flex;align-items:center;gap:7px;color:var(--muted);font:10px var(--mono)}.swatch{width:8px;height:8px;display:inline-block;background:var(--cyan);flex:none}.swatch.gold{background:var(--gold)}.swatch.green{background:var(--green)}.swatch.red{background:var(--red)}
+.strategy-grid{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:13px}.strategy{padding:14px}.strategy-top{display:flex;justify-content:space-between;gap:8px;align-items:start}.strategy-name{font:8px/1.8 var(--pixel);color:#f0d8a5}.status{font:7px var(--pixel);padding:5px 6px;border:1px solid #4b806c;color:var(--green);white-space:nowrap}.strategy-meta{margin:9px 0 11px;color:var(--muted);font:10px var(--mono)}.strategy-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.strategy-stat{padding:8px 7px;background:#10212b;border:1px solid #385965}.strategy-stat span{display:block;color:var(--muted);font:8px var(--mono)}.strategy-stat b{display:block;margin-top:5px;color:var(--gold);font:12px var(--mono)}
+.table-wrap{overflow-x:auto}.trades{width:100%;border-collapse:collapse;min-width:620px;font:10px var(--mono)}.trades th,.trades td{padding:10px 9px;border-bottom:1px solid #304b58;text-align:left;white-space:nowrap}.trades th{font:7px var(--pixel);color:var(--muted)}.trades td{color:var(--ink)}.empty{padding:22px;text-align:center;color:var(--muted);font:10px var(--mono)}
+.footer{padding:18px 0;border-top:1px solid #34505d;color:#829ba2;font:9px var(--mono);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.footer b{color:var(--gold)}
+@media(max-width:1000px){.metrics{grid-template-columns:repeat(2,1fr)}.twocol,.threecol{grid-template-columns:1fr 1fr}.strategy-grid{grid-template-columns:repeat(2,1fr)}.topinner{flex-wrap:wrap;padding:10px 0}.nav{order:3;width:100%}}
+@media(max-width:650px){.shell{width:calc(100% - 20px)}.topinner{gap:8px}.brandname{font-size:11px}.live{margin-left:auto;font-size:7px}.nav{overflow-x:auto;flex-wrap:nowrap}.nav a{white-space:nowrap;padding:10px 9px;font-size:7px}.hero{display:block}.daystamp{display:inline-block;text-align:left;margin-top:9px}.metrics{gap:8px}.metric{padding:12px;min-height:100px}.metric .label{font-size:6px}.metric .value{font-size:19px}.twocol,.threecol{grid-template-columns:1fr}.strategy-grid{grid-template-columns:1fr}.panelbody{padding:12px}.panelhead{padding:12px}.paneltitle{font-size:8px}.donut-wrap{min-height:160px}.donut{width:145px}.footer{font-size:8px}}
 </style>
 </head>
-<body class="wall-page">
-<header><div class="wrap nav"><a class="brand" href="index.html"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path d="M7 0h2v3h3v2h3v2h1v2h-4v2h-2v3H7v-3H5v-2H1V7h3V5h3Z" fill="#efbd67"/><rect x="7" y="5" width="2" height="5" fill="#ed376d"/><rect x="5" y="7" width="6" height="2" fill="#ed376d"/></svg><span class="brand-name">ASHUR</span><span class="brand-section">/ СТЕНА</span></a><nav class="navlinks"><a href="#overview"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="1" y="2" width="14" height="12" fill="#315a83"/><rect x="3" y="4" width="4" height="3" fill="#efbd67"/><rect x="9" y="4" width="4" height="3" fill="#ed376d"/><rect x="3" y="9" width="10" height="2" fill="#43d8c9"/></svg><span>СВОДКА</span></a><a href="#validation"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="1" width="12" height="14" fill="#d8bd83"/><rect x="4" y="4" width="8" height="2" fill="#6d4937"/><rect x="4" y="8" width="6" height="2" fill="#6d4937"/></svg><span>ВАЛИДАЦИЯ</span></a><a href="#candidates"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="2" width="4" height="4" fill="#efbd67"/><rect x="10" y="2" width="4" height="4" fill="#43d8c9"/><rect x="2" y="10" width="4" height="4" fill="#ed376d"/><rect x="10" y="10" width="4" height="4" fill="#d8bd83"/></svg><span>КАНДИДАТЫ</span></a><a href="#engineering"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="6" y="1" width="4" height="14" fill="#efbd67"/><rect x="1" y="6" width="14" height="4" fill="#43d8c9"/><rect x="6" y="6" width="4" height="4" fill="#ed376d"/></svg><span>ИНЖЕНЕРИЯ</span></a><a href="#paper"><svg class="nav-pixel-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="1" width="12" height="14" fill="#d8bd83"/><rect x="4" y="4" width="8" height="1" fill="#6d4937"/><rect x="4" y="7" width="8" height="1" fill="#6d4937"/><rect x="4" y="10" width="5" height="1" fill="#6d4937"/></svg><span>PAPER</span></a></nav><div class="actions"><a class="btn home-link" href="index.html">← ГЛАВНАЯ</a><button class="btn" onclick="downloadCSV()">EXPORT CSV</button><button class="btn primary" onclick="window.print()">EXPORT PDF ↗</button></div></div></header>
-<main>
-<div class="wrap">
-<section class="hero" id="overview">
-<div class="eyebrow">ASHUR SYSTEMS / QUANT RESEARCH DIVISION · TECHNICAL REPORT 001</div>
-<h1>Исследование стратегий<br><span class="gold">v4.0 — v4.1</span></h1>
-<p>Технический срез исследовательского контура ASHUR: историческое тестирование, фильтры качества, отбор конфигураций, инженерная проверка исполнения и состояние paper trading. Данные отчёта зафиксированы на 24 ноября 2026 года.</p>
-<div class="hero-meta"><span class="tag">SPOT · LONG ONLY</span><span class="tag">NO LEVERAGE</span><span class="tag">1H / 4H</span><span class="tag">BTC · ETH · SOL · BNB</span><span class="tag">PAPER ONLY</span></div>
-<div class="statusline"><span class="dot"></span> RESEARCH STATUS: EDGE NOT CONFIRMED · REAL CAPITAL DISABLED</div>
+<body>
+<header class="topbar"><div class="shell topinner">
+<a class="brand" href="index.html"><span class="sig"><svg viewBox="0 0 40 40"><path d="M20 1l5 10 11-5-5 11 8 3-8 4 5 11-11-5-5 9-5-9-11 5 5-11-8-4 8-3-5-11 11 5z" fill="#e4b86a" stroke="#fff0c2" stroke-width="2"/><path d="M20 9l4 8 8 3-8 4-4 8-4-8-8-4 8-3z" fill="#65d8d0"/></svg></span><span class="brandname">ASHUR<small>THE WALL · PIXEL TRADING TERMINAL</small></span></a>
+<nav class="nav"><a href="#overview">OVERVIEW</a><a href="#charts">ANALYTICS</a><a href="#strategies">STRATEGIES</a><a href="#trades">TRADES</a></nav>
+<div class="live"><i class="dot"></i><span id="feed-status">PAPER ONLY · CONNECTING</span></div>
+</div></header>
+<main class="shell" id="overview">
+<div class="hero"><div><div class="eyebrow">ASHUR / THE WALL / COMMAND CENTER</div><h1>СТЕНА ТОРГОВОЙ ИМПЕРИИ</h1><div class="subtitle">30-DAY PAPER EXPERIMENT · BASELINE V2 · READ-ONLY</div></div><div class="daystamp"><strong>BASELINE V2</strong><span id="updated">WAITING FOR SNAPSHOT</span></div></div>
+<section class="grid metrics">
+<article class="panel metric"><div class="label">TOTAL EQUITY</div><div class="value" id="total-equity">—</div><div class="foot">USDT · 6 ISOLATED ACCOUNTS</div></article>
+<article class="panel metric"><div class="label">NET P&amp;L</div><div class="value" id="net-pnl">—</div><div class="foot" id="pnl-foot">SINCE BASELINE</div></article>
+<article class="panel metric"><div class="label">CLOSED TRADES</div><div class="value" id="closed-trades">—</div><div class="foot" id="trades-foot">SQLITE LEDGER</div></article>
+<article class="panel metric"><div class="label">OPEN POSITIONS</div><div class="value" id="open-positions">—</div><div class="foot" id="positions-foot">PAPER PORTFOLIO</div></article>
 </section>
-
-<section>
-<div class="section-head"><div><div class="eyebrow">01 / Executive snapshot</div><h2>Ключевые показатели</h2></div><p>Главный вывод: ужесточение отбора в v4.1 уменьшило число кандидатов, но out-of-sample тест пока не подтвердил устойчивое преимущество.</p></div>
-<div class="grid4">
-<div class="metric"><div class="label">v4.0 · test return avg</div><div class="value positive">+1.22%</div><div class="hint">40 grid-кандидатов · held-out</div></div>
-<div class="metric"><div class="label">v4.1 · test return avg</div><div class="value negative">−0.45%</div><div class="hint">6 отобранных конфигураций</div></div>
-<div class="metric"><div class="label">v4.1 · average PF</div><div class="value">0.986</div><div class="hint">ниже порога 1.0</div></div>
-<div class="metric"><div class="label">v4.1 · max DD avg</div><div class="value">3.60%</div><div class="hint">среднее по 6 кандидатам</div></div>
-</div>
-<div class="split">
-<div class="panel"><h3>Out-of-sample return</h3><p class="sub">Средняя доходность held-out test, не прогноз будущей доходности</p>
-<div class="bars">
-<div class="barrow"><span>v4.0</span><div class="track"><div class="fill" style="width:100%"></div></div><b class="positive">+1.22%</b></div>
-<div class="barrow"><span>v4.1</span><div class="track"><div class="fill neg" style="width:37%"></div></div><b class="negative">−0.45%</b></div>
-</div><div class="note"><strong>Интерпретация.</strong> Более строгий фильтр не сделал результат прибыльным на held-out выборке. Это полезный отрицательный результат, а не повод ослаблять критерии задним числом.</div></div>
-<div class="panel"><h3>Сравнение исследовательских запусков</h3><p class="sub">Метрики рассчитаны на разных наборах отобранных конфигураций</p>
-<div class="compare">
-<div class="compare-card"><h3>V4.0 / BASELINE</h3><div class="big positive">+1.22%</div><div class="smalllabel">AVG TEST RETURN</div><div class="minirow"><span>Median return</span><b>+0.43%</b></div><div class="minirow"><span>Avg profit factor</span><b>3.14</b></div><div class="minirow"><span>Avg max DD</span><b>2.51%</b></div><div class="minirow"><span>Test trades</span><b>733</b></div></div>
-<div class="compare-card"><h3>V4.1 / QUALITY GATE</h3><div class="big negative">−0.45%</div><div class="smalllabel">AVG TEST RETURN</div><div class="minirow"><span>Median return</span><b>−0.38%</b></div><div class="minirow"><span>Avg profit factor</span><b>0.986</b></div><div class="minirow"><span>Avg max DD</span><b>3.60%</b></div><div class="minirow"><span>Test trades</span><b>159</b></div></div>
-</div></div>
-</div>
+<section class="grid twocol" id="charts">
+<article class="panel"><div class="panelhead"><div class="paneltitle">EQUITY CURVE / BASELINE → NOW</div><span class="tag">USDT</span></div><div class="panelbody"><svg class="chart" id="equity-chart" viewBox="0 0 720 250" role="img" aria-label="Portfolio equity curve"></svg><div class="legend"><span><b>━━</b> OBSERVED EQUITY</span><span id="equity-range">BASELINE V2</span></div></div></article>
+<article class="panel"><div class="panelhead"><div class="paneltitle">PORTFOLIO ALLOCATION</div><span class="tag">6 ACCOUNTS</span></div><div class="panelbody"><div class="donut-wrap"><svg class="donut" id="allocation-donut" viewBox="0 0 120 120"></svg><div class="donut-legend" id="allocation-legend"></div></div></div></article>
 </section>
-
-<section id="validation">
-<div class="section-head"><div><div class="eyebrow">02 / Research protocol</div><h2>Методология и quality gate</h2></div><p>Оба исследования используют одинаковую историческую базу и модель издержек. Разница — в правилах допуска стратегий в финальный список.</p></div>
-<div class="twocol">
-<div class="panel"><h3>Общие параметры эксперимента</h3><p class="sub">Historical strategy research · 480 grid combinations</p>
-<div class="list">
-<div class="listitem"><div class="k">DATASET</div><p>1095 дней исторических данных; BTC/USDT, ETH/USDT, SOL/USDT, BNB/USDT.</p></div>
-<div class="listitem"><div class="k">TIMEFRAMES</div><p>1h и 4h; 480 комбинаций параметров.</p></div>
-<div class="listitem"><div class="k">SPLIT</div><p>60% train / 20% validation / 20% held-out test.</p></div>
-<div class="listitem"><div class="k">EXECUTION</div><p>Spot long-only, без плеча; комиссия 0.10% на каждую сторону и slippage 0.05% на каждую сторону.</p></div>
-<div class="listitem"><div class="k">SELECTION</div><p>Top 5 на рынок по validation return; контрольные стратегии и benchmarks включены отдельно.</p></div>
-</div></div>
-<div class="panel"><h3>Что изменилось в v4.1</h3><p class="sub">Validation gate стал строже до формирования списка кандидатов</p>
-<div class="list">
-<div class="listitem"><div class="k">V4.0</div><p>Отбор top 5 по validation return, минимум 8 сделок. Из 40 grid-кандидатов 16 были положительными на validation.</p></div>
-<div class="listitem"><div class="k">V4.1 GATE</div><p>Validation trades ≥ 12; return &gt; 0; profit factor &gt; 1.0.</p></div>
-<div class="listitem"><div class="k">PASS</div><p>8 конфигураций прошли quality gate; 6 попали в итоговый список после лимита top candidates.</p></div>
-<div class="listitem"><div class="k">TEST</div><p>Только 3 из 6 финальных кандидатов оказались положительными на held-out test.</p></div>
-</div></div>
-</div>
-<div class="note"><strong>Важное ограничение v4.0.</strong> Средний PF 3.14 выглядит завышенным отдельными экстремальными значениями на малом количестве сделок (например, PF 41.106 при 8 сделках). Поэтому v4.0 нельзя трактовать как доказательство устойчивого edge.</div>
+<section class="grid threecol">
+<article class="panel"><div class="panelhead"><div class="paneltitle">SYSTEM HEALTH</div><span class="tag">WORKER</span></div><div class="panelbody"><div class="donut-wrap"><svg class="donut" id="health-donut" viewBox="0 0 120 120"></svg><div class="donut-legend" id="health-legend"></div></div></div></article>
+<article class="panel"><div class="panelhead"><div class="paneltitle">STRATEGY P&amp;L</div><span class="tag">BY ACCOUNT</span></div><div class="panelbody"><svg class="chart" id="pnl-chart" viewBox="0 0 420 190" role="img" aria-label="Profit and loss by strategy"></svg><div class="legend"><span><b>━━</b> NET P&amp;L · USDT</span></div></div></article>
+<article class="panel"><div class="panelhead"><div class="paneltitle">TRADE OUTCOMES</div><span class="tag">CLOSED</span></div><div class="panelbody"><div class="donut-wrap"><svg class="donut" id="trades-donut" viewBox="0 0 120 120"></svg><div class="donut-legend" id="trades-legend"></div></div></div></article>
 </section>
-
-<section id="candidates">
-<div class="section-head"><div><div class="eyebrow">03 / Candidate matrix</div><h2>Кандидаты v4.1</h2></div><p>Все шесть конфигураций из финального списка. Положительная доходность на тесте сама по себе не означает достаточную статистическую надёжность.</p></div>
-<div class="toolbar"><input class="search" id="filter" placeholder="Фильтр: ETH, BTC, ADX, ATR…" oninput="filterRows()"><span class="tag">EMA 50 / 200 · 1H</span><span class="tag">SORT: CLICK COLUMN</span></div>
-<div class="table-wrap"><table id="candidateTable">
-<thead><tr><th onclick="sortTable(0)">Pair ↕</th><th onclick="sortTable(1)">TF ↕</th><th onclick="sortTable(2)">ADX ↕</th><th onclick="sortTable(3)">ATR ↕</th><th onclick="sortTable(4)">Test trades ↕</th><th onclick="sortTable(5)">Test return ↕</th><th>Signal</th></tr></thead>
-<tbody>
-<tr><td class="pair">ETH/USDT</td><td>1H</td><td>27</td><td>2.00</td><td>20</td><td class="positive">+1.778%</td><td><span class="pill">POSITIVE</span></td></tr>
-<tr><td class="pair">ETH/USDT</td><td>1H</td><td>24</td><td>1.75</td><td>23</td><td class="positive">+0.705%</td><td><span class="pill">POSITIVE</span></td></tr>
-<tr><td class="pair">ETH/USDT</td><td>1H</td><td>24</td><td>2.00</td><td>22</td><td class="positive">+0.604%</td><td><span class="pill">POSITIVE</span></td></tr>
-<tr><td class="pair">BTC/USDT</td><td>1H</td><td>27</td><td>1.50</td><td>32</td><td class="negative">−1.366%</td><td><span class="pill loss">NEGATIVE</span></td></tr>
-<tr><td class="pair">ETH/USDT</td><td>1H</td><td>21</td><td>1.75</td><td>29</td><td class="negative">−1.634%</td><td><span class="pill loss">NEGATIVE</span></td></tr>
-<tr><td class="pair">ETH/USDT</td><td>1H</td><td>18</td><td>1.75</td><td>33</td><td class="negative">−2.788%</td><td><span class="pill loss">NEGATIVE</span></td></tr>
-</tbody></table></div>
-<div class="note"><strong>Прочтение таблицы.</strong> Все финальные кандидаты используют EMA 50/200 и таймфрейм 1H. Три ETH-конфигурации показали небольшой плюс, но выборка сделок остаётся ограниченной. Никакой кандидат не переводится на реальные средства по результатам этого отчёта.</div>
+<section class="panel" id="strategies" style="margin-bottom:13px"><div class="panelhead"><div class="paneltitle">STRATEGY ROOM / SIX GUARDIANS</div><span class="tag">1,000 USDT EACH · PAPER</span></div><div class="panelbody"><div class="grid strategy-grid" id="strategy-grid"></div></div></section>
+<section class="grid twocol" id="trades">
+<article class="panel"><div class="panelhead"><div class="paneltitle">CLOSED TRADE HISTORY</div><span class="tag">SQLITE · LAST 300</span></div><div class="panelbody"><div class="table-wrap"><table class="trades"><thead><tr><th>STRATEGY</th><th>PAIR</th><th>ENTRY → EXIT</th><th>NET P&amp;L</th><th>REASON</th><th>CLOSED UTC</th></tr></thead><tbody id="trade-rows"><tr><td colspan="6" class="empty">LOADING LEDGER…</td></tr></tbody></table></div></div></article>
+<article class="panel"><div class="panelhead"><div class="paneltitle">RISK &amp; EXECUTION</div><span class="tag">VERIFIED</span></div><div class="panelbody"><svg class="chart" id="risk-chart" viewBox="0 0 420 190" role="img" aria-label="Risk and execution status"></svg><div class="legend" id="risk-legend"></div></div></article>
 </section>
-
-<section id="engineering">
-<div class="section-head"><div><div class="eyebrow">04 / Execution engineering</div><h2>Инженерная проверка</h2></div><p>Техническая корректность исполнения проверяется отдельно от доходности стратегии. Успешные тесты кода не подтверждают рыночное преимущество.</p></div>
-<div class="grid4">
-<div class="metric"><div class="label">Realistic execution</div><div class="value positive">19 / 19</div><div class="hint">последние доступные запуски успешны</div></div>
-<div class="metric"><div class="label">Daemon regression</div><div class="value">10 / 25</div><div class="hint">success в выборке последних запусков</div></div>
-<div class="metric"><div class="label">Latest daemon run</div><div class="value positive">PASS</div><div class="hint">актуальный коммит</div></div>
-<div class="metric"><div class="label">Watchdog</div><div class="value positive">6 / 6</div><div class="hint">стратегий успешно · 0 ошибок</div></div>
-</div>
-<div class="panel" style="margin-top:14px"><h3>Покрытие realistic execution tests</h3><p class="sub">Проверки поведения исполнения, не симуляция прибыльности</p>
-<div class="twocol">
-<div class="list">
-<div class="listitem"><div class="k">WALK-FORWARD</div><p>Проверка последовательного обучения и оценки вне обучающего окна.</p></div>
-<div class="listitem"><div class="k">COST MODEL</div><p>Spread, slippage и market impact; стрессовые сценарии 2× и 3× издержек.</p></div>
-<div class="listitem"><div class="k">CAPACITY</div><p>Ограничения ёмкости стратегии, partial fills и реалистичность исполнения.</p></div>
-</div>
-<div class="list">
-<div class="listitem"><div class="k">DAEMON</div><p>В промежуточных коммитах были ошибки регрессии; последний запуск на актуальном коммите успешен.</p></div>
-<div class="listitem"><div class="k">DEPLOY</div><p>В истории были промежуточные fail/cancelled; последний deployment monitor завершился успешно.</p></div>
-<div class="listitem"><div class="k">WATCHDOG</div><p>23 ноября: сервер running, PAPER_ONLY, heartbeat 193 секунды, ошибок не зафиксировано.</p></div>
-</div>
-</div></div>
-<div class="runlist" style="margin-top:14px">
-<div class="run"><div class="runhead"><span>STRATEGY RESEARCH / V4.0</span><span class="ok">SUCCESS</span></div><p>Полный исторический прогон и артефакты исследования.</p><a href="https://github.com/XoPo6o/ASHUR/actions/runs/45159943288" target="_blank" rel="noopener">OPEN ACTION RUN ↗</a></div>
-<div class="run"><div class="runhead"><span>STRATEGY RESEARCH / V4.1</span><span class="ok">SUCCESS</span></div><p>Quality-gated исследование и итоговые кандидаты.</p><a href="https://github.com/XoPo6o/ASHUR/actions/runs/45163399055" target="_blank" rel="noopener">OPEN ACTION RUN ↗</a></div>
-<div class="run"><div class="runhead"><span>WATCHDOG / 23 NOV</span><span class="ok">SUCCESS</span></div><p>Состояние процесса и heartbeat на сервере.</p><a href="https://github.com/XoPo6o/ASHUR/actions/runs/45271997541" target="_blank" rel="noopener">OPEN ACTION RUN ↗</a></div>
-<div class="run"><div class="runhead"><span>PAPER CYCLE / 24 NOV</span><span class="ok">SUCCESS</span></div><p>Последний зафиксированный автоматический paper-цикл.</p><a href="https://github.com/XoPo6o/ASHUR/actions/runs/45307995660" target="_blank" rel="noopener">OPEN ACTION RUN ↗</a></div>
-</div>
-</section>
-
-<section id="paper">
-<div class="section-head"><div><div class="eyebrow">05 / Forward paper monitoring</div><h2>Paper trading · live snapshot</h2></div><p>Автоматически проверяемые данные Paper/Shadow из SQLite и runtime. Обновление примерно раз в 15 минут.</p></div>
-<div id="livePaperData" class="live-paper" aria-live="polite"><div class="panel"><h3>ЗАГРУЗКА PAPER/SHADOW ДАННЫХ</h3><p class="sub">Проверяю свежесть heartbeat, шесть стратегий и торговый ledger…</p></div></div>
-<div class="section-head" style="margin-top:22px"><div><div class="eyebrow">ARCHIVE / 24 NOV 2026</div><h2>Архивный снимок · не текущие данные</h2></div><p>Исторические значения ниже сохранены для сравнения. Текущий баланс и P&amp;L отображаются в блоке live snapshot выше.</p></div>
-<div class="grid4">
-<div class="metric"><div class="label">Virtual cash</div><div class="value">9,997.84</div><div class="hint">USDT · после цикла</div></div>
-<div class="metric"><div class="label">Open positions</div><div class="value">0</div><div class="hint">портфель flat</div></div>
-<div class="metric"><div class="label">Execution mode</div><div class="value gold">PAPER</div><div class="hint">реальные ордера отключены</div></div>
-<div class="metric"><div class="label">Last cycle</div><div class="value">01:50</div><div class="hint">24 Nov 2026 · UTC</div></div>
-</div>
-<div class="panel" style="margin-top:14px"><h3>Что произошло в последнем цикле</h3><p class="sub">По данным лога paper worker</p>
-<div class="list">
-<div class="listitem"><div class="k">BTC/USDT</div><p>Позиция закрыта по STOP LOSS.</p></div>
-<div class="listitem"><div class="k">ETH/USDT</div><p>Позиция закрыта по STOP LOSS.</p></div>
-<div class="listitem"><div class="k">SIGNALS</div><p>Сигналы HOLD; новых входов в этом цикле не было.</p></div>
-<div class="listitem"><div class="k">LEDGER</div><p>SQLite ledger находится в ветке <code>mvp-paper-trading</code>, путь <code>trading-lab/ashur_paper.db</code>.</p></div>
-</div></div>
-<div class="note"><strong>Ограничение данных.</strong> Cash 9,997.84 USDT — один моментальный снимок. Для расчёта полного P&amp;L, win rate, комиссий, cumulative equity и max drawdown необходимо анализировать всю SQLite-историю сделок и событий. Эти показатели здесь намеренно не выдумываются.</div>
-</section>
-
-<section>
-<div class="section-head"><div><div class="eyebrow">06 / Decision log</div><h2>Выводы и следующие контрольные точки</h2></div></div>
-<div class="twocol">
-<div class="panel"><h3>Текущий вердикт</h3><p class="sub">24 NOV 2026 · RESEARCH REVIEW</p>
-<div class="list">
-<div class="listitem"><div class="k">STRATEGY</div><p>Устойчивое статистическое преимущество не подтверждено ни v4.0, ни v4.1.</p></div>
-<div class="listitem"><div class="k">CAPITAL</div><p>Не включать реальные средства. Продолжать paper-forward наблюдение.</p></div>
-<div class="listitem"><div class="k">V4.1</div><p>Сохранить строгий quality gate; не подбирать параметры под held-out test.</p></div>
-<div class="listitem"><div class="k">DATA</div><p>Собрать полную equity history и разложить стоп-лоссы BTC/ETH по причинам и условиям рынка.</p></div>
-</div></div>
-<div class="panel"><h3>Следующие этапы</h3><p class="sub">Приоритеты исследовательского контура</p>
-<div class="list">
-<div class="listitem"><div class="k">01 / LEDGER</div><p>Полная выгрузка SQLite: P&amp;L, win rate, fees, equity curve, max drawdown.</p></div>
-<div class="listitem"><div class="k">02 / EXITS</div><p>Разбор BTC и ETH закрытий по стопам: цены входа/выхода, волатильность, причина срабатывания.</p></div>
-<div class="listitem"><div class="k">03 / ROBUSTNESS</div><p>Сверка walk-forward, стресс-тестов издержек и одинаковых условий сравнения v4.0/v4.1.</p></div>
-<div class="listitem"><div class="k">04 / FORWARD</div><p>Продолжить paper-run и отбирать только устойчивые конфигурации на новых данных.</p></div>
-</div></div>
-</div>
-<p class="disclaimer">Технический исследовательский отчёт, не инвестиционная рекомендация. Исторические результаты не гарантируют будущую доходность. В отчёте используются зафиксированные результаты CI и backtest на 24.11.2026; live-рыночные котировки не подмешиваются. Все стратегии остаются в режиме PAPER ONLY.</p>
-</section>
-<div class="footer"><span>ASHUR · СТЕНА · BUILD 001</span><span>DATA SNAPSHOT: 2026-11-24 · UTC</span><a href="https://github.com/XoPo6o/ASHUR" target="_blank" rel="noopener">SOURCE REPOSITORY ↗</a></div>
-</div>
+<div class="footer"><span><b>ASHUR</b> · THE WALL · READ-ONLY PAPER TERMINAL</span><span id="footer-state">WAITING FOR VERIFIED SNAPSHOT</span></div>
 </main>
 <script>
-function filterRows(){const q=document.getElementById('filter').value.toLowerCase();document.querySelectorAll('#candidateTable tbody tr').forEach(r=>r.style.display=r.innerText.toLowerCase().includes(q)?'':'none')}
-function sortTable(col){const table=document.getElementById('candidateTable'),body=table.tBodies[0],rows=[...body.rows];const asc=table.dataset.sortCol==col?table.dataset.sortDir!=='asc':true;rows.sort((a,b)=>{let x=a.cells[col].innerText.replace(/[+%−]/g,'').trim(),y=b.cells[col].innerText.replace(/[+%−]/g,'').trim();let nx=Number(x),ny=Number(y);return Number.isNaN(nx)||Number.isNaN(ny)?x.localeCompare(y)*(asc?1:-1):(nx-ny)*(asc?1:-1)});rows.forEach(r=>body.appendChild(r));table.dataset.sortCol=col;table.dataset.sortDir=asc?'asc':'desc'}
-function downloadCSV(){const rows=[['Pair','TF','ADX','ATR','Test trades','Test return','Signal'],...([...document.querySelectorAll('#candidateTable tbody tr')].map(r=>[...r.cells].map(c=>c.innerText)))];const csv=rows.map(r=>r.map(v=>'"'+v.replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='ASHUR_v4.1_candidates.csv';a.click();URL.revokeObjectURL(a.href)}
-
-async function loadLivePaperData(){
- const root=document.getElementById('livePaperData');
- const esc=v=>String(v??'—').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
- const num=v=>Number.isFinite(Number(v))?Number(v):0;
- const money=v=>num(v).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2});
- const stamp=v=>v?new Date(v).toLocaleString('ru-RU',{dateStyle:'short',timeStyle:'short',timeZone:'UTC'})+' UTC':'—';
- try{
-  const response=await fetch('./wall-data.json?ts='+Date.now(),{cache:'no-store'});
-  if(!response.ok) throw new Error('HTTP '+response.status);
-  const d=await response.json();
-  if(d.mode!=='PAPER_ONLY'||!Array.isArray(d.accounts)||d.accounts.length!==6) throw new Error('Проверка режима или состава стратегий не пройдена');
-  const accounts=d.accounts;
-  const cash=accounts.reduce((s,a)=>s+num(a.cash),0);
-  const equity=accounts.reduce((s,a)=>s+num(a.equity),0);
-  const pnl=accounts.reduce((s,a)=>s+num(a.net_pnl),0);
-  const trades=Number(d.ledger?.total_closed_trades??d.closed_trades?.length??0);
-  const healthy=d.worker_health?.all_strategies_ok===true&&d.worker_health?.all_protections_ok===true&&d.worker_health?.error_count===0;
-  const rows=accounts.map(a=>'<tr><td><b>'+esc(a.strategy_id)+'</b></td><td>'+esc(a.symbol)+'</td><td>'+money(a.equity)+'</td><td class="'+(num(a.net_pnl)>=0?'positive':'negative')+'">'+(num(a.net_pnl)>=0?'+':'')+money(a.net_pnl)+'</td><td>'+esc(a.trades)+'</td><td>'+money(a.fees)+'</td><td>'+money(a.last_price)+'</td></tr>').join('');
-  const closed=(d.closed_trades||[]).slice(-20).reverse();
-  const tradeRows=closed.length?closed.map(t=>'<tr><td>'+esc(t.strategy_id)+'</td><td>'+esc(t.symbol)+'</td><td>'+money(t.entry)+' → '+money(t.exit)+'</td><td class="'+(num(t.pnl)>=0?'positive':'negative')+'">'+(num(t.pnl)>=0?'+':'')+money(t.pnl)+'</td><td>'+esc(t.reason)+'</td><td>'+esc(stamp(t.closed_at))+'</td></tr>').join(''):'<tr><td colspan="6">Закрытых сделок пока нет</td></tr>';
-  root.innerHTML=
-   '<div class="live-status"><span class="tag">'+(healthy?'RUNTIME HEALTHY':'HEALTH WARNING')+'</span><span class="tag">PAPER ONLY · REAL ORDERS OFF</span><span class="tag">HEARTBEAT '+esc(d.source_heartbeat_age_seconds)+' SEC AGO</span></div>'+
-   '<div class="live-metrics">'+
-    '<div class="live-metric"><div class="label">TOTAL CASH</div><div class="value">'+money(cash)+' <small>USDT</small></div></div>'+
-    '<div class="live-metric"><div class="label">TOTAL EQUITY</div><div class="value">'+money(equity)+' <small>USDT</small></div></div>'+
-    '<div class="live-metric"><div class="label">NET P&amp;L</div><div class="value '+(pnl>=0?'positive':'negative')+'">'+(pnl>=0?'+':'')+money(pnl)+' <small>USDT</small></div></div>'+
-    '<div class="live-metric"><div class="label">CLOSED TRADES</div><div class="value">'+esc(trades)+'</div></div>'+
-   '</div>'+
-   '<div class="panel"><h3>ШЕСТЬ PAPER-СТРАТЕГИЙ</h3><p class="sub">Equity и P&amp;L рассчитаны по изолированным paper-счетам</p><div class="live-table-wrap"><table class="live-table"><thead><tr><th>Strategy</th><th>Pair</th><th>Equity</th><th>Net P&amp;L</th><th>Trades</th><th>Fees</th><th>Last price</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
-   '<div class="panel" style="margin-top:12px"><h3>ПОСЛЕДНИЕ ЗАКРЫТЫЕ СДЕЛКИ</h3><p class="sub">Последние '+closed.length+' сделок из SQLite ledger</p><div class="live-table-wrap"><table class="live-table"><thead><tr><th>Strategy</th><th>Pair</th><th>Entry → Exit</th><th>Net P&amp;L</th><th>Reason</th><th>Closed UTC</th></tr></thead><tbody>'+tradeRows+'</tbody></table></div></div>'+
-   '<p class="live-note">Источник: SillyDev runtime + SQLite ledger · Snapshot: '+esc(stamp(d.generated_at))+' · Baseline: '+esc(d.experiment?.baseline_id)+' · Ledger integrity: '+esc(d.ledger?.integrity)+' · История ограничена последними 300 закрытыми сделками.</p>';
- }catch(error){
-  root.innerHTML='<div class="panel live-error"><h3>LIVE PAPER DATA UNAVAILABLE</h3><p class="sub">Не удалось подтвердить актуальность данных. Старые цифры не выдаются за текущие.</p><p class="live-note">'+esc(error.message)+'</p></div>';
- }
+(()=>{
+const $=id=>document.getElementById(id), n=v=>Number(v??0), fmt=v=>n(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}), signed=v=>(n(v)>=0?'+':'−')+fmt(Math.abs(n(v))), esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const colors=['#65d8d0','#e4b86a','#65d69a','#8e9ce6','#d18bb5','#78a8d4'];
+function donut(id,center,sub,segments){
+ const svg=$(id),circ=2*Math.PI*43;let offset=0;
+ const total=segments.reduce((s,x)=>s+x.value,0);
+ let rings='<circle class="track" cx="60" cy="60" r="43"/>';
+ if(total>0){for(const seg of segments){const len=circ*seg.value/total;rings+='<circle class="arc '+(seg.cls||'')+'" cx="60" cy="60" r="43" stroke="'+seg.color+'" stroke-dasharray="'+len+' '+(circ-len)+'" stroke-dashoffset="'+(-offset)+'"/>';offset+=len;}}
+ else rings+='<circle class="arc" cx="60" cy="60" r="43" stroke="#45616b" stroke-dasharray="2 5"/>';
+ svg.innerHTML=rings+'<text class="center" x="60" y="57">'+esc(center)+'</text><text class="center-sub" x="60" y="72">'+esc(sub)+'</text>';
 }
-loadLivePaperData();
+function legend(id,items){$(id).innerHTML=items.map(x=>'<div><i class="swatch" style="background:'+x.color+'"></i>'+esc(x.label)+' <b style="color:#e9e5d6;margin-left:auto">'+esc(x.value)+'</b></div>').join('');}
+function lineChart(id,values,labels,opts={}){
+ const svg=$(id),W=720,H=250,L=58,R=18,T=18,B=34,iw=W-L-R,ih=H-T-B;
+ if(!values.length){svg.innerHTML='<text x="360" y="120" text-anchor="middle" class="empty">NO OBSERVED DATA</text>';return;}
+ let lo=Math.min(...values),hi=Math.max(...values);if(hi===lo){const pad=Math.max(Math.abs(hi)*.002,.5);lo-=pad;hi+=pad;}else{const pad=(hi-lo)*.18;lo-=pad;hi+=pad;}
+ const x=i=>L+(values.length===1?iw/2:i*iw/(values.length-1)),y=v=>T+(hi-v)*ih/(hi-lo);
+ let s='';for(let j=0;j<5;j++){const yy=T+j*ih/4,val=hi-j*(hi-lo)/4;s+='<line class="gridline" x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'"/><text x="'+(L-8)+'" y="'+(yy+3)+'" text-anchor="end">'+(opts.money?fmt(val):val.toFixed(2))+'</text>';}
+ s+='<line class="axis" x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'"/>';
+ const pts=values.map((v,i)=>x(i)+','+y(v)).join(' ');
+ if(values.length>1){s+='<polygon points="'+x(0)+','+(H-B)+' '+pts+' '+x(values.length-1)+','+(H-B)+'" fill="#65d8d0" opacity=".10"/><polyline points="'+pts+'" fill="none" stroke="#65d8d0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';}
+ values.forEach((v,i)=>s+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="4" fill="#e4b86a" stroke="#0b141d" stroke-width="2"/>');
+ const labs=values.length===1?[0]:[0,Math.floor((values.length-1)/2),values.length-1];labs.forEach(i=>s+='<text x="'+x(i)+'" y="'+(H-9)+'" text-anchor="middle">'+esc(labels[i]||'')+'</text>');
+ svg.innerHTML=s;
+}
+function barChart(id,accounts){
+ const svg=$(id),W=420,H=190,L=118,R=48,T=10,row=24,gap=5,vals=accounts.map(a=>n(a.net_pnl)),max=Math.max(.1,...vals.map(Math.abs));
+ let s='';accounts.forEach((a,i)=>{const y=T+i*(row+gap),v=n(a.net_pnl),zero=L+((W-L-R)/2),half=(W-L-R)/2,w=Math.abs(v)/max*(half-8);s+='<text x="'+(L-8)+'" y="'+(y+15)+'" text-anchor="end">'+esc(a.strategy_id.replace(/_/g,' ').replace('BNB ','').replace('SOL ','S '))+'</text><line x1="'+zero+'" y1="'+y+'" x2="'+zero+'" y2="'+(y+row-2)+'" stroke="#56717b"/>';if(v!==0)s+='<rect x="'+(v>=0?zero:zero-w)+'" y="'+(y+4)+'" width="'+Math.max(2,w)+'" height="14" fill="'+(v>=0?'#65d69a':'#ed7774')+'"/>';s+='<text x="'+(W-R+4)+'" y="'+(y+15)+'" fill="'+(v>=0?'#65d69a':'#ed7774')+'" style="font-family:var(--mono);font-size:10px">'+signed(v)+'</text>';});
+ svg.innerHTML=s;
+}
+function riskChart(d){
+ const svg=$('risk-chart'),health=d.worker_health||{},vals=[health.successful_strategies||0,health.error_count||0,health.protection_degraded_positions||0],labels=['STRATEGIES OK','ERRORS','PROTECTION ALERTS'],colors2=['#65d69a','#ed7774','#e4b86a'];let s='';
+ vals.forEach((v,i)=>{const y=18+i*53;s+='<text x="4" y="'+(y+11)+'">'+labels[i]+'</text><rect x="4" y="'+(y+19)+'" width="370" height="15" fill="#0b1821" stroke="#45616b"/><rect x="4" y="'+(y+19)+'" width="'+(i===0?370:Math.min(370,v*35))+'" height="15" fill="'+colors2[i]+'"/><text x="390" y="'+(y+31)+'" text-anchor="end" fill="#e9e5d6">'+v+'</text>'});
+ svg.innerHTML=s;
+}
+function render(d){
+ const a=d.accounts||[],equity=a.reduce((s,x)=>s+n(x.equity),0),cash=a.reduce((s,x)=>s+n(x.cash),0),pnl=a.reduce((s,x)=>s+n(x.net_pnl),0),closed=d.closed_trades||[],positions=d.open_positions||[],health=d.worker_health||{};
+ $('feed-status').textContent='PAPER ONLY · '+(health.all_strategies_ok?'LIVE':'CHECK');$('updated').textContent=new Date(d.generated_at).toLocaleString('en-GB',{timeZone:'UTC',hour12:false})+' UTC';
+ $('total-equity').textContent=fmt(equity)+' USDT';$('net-pnl').textContent=signed(pnl)+' USDT';$('net-pnl').className='value '+(pnl>=0?'positive':'negative');$('pnl-foot').textContent=signed(pnl/6000*100)+'% · RETURN';
+ $('closed-trades').textContent=String(d.ledger?.total_closed_trades??closed.length);$('trades-foot').textContent=fmt(a.reduce((s,x)=>s+n(x.fees),0))+' USDT FEES';$('open-positions').textContent=String(positions.length);$('positions-foot').textContent=fmt(cash)+' USDT CASH';
+ const baseline=6000,stamp=d.experiment?.baseline_at||d.generated_at;
+ lineChart('equity-chart',[baseline,equity],[new Date(stamp).toLocaleDateString('en-GB',{timeZone:'UTC'}),new Date(d.generated_at).toLocaleDateString('en-GB',{timeZone:'UTC'})],{money:true});
+ $('equity-range').textContent='START '+fmt(baseline)+' → NOW '+fmt(equity);
+ const total=a.reduce((s,x)=>s+n(x.equity),0)||1;
+ donut('allocation-donut','6','ACCOUNTS',a.map((x,i)=>({value:n(x.equity)/total,color:colors[i%colors.length]})));
+ legend('allocation-legend',a.map((x,i)=>({color:colors[i%colors.length],label:x.strategy_id.replace(/_/g,' '),value:(n(x.equity)/total*100).toFixed(1)+'%'})));
+ const healthy=n(health.successful_strategies),errors=n(health.error_count),degraded=n(health.protection_degraded_positions);
+ donut('health-donut',healthy+'/6','HEALTHY',[{value:healthy,color:'#65d69a'},{value:Math.max(0,6-healthy),color:'#ed7774'}]);
+ legend('health-legend',[{color:'#65d69a',label:'STRATEGIES OK',value:healthy+'/6'},{color:'#ed7774',label:'ERRORS',value:String(errors)},{color:'#e4b86a',label:'PROTECTION ALERTS',value:String(degraded)}]);
+ const wins=closed.filter(x=>n(x.pnl)>0).length,losses=closed.filter(x=>n(x.pnl)<0).length,flat=closed.length-wins-losses;
+ donut('trades-donut',String(closed.length),'CLOSED',[{value:wins,color:'#65d69a'},{value:losses,color:'#ed7774'},{value:flat,color:'#e4b86a'}]);
+ legend('trades-legend',[{color:'#65d69a',label:'WINS',value:String(wins)},{color:'#ed7774',label:'LOSSES',value:String(losses)},{color:'#e4b86a',label:'FLAT',value:String(flat)}]);
+ barChart('pnl-chart',a);
+ $('strategy-grid').innerHTML=a.map((x,i)=>'<article class="panel strategy"><div class="strategy-top"><div class="strategy-name">'+esc(x.strategy_id.replace(/_/g,' '))+'</div><span class="status">'+(health.all_strategies_ok?'OK':'CHECK')+'</span></div><div class="strategy-meta">'+esc(x.symbol)+' · '+esc(x.grade)+'</div><div class="strategy-stats"><div class="strategy-stat"><span>EQUITY</span><b>'+fmt(x.equity)+'</b></div><div class="strategy-stat"><span>NET P&amp;L</span><b class="'+(n(x.net_pnl)>=0?'positive':'negative')+'">'+signed(x.net_pnl)+'</b></div><div class="strategy-stat"><span>TRADES</span><b>'+esc(x.trades)+'</b></div></div></article>').join('');
+ $('trade-rows').innerHTML=closed.length?closed.slice().reverse().map(t=>'<tr><td>'+esc(t.strategy_id)+'</td><td>'+esc(t.symbol)+'</td><td>'+fmt(t.entry)+' → '+fmt(t.exit)+'</td><td class="'+(n(t.pnl)>=0?'positive':'negative')+'">'+signed(t.pnl)+'</td><td>'+esc(t.reason)+'</td><td>'+esc(new Date(t.closed_at).toLocaleString('en-GB',{timeZone:'UTC'}))+'</td></tr>').join(''):'<tr><td colspan="6" class="empty">NO CLOSED TRADES YET</td></tr>';
+ riskChart(d);$('footer-state').textContent='SNAPSHOT '+new Date(d.generated_at).toISOString()+' · SQLITE '+(d.ledger?.integrity||'UNKNOWN');
+}
+async function refresh(){try{const r=await fetch('./wall-data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const d=await r.json();if(d.mode!=='PAPER_ONLY'||!Array.isArray(d.accounts)||d.accounts.length!==6)throw Error('INVALID SNAPSHOT');render(d);}catch(e){$('feed-status').textContent='DATA UNAVAILABLE';$('footer-state').textContent='SNAPSHOT VALIDATION FAILED';}}
+refresh();setInterval(refresh,60000);
+})();
 </script>
-
 </body></html>
