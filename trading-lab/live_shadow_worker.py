@@ -836,8 +836,18 @@ def realized_equity_history(trades, starting_cash, baseline_at):
 
 
 def export_status(conn, worker_errors=0, successful_strategies=None, signal_diagnostics_rows=None):
-    # Keep status export safe for legacy/test databases created before News Intelligence.
+    # Keep status export safe for legacy/test databases created before optional reporting tables.
     news.init_db(conn)
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS shadow_equity_snapshots(
+           id INTEGER PRIMARY KEY AUTOINCREMENT, snapshot_at TEXT NOT NULL,
+           strategy_id TEXT NOT NULL, cash REAL NOT NULL, equity REAL NOT NULL,
+           realized_pnl REAL NOT NULL, unrealized_pnl REAL NOT NULL, fees_total REAL NOT NULL,
+           UNIQUE(strategy_id, snapshot_at))"""
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_equity_snapshots_strategy_time ON shadow_equity_snapshots(strategy_id, snapshot_at)"
+    )
     accounts = conn.execute("SELECT * FROM shadow_accounts ORDER BY strategy_id").fetchall()
     successful_strategies = len(STRATEGIES) - int(worker_errors) if successful_strategies is None else int(successful_strategies)
     snapshot_at = now()
