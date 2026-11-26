@@ -894,6 +894,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
                                     "baseline_veto_outcomes": news.veto_outcome_stats(conn, since=baseline_at_value) if baseline_at_value else None},
               "signal_diagnostics": signal_diagnostics_rows or [],
               "accounts": []}
+    conn.execute("DELETE FROM shadow_equity_snapshots WHERE snapshot_at<?", (cutoff_30d,))
     for a in accounts:
         pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
         mark = conn.execute("SELECT price,updated_at FROM shadow_marks WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
@@ -959,10 +960,6 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
                (snapshot_at,strategy_id,cash,equity,realized_pnl,unrealized_pnl,fees_total)
                VALUES(?,?,?,?,?,?,?)""",
             (snapshot_at, a["strategy_id"], cash, equity, realized, unrealized, fees_total),
-        )
-        conn.execute(
-            "DELETE FROM shadow_equity_snapshots WHERE snapshot_at<?",
-            (cutoff_30d,),
         )
         history_rows = conn.execute(
             """SELECT snapshot_at,equity FROM shadow_equity_snapshots
