@@ -68,6 +68,13 @@ main>section:not(.metrics):not(#charts):not(#strategies){order:5}
 .footer{border-top:5px ridge #f6b94b!important;background:#063d80!important;padding:20px!important}
 @media(max-width:1050px){.strategy-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:650px){.hero{min-height:190px!important;padding:18px 14px!important}.data-meta{grid-template-columns:repeat(2,minmax(0,1fr))!important}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}.strategy-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#charts{grid-template-columns:minmax(0,1fr) 112px!important;gap:6px!important}.plaque-value{font-size:18px}.plaque-value.small{font-size:15px}.plaque-label{font-size:6px}.strategy{min-height:125px}}
+</style><style id="ashur-game-menu-3">
+.footer{order:99!important}
+.game-menu{order:4!important;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:0 0 16px;padding:8px;background:#063d80;border:5px ridge #f6b94b;box-shadow:inset 0 0 0 3px #050812,0 6px 0 #050812}
+.game-menu a{display:flex;align-items:center;justify-content:center;gap:9px;min-height:58px;background:linear-gradient(180deg,#063d80,#f6b94b33);border:3px ridge #f6b94b;color:#fff1a6;font:8px var(--pixel);text-shadow:1px 2px #050812}
+.game-menu b{font:24px/1 serif;color:#fff1a6;text-shadow:2px 2px #063d80}
+.game-menu a:hover{background:#f6b94b;color:#063d80}
+@media(max-width:650px){.game-menu{gap:3px;padding:4px}.game-menu a{min-height:48px;gap:2px;flex-direction:column;font-size:5px}.game-menu b{font-size:18px}}
 </style></head>
 <body class="skin-arcade">
 <header class="topbar"><div class="shell topinner">
@@ -87,6 +94,7 @@ main>section:not(.metrics):not(#charts):not(#strategies){order:5}
 <article class="panel"><div class="panelhead"><div class="paneltitle">EQUITY CURVE / BASELINE → NOW</div><span class="tag">USDT</span></div><div class="panelbody"><svg class="chart" id="equity-chart" viewBox="0 0 720 250" role="img" aria-label="Portfolio equity curve"></svg><div class="legend"><span><b>━━</b> OBSERVED EQUITY</span><span id="equity-range">BASELINE V2</span></div></div></article>
 <article class="panel pnl-plaque"><div class="panelhead"><div class="paneltitle">P&amp;L / TREASURY</div><span class="tag">LIVE PAPER</span></div><div class="panelbody"><div class="plaque-value" id="wall-pnl">—</div><div class="plaque-label">NET PROFIT · USDT</div><div class="plaque-divider"></div><div class="plaque-label">MAX DRAWDOWN</div><div class="plaque-value small" id="wall-dd">—</div><div class="plaque-divider"></div><div class="plaque-label">ACTIVE GUARDIANS</div><div class="plaque-value small" id="wall-workers">—</div><div hidden><svg class="donut" id="allocation-donut" viewBox="0 0 120 120"></svg><div id="allocation-legend"></div></div></div></article>
 </section>
+<nav class="game-menu" aria-label="Игровое меню"><a href="#trades"><b>⚔</b><span>СДЕЛКИ</span></a><a href="#charts"><b>▥</b><span>АНАЛИТИКА</span></a><a href="#compare"><b>⬡</b><span>РИСК</span></a><a href="#strategies"><b>▤</b><span>ЖУРНАЛ</span></a><a href="#overview"><b>⚙</b><span>НАСТРОЙКИ</span></a></nav>
 <section class="grid threecol">
 <article class="panel"><div class="panelhead"><div class="paneltitle">SYSTEM HEALTH</div><span class="tag">WORKER</span></div><div class="panelbody"><div class="donut-wrap"><svg class="donut" id="health-donut" viewBox="0 0 120 120"></svg><div class="donut-legend" id="health-legend"></div></div></div></article>
 <article class="panel"><div class="panelhead"><div class="paneltitle">STRATEGY P&amp;L</div><span class="tag">BY ACCOUNT</span></div><div class="panelbody"><svg class="chart" id="pnl-chart" viewBox="0 0 420 190" role="img" aria-label="Profit and loss by strategy"></svg><div class="legend"><span><b>━━</b> NET P&amp;L · USDT</span></div></div></article>
