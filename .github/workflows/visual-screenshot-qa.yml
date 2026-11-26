@@ -93,7 +93,12 @@ jobs:
                     matrixRows: document.querySelectorAll('#comparison-rows tr').length,
                     horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
                     chartPresent: !!document.querySelector('#equity-chart')?.children.length,
-              sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css'))
+              sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css?v=20261126-4')),
+              navHidden: getComputedStyle(document.querySelector('.nav')).display === 'none',
+              heroSceneHidden: getComputedStyle(document.querySelector('.hero'),'::before').display === 'none',
+              healthColumns: getComputedStyle(document.querySelector('main>section.grid.threecol')).gridTemplateColumns.split(' ').length,
+              tradeLedgerColumns: getComputedStyle(document.querySelector('#trades')).gridTemplateColumns.split(' ').length,
+              riskInAdvanced: !!document.querySelector('.advanced-analytics #risk-chart')
                   };
                 });
                 const file = `screenshots/${mode}/${name}.png`;
@@ -104,7 +109,7 @@ jobs:
             }
             fs.writeFileSync('screenshots/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='KI.LAM / THE WALL' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
+            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='KI.LAM / THE WALL' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || !x.navHidden || !x.heroSceneHidden || x.healthColumns !== (x.mode==='mobile'?1:2) || x.tradeLedgerColumns !== 1 || !x.riskInAdvanced || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
           })();
           EOF
           node capture.cjs
