@@ -980,8 +980,7 @@ def run():
                     news.record_veto(conn, s["id"], s["symbol"], news_veto, price)
                     entry_signal = False
                     entry_gate_blockers.append("NEWS_VETO")
-                    event(conn, s["id"], "NEWS_VETO",
-                          f"new entry blocked by high-risk headline: {news_veto['title'][:240]}")
+                    log_news_veto_once(conn, s["id"], candle_id, news_veto)
                 if entry_signal:
                     entry_attempted = True
                     open_position(conn,s,price,float(row.atr))
