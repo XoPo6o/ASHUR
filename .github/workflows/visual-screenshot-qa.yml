@@ -91,7 +91,7 @@ jobs:
                     equity: txt('total-equity'),
                     strategyCount: document.querySelectorAll('#strategy-grid > *').length,
                     matrixRows: document.querySelectorAll('#comparison-rows tr').length,
-                    horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+                    horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),\n                    overflowNodes: Array.from(document.querySelectorAll('body *')).map(el=>({tag:el.tagName, id:el.id, cls:typeof el.className==='string'?el.className:'', left:Math.round(el.getBoundingClientRect().left), right:Math.round(el.getBoundingClientRect().right), width:Math.round(el.getBoundingClientRect().width)})).filter(x=>x.right>window.innerWidth+1 || x.left < -1).slice(0,12),
                     chartPresent: !!document.querySelector('#equity-chart')?.children.length,
               sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css?v=20261127-3')),
               navVisible: getComputedStyle(document.querySelector('.nav')).display !== 'none',
@@ -111,7 +111,7 @@ jobs:
             }
             fs.writeFileSync('screenshots/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='KI.LAM / THE WALL' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || !x.navVisible || !x.heroBackgroundPresent || !x.gameMenuVisible || (x.mode === 'desktop' && x.chartColumns !== 2) || x.tradeLedgerColumns !== 1 || !x.riskInAdvanced || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
+            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='ASHUR' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || !x.navVisible || !x.heroBackgroundPresent || !x.gameMenuVisible || (x.mode === 'desktop' && x.chartColumns !== 2) || x.tradeLedgerColumns !== (x.mode === 'desktop' ? 2 : 1) || !x.riskInAdvanced || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
           })();
           EOF
           node capture.cjs
