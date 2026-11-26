@@ -124,3 +124,16 @@ img, svg { max-width: 100%; }
   border: 3px ridge var(--gold) !important;
   box-shadow: 3px 3px 0 #050812 !important;
 }
+
+/* Narrow reference viewport: prevent child grids and plaques from widening the page. */
+@media (max-width: 650px) {
+  .shell { width: calc(100% - 16px) !important; max-width: 100% !important; }
+  main, main > section, .grid, .panel, #overview, #charts, #strategies, #trades,
+  .metrics, .strategy-grid, .game-menu, .skin-dock {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  #strategies .strategy-grid { width: 100% !important; }
+  #strategies .strategy { min-width: 0 !important; max-width: 100% !important; }
+  .hero, .panelhead, .panelbody { max-width: 100% !important; }
+}
