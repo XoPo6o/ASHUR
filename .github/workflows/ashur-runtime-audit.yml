@@ -144,6 +144,35 @@ jobs:
           conn.row_factory=sqlite3.Row
           integrity=conn.execute("PRAGMA integrity_check").fetchone()[0]
           meta=dict(conn.execute("SELECT key,value FROM ashur_meta"))
+          check_intervals={
+              "BNB_15M_EMA_TREND":900,
+              "BNB_1H_DONCHIAN_ADX25":3600,
+              "BNB_4H_ADX_TREND":14400,
+              "BNB_4H_KELTNER_ADX":14400,
+              "SOL_4H_DONCHIAN_VOL":14400,
+              "BNB_1D_DONCHIAN55":86400,
+          }
+          check_gap_report=[]
+          check_gap_failures=[]
+          for strategy_id,expected in check_intervals.items():
+              stamps=conn.execute(
+                  "SELECT created_at FROM shadow_events WHERE event='CHECK' AND strategy_id=? ORDER BY created_at",
+                  (strategy_id,)
+              ).fetchall()
+              parsed=[datetime.fromisoformat(row[0].replace("Z","+00:00")) for row in stamps]
+              age=(datetime.now(timezone.utc)-parsed[-1]).total_seconds() if parsed else None
+              gaps=[(parsed[i]-parsed[i-1]).total_seconds() for i in range(1,len(parsed))]
+              max_gap=max(gaps) if gaps else None
+              check_gap_report.append({
+                  "strategy_id":strategy_id,"checks":len(parsed),
+                  "latest_age_seconds":round(age,1) if age is not None else None,
+                  "max_gap_seconds":round(max_gap,1) if max_gap is not None else None,
+                  "expected_interval_seconds":expected
+              })
+              if not parsed or age is None or age>expected+900:
+                  check_gap_failures.append("STALE_CHECK:"+strategy_id)
+              if max_gap is not None and max_gap>expected+900:
+                  check_gap_failures.append("CHECK_GAP:"+strategy_id)
           checks=conn.execute(
               """SELECT strategy_id,MAX(created_at) AS latest,COUNT(*) AS total
                  FROM shadow_events WHERE event='CHECK' GROUP BY strategy_id"""
@@ -196,6 +225,7 @@ jobs:
           print("DB_BASELINE_ID="+str(meta.get("paper_baseline_id")))
           print("DB_BASELINE_AT="+str(meta.get("paper_baseline_at")))
           print("DB_CHECK_STRATEGIES="+str(len(checks)))
+          print("DB_CHECK_GAP_REPORT="+str(check_gap_report))
           for row in checks:
               print(f"CHECK strategy={row['strategy_id']} latest={row['latest']} count={row['total']}")
           print("DB_TRADES="+str([dict(row) for row in trades]))
@@ -214,6 +244,7 @@ jobs:
           if meta.get("paper_baseline_id")!="ashur-paper-30d-2026-11-25-v2":
               failures.append("SQLITE_BASELINE_MISMATCH")
           if len(checks)!=6: failures.append("CHECK_EVENT_STRATEGY_COUNT_MISMATCH")
+          failures.extend(check_gap_failures)
           if sum(int(row["total"]) for row in trades)!=sum(int(a.get("trades",0)) for a in json.load(open("/tmp/status.json")).get("accounts",[])):
               failures.append("STATUS_SQLITE_TRADE_COUNT_MISMATCH")
           if failures:
