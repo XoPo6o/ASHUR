@@ -30,6 +30,33 @@ jobs:
           API="https://sillydev.co.uk/panel/api/client"
           AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
 
+          EXPECTED_LIVE_COMMIT="$(git ls-remote https://github.com/XoPo6o/ASHUR.git refs/heads/ashur-live-shadow | awk '{print $1}')"
+          if [[ -z "$EXPECTED_LIVE_COMMIT" ]]; then
+            echo "::error::Could not resolve the current ashur-live-shadow HEAD."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            "$API/servers/$SILLYDEV_SERVER_ID/git" "${AUTH[@]}" > /tmp/git.json
+          export EXPECTED_LIVE_COMMIT
+          python - <<'PY'
+          import json, os
+          data=json.load(open("/tmp/git.json"))
+          attrs=data.get("attributes",data)
+          matches=[d for d in attrs.get("deployments",[]) if d.get("branch")=="ashur-live-shadow"]
+          if not matches:
+              raise SystemExit("FAIL: no ashur-live-shadow deployment record found")
+          matches.sort(key=lambda d:d.get("created_at",""), reverse=True)
+          latest=matches[0]
+          deployed=(latest.get("commit") or {}).get("sha")
+          expected=os.environ["EXPECTED_LIVE_COMMIT"]
+          print(f"LIVE_BRANCH_HEAD={expected}")
+          print(f"SILLYDEV_LATEST_DEPLOYMENT_STATUS={latest.get('status')}")
+          print(f"SILLYDEV_LATEST_DEPLOYMENT_COMMIT={deployed}")
+          if latest.get("status")!="succeeded" or deployed!=expected:
+              raise SystemExit("FAIL: deployed branch/commit does not match current live branch HEAD")
+          print("DEPLOYED_SHA_MATCH=PASS")
+          PY
+
           curl --fail-with-body --silent --show-error \
             "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" > /tmp/resources.json
 
