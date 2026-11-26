@@ -73,6 +73,14 @@ jobs:
                   f" protection={p.get('protection_status') if p else a.get('protection_status')}"
               )
 
+
+          for a in accounts:
+              for trade in a.get("recent_trades_30d", []):
+                  print(f"TRADE strategy={a.get('strategy_id')} id={trade.get('id')} entry={trade.get('entry')} exit={trade.get('exit')} net_pnl={trade.get('net_pnl')} fees={trade.get('fees')} reason={trade.get('reason')} opened_at={trade.get('opened_at')} closed_at={trade.get('closed_at')}")
+          news=d.get("news_intelligence",{})
+          print(f"NEWS_INTELLIGENCE={news}")
+          print(f"LIVE_SIGNAL_DIAGNOSTICS={len(d.get('signal_diagnostics',[]))}")
+
           if not stamp:
               raise SystemExit("FAIL: missing worker heartbeat timestamp")
           age=(datetime.now(timezone.utc)-datetime.fromisoformat(stamp.replace("Z","+00:00"))).total_seconds()
