@@ -92,6 +92,26 @@ def run():
         f"startup_grace={STARTUP_GRACE_SECONDS}s check_interval={CHECK_INTERVAL_SECONDS}s"
     )
 
+    # The dashboard is a separate read-only HTTP sidecar. It never shares the
+    # trading worker connection and is optional when the host supplies no port.
+    dashboard_server = None
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from dashboard.http_server import start_dashboard_server
+        dashboard_server = start_dashboard_server(log=_log)
+    except Exception as exc:
+        _log(f"DASHBOARD_HTTP_INIT_FAILED reason={type(exc).__name__}")
+
+    # History collection is an independent read-only sidecar. It writes only
+    # dashboard history storage and never opens the trading worker database.
+    history_collector = None
+    try:
+        from dashboard.history_store import start_history_collector
+        history_collector = start_history_collector(log=_log)
+    except Exception as exc:
+        _log(f"DASHBOARD_HISTORY_INIT_FAILED reason={type(exc).__name__}")
+
     while True:
         started = time.monotonic()
         try:
