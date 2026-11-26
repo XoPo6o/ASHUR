@@ -72,7 +72,7 @@ main>.hero:before,main>.hero:after{display:none!important}
   #strategies .paneltitle,#compare .paneltitle,#trades .paneltitle{font-size:5px!important}
   #strategies .tag,#compare .tag,#trades .tag{font-size:4px!important}
   #strategies .panelbody{padding:4px!important}
-  .strategy-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3px!important}
+  .strategy-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
   .strategy{min-height:0!important;padding:4px 3px!important}
   .strategy:before{display:none!important}
   .strategy-top{min-height:0!important}
@@ -102,11 +102,20 @@ main>.hero:before,main>.hero:after{display:none!important}
   #compare .matrix th,#compare .matrix td{padding:3px 2px!important;white-space:nowrap!important}
   #compare .matrix th:nth-child(n+5),#compare .matrix td:nth-child(n+5){display:none!important}
   #compare .sample-note{display:none!important}
-  .advanced-analytics{display:none!important}
   #trades{grid-template-columns:minmax(0,1fr)!important;margin-bottom:5px!important}
   #trades .panelbody{padding:4px!important}
   #trades .trades{font-size:4px!important}
   #trades .trades th,#trades .trades td{padding:3px 2px!important}
   #trades .trades th:nth-child(n+3),#trades .trades td:nth-child(n+3){display:none!important}
   main>.footer{padding:5px 7px!important;font-size:4px!important}
+}
+
+@media(max-width:650px){
+  .strategy{padding:7px 6px!important}
+  .strategy-name{font-size:6px!important;line-height:1.5!important}
+  .strategy-return{font-size:9px!important}
+  .strategy-meta{font-size:6px!important}
+  .strategy-stat span{font-size:5px!important}
+  .strategy-stat b{font-size:7px!important}
+  .advanced-analytics{display:block!important}
 }
