@@ -19,8 +19,8 @@ OUTPUT_DIR = Path(__file__).resolve().parent / "research-output"
 TIMEFRAMES = {"15m": 900_000, "1h": 3_600_000}
 CANDIDATES = {
     "EMA20_RECLAIM_TREND": "ema20_reclaim_trend",
-    "EMA_PULLBACK_RSI40": "trend_pullback_rsi40",
-    "TRIPLE_HORIZON_MOMENTUM": "triple_horizon_momentum",
+    "EMA_PULLBACK_RSI40": "ema_pullback_rsi40",
+    "TRIPLE_HORIZON_MOMENTUM": "triple_momentum_all",
     "DONCHIAN20_ADX_VOLUME": "donchian20_adx_volume",
     "KELTNER_BREAKOUT_ADX": "keltner_breakout_adx",
     "SUPERTREND_10_3": "supertrend_10_3",
@@ -42,10 +42,22 @@ def prepare_timeframe(timeframe, interval_ms):
     x["volume_sma20"] = x.volume.rolling(20).mean()
 
     x["ema20_reclaim_trend_entry"] = (
-        (x.ema50 > x.ema200) & (previous.close <= previous.ema20) &
-        (x.close > x.ema20) & (x.adx > 15)
+        (x.ema50 > x.ema200) & (x.ema20 > x.ema50) &
+        (previous.close <= previous.ema20) & (x.close > x.ema20) & (x.adx > 15)
     )
     x["ema20_reclaim_trend_exit"] = (x.close < x.ema50) | (x.ema20 < x.ema50)
+
+    x["ema_pullback_rsi40_entry"] = (
+        (x.ema50 > x.ema200) & (previous.rsi < 40) &
+        (x.rsi >= 40) & (x.close > x.ema50)
+    )
+    x["ema_pullback_rsi40_exit"] = (x.rsi < 40) | (x.close < x.ema100)
+
+    x["triple_momentum_all_entry"] = (
+        (x.ret20 > 0) & (x.ret60 > 0) & (x.ret120 > 0) &
+        (x.close > x.ema200) & (x.adx > 15)
+    )
+    x["triple_momentum_all_exit"] = (x.ret20 < 0) | (x.close < x.ema100)
 
     x["donchian20_adx_volume_entry"] = (
         (x.close > x.donchian20) & (x.close > x.ema200) &
@@ -55,6 +67,12 @@ def prepare_timeframe(timeframe, interval_ms):
         (x.close < x.donchian10low) | (x.close < x.ema100)
     )
 
+    lab.STRATEGIES["ema_pullback_rsi40"] = (
+        "ema_pullback_rsi40_entry", "ema_pullback_rsi40_exit"
+    )
+    lab.STRATEGIES["triple_momentum_all"] = (
+        "triple_momentum_all_entry", "triple_momentum_all_exit"
+    )
     lab.STRATEGIES["ema20_reclaim_trend"] = (
         "ema20_reclaim_trend_entry", "ema20_reclaim_trend_exit"
     )
