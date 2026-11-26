@@ -1,0 +1,189 @@
+name: ASHUR Wall live paper data
+run-name: ASHUR Wall · publish verified Paper/Shadow snapshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ashur-wall-data.yml"
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ashur-wall-data-sync
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download verified Paper/Shadow status and SQLite ledger
+        env:
+          SILLYDEV_API_KEY: ${{ secrets.SILLYDEV_API_KEY }}
+          SILLYDEV_SERVER_ID: ${{ vars.SILLYDEV_SERVER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SILLYDEV_API_KEY" || -z "$SILLYDEV_SERVER_ID" ]]; then
+            echo "::error::SILLYDEV_API_KEY or SILLYDEV_SERVER_ID is missing."
+            exit 1
+          fi
+          API="https://sillydev.co.uk/panel/api/client"
+          AUTH=(-H "Authorization: Bearer $SILLYDEV_API_KEY" -H "Accept: application/json")
+          curl --fail-with-body --silent --show-error \
+            "$API/servers/$SILLYDEV_SERVER_ID/resources" "${AUTH[@]}" > /tmp/resources.json
+          curl --fail-with-body --silent --show-error --get \
+            --data-urlencode "file=/.local/share/ashur/ashur_shadow_status.json" \
+            "$API/servers/$SILLYDEV_SERVER_ID/files/contents" "${AUTH[@]}" > /tmp/status.json
+          curl --fail-with-body --silent --show-error --get \
+            --data-urlencode "file=/.local/share/ashur/ashur_shadow.db" \
+            "$API/servers/$SILLYDEV_SERVER_ID/files/download" "${AUTH[@]}" > /tmp/download.json
+          SIGNED_URL="$(python -c 'import json; print(json.load(open("/tmp/download.json"))["attributes"]["url"])')"
+          curl --fail --silent --show-error "$SIGNED_URL" -o /tmp/ashur_shadow.db
+
+      - name: Validate source and build public dashboard data
+        run: |
+          python - <<'PY'
+          import json, sqlite3
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          now = datetime.now(timezone.utc)
+          status = json.load(open("/tmp/status.json"))
+          resources = json.load(open("/tmp/resources.json")).get("attributes", {})
+          if resources.get("current_state") != "running":
+              raise SystemExit("SillyDev server is not running")
+          if status.get("mode") != "PAPER_ONLY":
+              raise SystemExit("Refusing to publish: mode is not PAPER_ONLY")
+          if status.get("experiment", {}).get("baseline_id") != "ashur-paper-30d-2026-11-25-v2":
+              raise SystemExit("Refusing to publish: clean 30-day baseline ID mismatch")
+          if len(status.get("accounts", [])) != 6:
+              raise SystemExit("Refusing to publish: expected exactly six strategy accounts")
+          health = status.get("worker_health", {})
+          if health.get("all_strategies_ok") is not True or health.get("successful_strategies") != 6 or health.get("error_count") != 0:
+              raise SystemExit("Refusing to publish: worker health is degraded")
+          if health.get("all_protections_ok") is not True:
+              raise SystemExit("Refusing to publish: position protection is not healthy")
+
+          def age(value):
+              if not value:
+                  return None
+              return (now - datetime.fromisoformat(value.replace("Z", "+00:00"))).total_seconds()
+
+          heartbeat_age = age(status.get("updated_at"))
+          if heartbeat_age is None or heartbeat_age < -60 or heartbeat_age > 900:
+              raise SystemExit(f"Refusing to publish: stale worker heartbeat ({heartbeat_age})")
+
+          account_fields = (
+              "strategy_id", "symbol", "grade", "starting_cash", "cash", "equity",
+              "net_pnl", "realized_pnl", "unrealized_pnl", "return_pct", "trades",
+              "fees", "last_price", "last_price_at", "protection_status"
+          )
+          accounts = []
+          for account in status["accounts"]:
+              row = {key: account.get(key) for key in account_fields}
+              stamp_age = age(account.get("last_price_at"))
+              if stamp_age is None or stamp_age < -60 or stamp_age > 900:
+                  raise SystemExit(f"Refusing to publish: stale price for {account.get('strategy_id')}")
+              position = account.get("position")
+              if position:
+                  row["position"] = {
+                      key: position.get(key)
+                      for key in ("symbol", "qty", "entry", "mark", "stop", "target", "opened_at", "protection_status")
+                  }
+              accounts.append(row)
+
+          db = sqlite3.connect("/tmp/ashur_shadow.db")
+          db.row_factory = sqlite3.Row
+          integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+          if integrity != "ok":
+              raise SystemExit("Refusing to publish: SQLite integrity check failed")
+          tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          required = {"shadow_trades", "shadow_positions", "shadow_events"}
+          if not required.issubset(tables):
+              raise SystemExit("Refusing to publish: required ledger tables are missing")
+
+          trade_rows = db.execute("""
+              SELECT id, strategy_id, symbol, entry, exit, qty, fees, pnl, reason, opened_at, closed_at
+              FROM shadow_trades ORDER BY id DESC LIMIT 300
+          """).fetchall()
+          trades = [dict(row) for row in trade_rows]
+          trades.reverse()
+
+          event_rows = db.execute("""
+              SELECT id, created_at, strategy_id, event
+              FROM shadow_events
+              WHERE event IN ('OPEN','CLOSE','ERROR','INTRABAR_EXIT')
+              ORDER BY id DESC LIMIT 100
+          """).fetchall()
+          events = [dict(row) for row in event_rows]
+          events.reverse()
+
+          open_rows = db.execute("""
+              SELECT strategy_id, symbol, qty, entry, stop, target, opened_at
+              FROM shadow_positions ORDER BY strategy_id
+          """).fetchall()
+          positions = [dict(row) for row in open_rows]
+
+          payload = {
+              "schema_version": 1,
+              "generated_at": now.isoformat(),
+              "source_updated_at": status.get("updated_at"),
+              "source_heartbeat_age_seconds": int(heartbeat_age),
+              "mode": "PAPER_ONLY",
+              "server_state": resources.get("current_state"),
+              "experiment": {
+                  key: status.get("experiment", {}).get(key)
+                  for key in ("baseline_id", "baseline_at", "starting_equity_per_strategy", "strategy_count")
+              },
+              "worker_health": {
+                  key: health.get(key)
+                  for key in ("all_strategies_ok", "successful_strategies", "error_count",
+                              "all_protections_ok", "protection_degraded_positions",
+                              "protection_degraded_strategies")
+              },
+              "accounts": accounts,
+              "open_positions": positions,
+              "closed_trades": trades,
+              "recent_events": events,
+              "ledger": {
+                  "integrity": integrity,
+                  "closed_trades_included": len(trades),
+                  "recent_events_included": len(events),
+                  "total_closed_trades": db.execute("SELECT COUNT(*) FROM shadow_trades").fetchone()[0],
+                  "total_events": db.execute("SELECT COUNT(*) FROM shadow_events").fetchone()[0]
+              }
+          }
+          Path("wall-data.json").write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
+          print("Verified snapshot built:", len(accounts), "strategies;", len(trades), "closed trades;", len(positions), "open positions")
+          PY
+
+      - name: Commit changed dashboard snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wall-data.json
+          if git diff --cached --quiet; then
+            echo "Dashboard data unchanged; no commit required."
+            exit 0
+          fi
+          git commit -m "data: refresh verified ASHUR Wall paper snapshot"
+          git push origin HEAD:main
