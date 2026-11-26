@@ -296,7 +296,7 @@ def rolling_60d_tests(x, signal_name, timeframe):
         window_start = window_end - pd.Timedelta(days=60)
         start = int(x.timestamp.searchsorted(window_start, side="left"))
         end = int(x.timestamp.searchsorted(window_end, side="right"))
-        if end - start < 205:
+        if end - start < 2:
             continue
         metrics = simulate_detailed(x, signal_name, start, end)
         windows.append({
