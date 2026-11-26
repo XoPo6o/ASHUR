@@ -1,0 +1,52 @@
+name: ASHUR exact-live-six historical research
+
+on:
+  push:
+    branches:
+      - ashur-signal-observability
+    paths:
+      - "trading-lab/research_live_six.py"
+      - "trading-lab/strategy_lab_v3.py"
+      - "trading-lab/live_shadow_worker.py"
+      - ".github/workflows/live-six-research.yml"
+  pull_request:
+    branches:
+      - ashur-live-shadow
+    paths:
+      - "trading-lab/research_live_six.py"
+      - "trading-lab/strategy_lab_v3.py"
+      - "trading-lab/live_shadow_worker.py"
+      - ".github/workflows/live-six-research.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  historical-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out isolated research branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install research dependencies
+        run: python -m pip install "numpy<3" "pandas<3"
+      - name: Compile research and live signal modules
+        working-directory: trading-lab
+        run: python -m py_compile research_live_six.py strategy_lab_v3.py live_shadow_worker.py news_intelligence.py
+      - name: Run exact six-strategy historical OOS research
+        working-directory: trading-lab
+        run: python research_live_six.py
+      - name: Upload research report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashur-live-six-historical-research
+          path: |
+            trading-lab/research-output/live_six_research.json
+            trading-lab/research-output/live_six_research.csv
+          if-no-files-found: warn
+          retention-days: 30
