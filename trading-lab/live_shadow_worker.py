@@ -864,11 +864,11 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
         "SELECT COUNT(*) FROM news_veto_outcomes WHERE vetoed_at>=?",
         (cutoff_24h,),
     ).fetchone()[0]
-    news_veto_event_rows_24h = conn.execute(
+    news_veto_attempts_24h = conn.execute(
         "SELECT COUNT(*) FROM shadow_events WHERE event='NEWS_VETO' AND created_at>=?",
         (cutoff_24h,),
     ).fetchone()[0]
-    news_veto_attempts_24h = conn.execute(
+    news_veto_unique_groups_24h = conn.execute(
         """SELECT COUNT(*) FROM (
              SELECT strategy_id,details FROM shadow_events
              WHERE event='NEWS_VETO' AND created_at>=?
@@ -903,7 +903,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None, signal_diag
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
                                     "news_veto_attempts_24h": int(news_veto_attempts_24h),
-                                    "news_veto_event_rows_24h": int(news_veto_event_rows_24h),
+                                    "news_veto_unique_groups_24h": int(news_veto_unique_groups_24h),
                                     "veto_outcomes": news.veto_outcome_stats(conn),
                                     "baseline_veto_outcomes": news.veto_outcome_stats(conn, since=baseline_at_value) if baseline_at_value else None},
               "signal_diagnostics": signal_diagnostics_rows or [],
