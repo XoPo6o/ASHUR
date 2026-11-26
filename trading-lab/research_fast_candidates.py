@@ -231,3 +231,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# Cross-asset candidate screen rerun requested 2026-11-26; research-only, no live worker changes.
