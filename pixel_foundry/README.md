@@ -19,13 +19,13 @@ Python 3.10+; install Pillow:
 
 ```bash
 python -m pip install Pillow
-python -m pixel_foundry.cli render examples/babylon_study.json --output out/babylon.png --scale 3
+python -m pixel_foundry.cli render pixel_foundry/examples/babylon_art_bible.json --output out/babylon.png --scale 3
 python -m pixel_foundry.cli inspect out/babylon.png
 ```
 
 ## Scene format
 
-A scene has `canvas`, `palette`, and ordered `layers`. Layers are composited back-to-front. Coordinates and shapes are defined at native logical resolution; scale is applied only at export using nearest-neighbour.
+A renderer scene has `canvas`, `palette`, and ordered `layers`. An **art bible** additionally declares `style`, `pixel_scale`, `perspective`, `lighting` and a focal point. The CLI validates an art bible and converts it to a renderer scene automatically. Layers are composited back-to-front. Coordinates and shapes are defined at native logical resolution; scale is applied only at export using nearest-neighbour.
 
 ```json
 {
@@ -39,7 +39,7 @@ A scene has `canvas`, `palette`, and ordered `layers`. Layers are composited bac
 }
 ```
 
-## Design rules
+## AI Art Director contract\n\nThe model authors an art bible as structured JSON; `pixel_foundry.art_director` validates it and converts it to a deterministic scene spec. This keeps creative intent explicit and lets the raster renderer remain reproducible. Example: `examples/babylon_art_bible.json`. The current module validates structured decisions; it does not itself host or call a language model.\n\n## Design rules
 
 - Silhouette and composition before surface detail.
 - A small, intentional palette with hue/value ramps.
