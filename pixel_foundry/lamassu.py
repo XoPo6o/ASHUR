@@ -171,5 +171,22 @@ def expand_lamassu(op: dict) -> list[dict]:
                     [x + (px - x) * detail_scale, y + (py - y) * detail_scale]
                     for px, py in primitive["points"]
                 ]
+        # One-pixel accents now fit inside the doubled forms: they add information,
+        # not a blurred upscale or a blanket of random noise.
+        if detail_scale >= 2:
+            out.extend([
+                {"type": "line", "part": "micro-feather", "points": [[x+25*detail_scale+1,y+9*detail_scale+1],[x+21*detail_scale+1,y+14*detail_scale+1]], "color": highlight},
+                {"type": "line", "part": "micro-feather", "points": [[x+31*detail_scale+1,y+13*detail_scale+1],[x+27*detail_scale+1,y+18*detail_scale+1]], "color": detail},
+                {"type": "line", "part": "micro-feather", "points": [[x+36*detail_scale+1,y+17*detail_scale+1],[x+32*detail_scale+1,y+21*detail_scale+1]], "color": highlight},
+                {"type": "pixel", "part": "coat-grain", "x": x+17*detail_scale+1, "y": y+24*detail_scale+1, "color": highlight},
+                {"type": "pixel", "part": "coat-grain", "x": x+20*detail_scale+1, "y": y+27*detail_scale+1, "color": detail},
+                {"type": "line", "part": "muscle-crease", "points": [[x+18*detail_scale+1,y+29*detail_scale+1],[x+23*detail_scale+1,y+30*detail_scale+1]], "color": highlight},
+                {"type": "line", "part": "harness-engraving", "points": [[x+31*detail_scale+1,y+25*detail_scale+1],[x+34*detail_scale+1,y+28*detail_scale+1]], "color": highlight},
+                {"type": "pixel", "part": "eye-glint", "x": x+49*detail_scale+1, "y": y+14*detail_scale+1, "color": highlight},
+                {"type": "line", "part": "beard-engraving", "points": [[x+47*detail_scale+1,y+25*detail_scale+1],[x+49*detail_scale+1,y+27*detail_scale+1]], "color": detail},
+                {"type": "line", "part": "beard-engraving", "points": [[x+52*detail_scale+1,y+24*detail_scale+1],[x+54*detail_scale+1,y+26*detail_scale+1]], "color": highlight},
+                {"type": "line", "part": "hoof-seam", "points": [[x+8*detail_scale+1,y+40*detail_scale+1],[x+12*detail_scale+1,y+40*detail_scale+1]], "color": highlight},
+                {"type": "line", "part": "hoof-seam", "points": [[x+44*detail_scale+1,y+40*detail_scale+1],[x+48*detail_scale+1,y+40*detail_scale+1]], "color": highlight},
+            ])
 
     return out
