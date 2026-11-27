@@ -24,6 +24,7 @@ jobs:
       - run: python -m pixel_foundry.cli render pixel_foundry/examples/babylon_study.json --output /tmp/babylon.png --scale 3
       - run: python -m pixel_foundry.cli render pixel_foundry/examples/babylon_art_bible.json --output /tmp/babylon-art-bible.png --scale 3
       - run: python -m pixel_foundry.cli render pixel_foundry/examples/traveler_poses.json --output /tmp/traveler-poses.png --scale 3
+      - run: python -m pixel_foundry.cli ui-kit pixel_foundry/palettes/babylon_inventory.json --output /tmp/babylon-ui-kit
       - uses: actions/upload-artifact@v4
         with:
           name: pixel-foundry-babylon-study
@@ -31,3 +32,4 @@ jobs:
             /tmp/babylon.png
             /tmp/babylon-art-bible.png
             /tmp/traveler-poses.png
+            /tmp/babylon-ui-kit/
