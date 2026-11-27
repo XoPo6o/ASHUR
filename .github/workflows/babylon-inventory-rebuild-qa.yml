@@ -60,6 +60,7 @@ jobs:
                 chartHasData:document.querySelector('#equity-chart')?.querySelectorAll('polyline').length>0,
                 horizontalOverflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),
                 bodyHeight:document.documentElement.scrollHeight,
+                sceneViewBox:document.querySelector('.scene svg')?.getAttribute('viewBox'),
                 health:document.querySelector('#health')?.textContent
               }));
               results.push({name,status:response?.status(),errors,...diagnostics});
@@ -67,7 +68,7 @@ jobs:
             }
             fs.writeFileSync('qa/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if(results.some(r=>r.status!==200||r.errors.length||r.strategyCount!==6||r.horizontalOverflow>2||!r.equity||r.equity==='—'||!r.chartHasData||!/ALL SYSTEMS OK/.test(r.health||'')))process.exit(1);
+            if(results.some(r=>r.status!==200||r.errors.length||r.strategyCount!==6||r.horizontalOverflow>2||(r.name==='desktop'&&!/1360 315$/.test(r.sceneViewBox||''))||(r.name==='mobile'&&!/560 315$/.test(r.sceneViewBox||''))||!r.equity||r.equity==='—'||!r.chartHasData||!/ALL SYSTEMS OK/.test(r.health||'')))process.exit(1);
           })().catch(e=>{console.error(e);process.exit(1)});
           EOF
           node qa/run.cjs
