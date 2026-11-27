@@ -75,7 +75,7 @@
         { "type": "water_surface", "x": 0, "y": 82, "w": 42, "h": 7, "color": "water", "shade": "water_shadow", "highlight": "water_light", "seed": 31 },
         { "type": "boulder", "x": 40, "y": 79, "w": 14, "h": 10, "color": "stone", "shade": "stone_dark", "highlight": "sand_light", "seed": 6 },
         { "type": "traveler_sprite", "x": 69, "y": 58, "w": 18, "h": 31, "pose": "drag", "color": "sand", "shade": "dark", "highlight": "gold", "skin": "moon", "trim": "gold_shadow", "boots": "dark", "limb_color": "sand_shadow" },
-        { "type": "lamassu_sprite", "x": 104, "y": 53, "w": 48, "h": 35, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "detail": "stone" }
+        { "type": "lamassu_sprite", "x": 98, "y": 47, "w": 60, "h": 43, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "detail": "stone" }
       ]
     }
   ]
