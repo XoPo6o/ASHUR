@@ -5,6 +5,9 @@ import random
 
 def expand_generator(op: dict) -> list[dict]:
     kind = op.get("type")
+    if kind == "lamassu_sprite":
+        from .lamassu import expand_lamassu
+        return expand_lamassu(op)
     supported = {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "palm_tree", "cloud_bank", "boulder",
@@ -35,7 +38,6 @@ def expand_generator(op: dict) -> list[dict]:
         bottom = y + h - 1
         limb_color = op.get("limb_color", base)
 
-        # Hood silhouette, face opening, eye and nose highlight.
         out.append({"type": "polygon", "points": [
             [head_x - 2, head_y + head_h // 2],
             [head_x, head_y + 1], [cx, head_y - 1],
@@ -55,15 +57,11 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type": "line", "points": [
             [head_x, head_y + 2], [head_x + head_w, head_y + 2]
         ], "color": highlight})
-
-        # Small travel pack behind the shoulder.
         out.append({"type": "rect", "x": x + 1, "y": shoulder_y + 2,
                     "w": max(3, w // 5), "h": max(5, h // 4), "color": shade})
         out.append({"type": "line", "points": [
             [x + 2, shoulder_y + 3], [x + 2, shoulder_y + h // 4]
         ], "color": highlight})
-
-        # Cloak silhouette and inner lit plane.
         out.append({"type": "polygon", "points": [
             [cx - w // 3, shoulder_y], [cx - w // 4, shoulder_y - 1],
             [cx + w // 4, shoulder_y - 1], [cx + w // 3, shoulder_y + 2],
@@ -85,8 +83,6 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type": "line", "points": [
             [cx - w // 6, hem_y - 3], [cx - w // 7, hem_y - 1]
         ], "color": shade})
-
-        # Limb silhouettes: a clear stride, planted idle stance, or dragging foot.
         if pose == "walk":
             arms = [
                 [[cx - w // 4, shoulder_y + 2], [x + 1, shoulder_y + h // 4],
@@ -133,8 +129,6 @@ def expand_generator(op: dict) -> list[dict]:
                         "w": 4, "h": 2, "color": op.get("boots", shade)})
 
     elif kind == "palm_tree":
-        # A bent, tapered trunk with six broad fronds. The fronds use stepped
-        # polygon contours and a few deliberate vein pixels, never ellipses.
         trunk_w = max(2, int(op.get("trunk_w", max(2, w // 8))))
         crown_y = y + max(3, h // 3)
         trunk_points = [
@@ -147,8 +141,7 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type": "line", "points": [
             [x + w // 2, crown_y + 3], [x + w // 2 + 1, y + h - 4]
         ], "color": highlight})
-        cx = x + w // 2
-        cy = crown_y
+        cx, cy = x + w // 2, crown_y
         fronds = [
             [[0, 0], [-w//2+2, -h//4], [-w//2, -h//3], [-w//4, -h//4], [-1, 2]],
             [[0, 0], [-w//3, -h//2], [-w//4, -h//2], [0, -h//5], [1, 2]],
@@ -169,7 +162,6 @@ def expand_generator(op: dict) -> list[dict]:
             out.append({"type": "pixel", "x": px, "y": py, "color": highlight})
 
     elif kind == "cloud_bank":
-        # Layered stepped masses: dark underside, midtone body, top light.
         lumps = max(3, int(op.get("lumps", 5)))
         widths = [max(3, w // lumps + rng.randint(-2, 2)) for _ in range(lumps)]
         cursor = x
@@ -189,7 +181,6 @@ def expand_generator(op: dict) -> list[dict]:
             cursor += max(2, lump_w - max(1, w // (lumps * 3)))
 
     elif kind == "boulder":
-        # Irregular stepped silhouette with a distinct light plane and dark foot.
         steps = max(5, int(op.get("steps", 8)))
         top = y + max(1, h // 5)
         points = [[x, y + h - 2]]
@@ -215,7 +206,6 @@ def expand_generator(op: dict) -> list[dict]:
                         "color": highlight if rng.random() > 0.35 else shade})
 
     elif kind == "water_surface":
-        # Quiet dark water with sparse, grouped horizontal glints.
         out.append({"type": "rect", "x": x, "y": y, "w": w, "h": h, "color": shade})
         for row in range(max(2, h // 3)):
             yy = y + 1 + row * max(2, h // max(2, h // 3))
