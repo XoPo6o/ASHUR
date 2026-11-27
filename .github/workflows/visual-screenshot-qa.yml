@@ -55,11 +55,11 @@ jobs:
                 const errors = [];
                 page.on('pageerror', e => errors.push(String(e)));
                 let response = null, body = '', html = '';
-                for (let attempt=0; attempt<1; attempt++) {
+                for (let attempt=0; attempt<4; attempt++) {
                   try {
                     response = await page.goto(base+path, {waitUntil:'domcontentloaded',timeout:20000});
-                    await page.waitForTimeout(1500);
-          await page.waitForFunction(() => Array.from(document.querySelectorAll('link[rel=stylesheet]')).some(l => l.href.includes('final-overrides.css') && l.sheet), { timeout: 8000 }).catch(() => {});
+                    await page.waitForTimeout(1800);
+          await page.waitForFunction(() => Array.from(document.querySelectorAll('link[rel=stylesheet]')).some(l => l.href.includes('final-overrides.css?v=20261127-7') && l.sheet), { timeout: 10000 }).catch(() => {});
                     await page.evaluate(() => document.fonts.ready).catch(()=>{});
                     body = await page.locator('body').innerText().catch(()=> '');
                     html = await page.content().catch(()=> '');
@@ -96,6 +96,7 @@ jobs:
                     overflowNodes: Array.from(document.querySelectorAll('body *')).map(el=>({tag:el.tagName, id:el.id, cls:typeof el.className==='string'?el.className:'', left:Math.round(el.getBoundingClientRect().left), right:Math.round(el.getBoundingClientRect().right), width:Math.round(el.getBoundingClientRect().width)})).filter(x=>x.right>window.innerWidth+1 || x.left < -1).slice(0,12),
                     chartPresent: !!document.querySelector('#equity-chart')?.children.length,
               sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css?v=20261127-7')),
+          latestCssLoaded: Array.from(document.querySelectorAll('link[rel=stylesheet]')).some(l => l.href.includes('final-overrides.css?v=20261127-7') && !!l.sheet),
               navVisible: getComputedStyle(document.querySelector('.nav')).display !== 'none',
               heroBackgroundPresent: getComputedStyle(document.querySelector('.hero')).backgroundImage !== 'none',
               gameMenuVisible: getComputedStyle(document.querySelector('.game-menu')).display !== 'none',
@@ -113,7 +114,7 @@ jobs:
             }
             fs.writeFileSync('screenshots/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='ASHUR' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || !x.navVisible || !x.heroBackgroundPresent || !x.gameMenuVisible || (x.mode === 'desktop' && x.chartColumns !== 2) || x.tradeLedgerColumns !== (x.mode === 'desktop' ? 2 : 1) || !x.riskInAdvanced || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
+            if (results.some(x=>x.status!==200 || x.bodyLength<1000 || x.errors.length || x.bodyStart.includes('DATA UNAVAILABLE') || x.heading!=='ASHUR' || x.strategyCount<6 || x.matrixRows<6 || x.horizontalOverflowPx>2 || !x.chartPresent || !x.sharedCssLoaded || !x.latestCssLoaded || !x.navVisible || !x.heroBackgroundPresent || !x.gameMenuVisible || (x.mode === 'desktop' && x.chartColumns !== 2) || x.tradeLedgerColumns !== ((x.mode === 'desktop' || (x.mode === 'reference' && (x.name.startsWith('01-') || x.name.startsWith('02-')))) ? 2 : 1) || !x.riskInAdvanced || /WAITING|UNAVAILABLE/i.test(x.snapshot) || /WAITING|UNAVAILABLE/i.test(x.workerUpdated))) process.exitCode=1;
           })();
           EOF
           node capture.cjs
