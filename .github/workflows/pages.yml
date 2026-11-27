@@ -20,6 +20,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages-wall
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout latest Babylon branch
         uses: actions/checkout@v4
@@ -30,4 +33,5 @@ jobs:
         with:
           path: wall-variants
       - name: Publish website
+        id: deployment
         uses: actions/deploy-pages@v4
