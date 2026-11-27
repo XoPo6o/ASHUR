@@ -52,7 +52,7 @@ def expand_lamassu(op: dict) -> list[dict]:
     out.append({"type": "line", "points": [[x+27,y+18],[x+30,y+21]], "color": detail})
 
     # Five distinct legs: four grouped under the body and one forward leg.
-    for index, lx in enumerate((x+8, x+15, x+23, x+30, x+36])):
+    for index, lx in enumerate((x+8, x+15, x+23, x+30, x+36)):
         top = y + (23 if index in (0, 4) else 25)
         knee = y + (28 if index in (1, 3) else 29)
         foot = y + 32
