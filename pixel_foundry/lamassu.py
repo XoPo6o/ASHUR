@@ -156,4 +156,20 @@ def expand_lamassu(op: dict) -> list[dict]:
         [x+45,y+9],[x+52,y+8]
     ], "color": highlight})
 
+    detail_scale = int(op.get("_detail_scale", 1))
+    if detail_scale > 1:
+        for primitive in out:
+            for key in ("x", "y"):
+                if key in primitive:
+                    anchor = x if key == "x" else y
+                    primitive[key] = anchor + (primitive[key] - anchor) * detail_scale
+            for key in ("w", "h", "width", "stroke"):
+                if key in primitive:
+                    primitive[key] *= detail_scale
+            if "points" in primitive:
+                primitive["points"] = [
+                    [x + (px - x) * detail_scale, y + (py - y) * detail_scale]
+                    for px, py in primitive["points"]
+                ]
+
     return out
