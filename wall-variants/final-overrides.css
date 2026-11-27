@@ -185,3 +185,9 @@ section#compare.panel > .matrix-wrap > table.matrix {
   min-width: 900px !important;
   max-width: none !important;
 }
+
+/* Prevent narrow reference viewports from widening the document; wide matrices scroll inside their own viewport. */
+html, body { width: 100%; max-width: 100%; overflow-x: clip !important; }
+@supports not (overflow: clip) { html, body { overflow-x: hidden !important; } }
+#compare, #compare .matrix-wrap { min-width: 0 !important; max-width: 100% !important; }
+#compare .matrix-wrap { overflow-x: auto !important; overscroll-behavior-x: contain; }
