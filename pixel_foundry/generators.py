@@ -4,14 +4,42 @@ import random
 
 def expand_generator(op: dict) -> list[dict]:
     kind = op.get("type")
-    if kind not in {"brick_wall", "stone_floor", "foliage"}:
+    if kind not in {"brick_wall", "stone_floor", "foliage", "stepped_ziggurat"}:
         return [op]
     rng = random.Random(int(op.get("seed", 1)))
     x, y, w, h = (int(op.get(k, 0)) for k in ("x", "y", "w", "h"))
     base, shade = op.get("color", "#888888"), op.get("shade", op.get("color", "#888888"))
     highlight, mortar = op.get("highlight", base), op.get("mortar", shade)
     out = []
-    if kind == "brick_wall":
+    if kind == "stepped_ziggurat":
+        tiers=max(2,int(op.get("tiers",5)))
+        tier_h=max(2,int(op.get("tier_h",max(2,h//tiers))))
+        inset=max(1,int(op.get("inset",max(1,w//(tiers*3)))))
+        top=op.get("top_color",highlight)
+        side=op.get("side_color",shade)
+        for i in range(tiers):
+            tier_width=max(3,w-2*inset*i)
+            tier_x=x+(w-tier_width)//2
+            tier_y=y+h-(i+1)*tier_h
+            tier_height=min(tier_h,y+h-tier_y)
+            if tier_height<=0:
+                continue
+            # Front face is built from hard-edged bands; a narrow side plane gives volume.
+            front_width=max(2,tier_width-max(2,inset//2))
+            out.append({"type":"rect","x":tier_x,"y":tier_y,"w":front_width,"h":tier_height,"color":base})
+            if front_width<tier_width:
+                out.append({"type":"rect","x":tier_x+front_width,"y":tier_y,"w":tier_width-front_width,"h":tier_height,"color":side})
+            out.append({"type":"line","points":[[tier_x,tier_y],[tier_x+front_width-1,tier_y]],"color":top})
+            if op.get("course_lines",True) and tier_height>=4:
+                line_y=tier_y+tier_height-2
+                out.append({"type":"line","points":[[tier_x+1,line_y],[tier_x+front_width-2,line_y]],"color":shade})
+        # Upper shrine block and capstone.
+        shrine_w=max(5,w//5); shrine_h=max(4,tier_h)
+        shrine_x=x+(w-shrine_w)//2
+        shrine_y=max(y,y+h-tiers*tier_h-shrine_h)
+        out.append({"type":"rect","x":shrine_x,"y":shrine_y,"w":shrine_w,"h":shrine_h,"color":base})
+        out.append({"type":"line","points":[[shrine_x,shrine_y],[shrine_x+shrine_w-1,shrine_y]],"color":top})
+    elif kind == "brick_wall":
         bw, bh = max(3, int(op.get("brick_w", 10))), max(2, int(op.get("brick_h", 5)))
         out.append({"type":"rect","x":x,"y":y,"w":w,"h":h,"color":mortar})
         row = 0
