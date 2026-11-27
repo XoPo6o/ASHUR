@@ -79,3 +79,28 @@ def test_stepped_ziggurat_has_staggered_masonry_and_wear_at_dense_scale():
     assert first == expand_generator(spec)
     assert sum(op.get("part") == "ziggurat-brick-joint" for op in first) >= 20
     assert sum(op.get("part") == "stone-wear" for op in first) >= 5
+
+
+
+def test_temple_facade_has_ordered_carved_reliefs():
+    spec = {
+        "type": "temple_facade", "x": 20, "y": 12, "w": 64, "h": 16,
+        "color": "#D9AD62", "shade": "#9C7746", "highlight": "#F0D8A5",
+        "band": "#365564", "relief": "#E9E5D6",
+    }
+    first = expand_generator(spec)
+    assert first == expand_generator(spec)
+    parts = {op.get("part") for op in first}
+    assert {"frieze-upper-border", "frieze-lower-border", "rosette-core",
+            "rosette-petal", "cuneiform-wedge", "frieze-panel-joint"} <= parts
+
+
+def test_traveler_has_material_details_without_changing_pose_contract():
+    spec = {
+        "type": "traveler_sprite", "x": 69, "y": 58, "w": 18, "h": 31,
+        "pose": "drag", "color": "#D9AD62", "shade": "#050A0E",
+        "highlight": "#D9AD62", "skin": "#E9E5D6",
+    }
+    parts = {op.get("part") for op in expand_generator(spec)}
+    assert {"pack-strap", "belt-buckle", "cloak-fold", "cloak-hem-stitch",
+            "travel-pouch", "hood-seam", "boot-highlight"} <= parts
