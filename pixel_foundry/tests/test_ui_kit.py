@@ -29,7 +29,7 @@ def test_panel_frame_has_requested_dimensions_and_is_rgba():
 def test_featured_panel_uses_gold_frame_and_inset_uses_deep_surface():
     featured = create_panel_frame(32, 24, PALETTE, variant="featured")
     inset = create_panel_frame(32, 24, PALETTE, variant="inset")
-    assert featured.getpixel((0, 0))[:3] == PALETTE.rgb("border_gold")
+    assert featured.getpixel((0, 0))[:3] == PALETTE.rgb("gold")
     assert inset.getpixel((10, 10))[:3] == PALETTE.rgb("surface_deep")
 
 
