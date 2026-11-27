@@ -34,10 +34,13 @@ def test_organic_generators_change_with_seed():
 
 
 def test_traveler_sprite_has_distinct_repeatable_poses():
-    base={"type":"traveler_sprite","x":10,"y":8,"w":16,"h":28,"color":"#B88B62","shade":"#171827","highlight":"#E8B65A","skin":"#F4E6B8","seed":4}
+    base={"type":"traveler_sprite","x":10,"y":5,"w":20,"h":34,"color":"#B88B62","shade":"#171827","highlight":"#E8B65A","skin":"#F4E6B8"}
     walk=expand_generator({**base,"pose":"walk"})
     idle=expand_generator({**base,"pose":"idle"})
+    drag=expand_generator({**base,"pose":"drag"})
     assert walk == expand_generator({**base,"pose":"walk"})
     assert walk != idle
-    assert len(walk) >= 12
+    assert walk != drag
+    assert idle != drag
+    assert len(walk) >= 20
     assert all(item["type"] in {"polygon","rect","line","pixel"} for item in walk)
