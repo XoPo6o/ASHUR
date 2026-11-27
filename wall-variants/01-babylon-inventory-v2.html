@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#241b2a">
+<title>ASHUR · Babylon Inventory — Rebuild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;500;600;700&family=Pixelify+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--night:#151a31;--ink:#f7e8c5;--muted:#c3a982;--gold:#f1c66f;--gold2:#a86d37;--cyan:#64d8d0;--green:#8de0a2;--red:#ef7775;--stone:#5b3540;--panel:#18273a;--deep:#0b1424;--pixel:"Press Start 2P",monospace;--mono:"IBM Plex Mono",monospace;--display:"Pixelify Sans",monospace}
+*{box-sizing:border-box}html{background:#11182a;scroll-behavior:smooth}body{margin:0;color:var(--ink);font:13px/1.5 var(--mono);background:radial-gradient(ellipse at 50% 0,#784b53 0,transparent 44%),linear-gradient(#1b2036,#182339 38%,#0c1424 100%);min-height:100vh}
+a{color:inherit;text-decoration:none}.wrap{width:min(1360px,calc(100% - 32px));margin:auto}
+.top{height:68px;background:linear-gradient(#101a2c,#111b2c);border-bottom:4px ridge #bb884b;box-shadow:0 5px 0 #080e19;position:relative;z-index:5}
+.topin{height:100%;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px;color:#ffe1a0}.brand-mark{width:39px;height:39px;border:3px ridge #e7b960;background:#35283a;display:grid;place-items:center;color:#ffe09a;font-size:24px;text-shadow:2px 2px #7e4d36}.brand-name{font:12px var(--pixel);letter-spacing:1px}.brand-name small{display:block;margin-top:7px;font:9px var(--mono);letter-spacing:2px;color:#b5b6aa}.nav{display:flex;gap:7px}.nav a{padding:9px 12px;border:2px solid #735637;background:#17273a;color:#d7c29c;font:8px var(--pixel);box-shadow:2px 2px #080e19}.nav a.active{background:#d2a354;color:#241b25;border-color:#ffe1a0}.status{border:2px solid #4e8c76;background:#102c32;padding:8px 10px;color:var(--green);font:8px var(--pixel);white-space:nowrap}.status i{display:inline-block;width:7px;height:7px;background:var(--green);box-shadow:0 0 9px var(--green);margin-right:7px}
+main{padding:18px 0 42px}.scene{height:315px;position:relative;overflow:hidden;border:7px ridge #d4a052;outline:2px solid #4b3026;box-shadow:0 9px 0 #070d17,inset 0 0 0 4px #2c1d22;margin-bottom:17px;background:#3c3548}
+.scene svg{width:100%;height:100%;display:block;image-rendering:pixelated}.scene-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,15,31,.08) 0%,rgba(9,15,31,.03) 48%,rgba(9,15,31,.46) 100%),linear-gradient(0deg,rgba(7,13,24,.65),transparent 48%);pointer-events:none}
+.scene-title{position:absolute;right:28px;top:28px;width:min(42%,480px);text-align:right;text-shadow:3px 3px #261b2a,0 0 12px #101629}.eyebrow{font:8px var(--pixel);color:#75e0d4;letter-spacing:2px}.scene-title h1{margin:12px 0 6px;color:#ffe1a0;font:clamp(22px,3vw,39px)/1.3 var(--pixel);letter-spacing:2px;text-shadow:4px 4px #4b2c2e,0 0 18px #ffcc75}.scene-title p{margin:0;color:#f5d9ad;font:11px var(--mono)}.scene-seal{display:inline-block;margin-top:18px;border:3px double #e5bd70;padding:7px 12px;background:#1a273bcc;color:#f8d98e;font:8px var(--pixel)}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.frame{position:relative;min-width:0;background:linear-gradient(145deg,#263c4d,#142638 70%);border:5px ridge #c8954e;box-shadow:inset 0 0 0 3px #172031,0 5px 0 #070d16,0 0 0 1px #4e382b}.frame:before{content:"";position:absolute;inset:5px;border:1px solid #e5be78;opacity:.35;pointer-events:none}.metric{padding:14px 16px;min-height:100px}.metric .label{font:7px/1.8 var(--pixel);color:#c9b894;min-height:26px}.metric strong{display:block;margin-top:8px;color:#ffe09a;font:700 clamp(18px,2.1vw,27px) var(--mono);letter-spacing:-1px;overflow-wrap:anywhere}.metric small{display:block;margin-top:4px;color:#a7c3b7;font:10px var(--mono)}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 15px;background:linear-gradient(90deg,#563b32,#26374a 42%,#563b32);border-bottom:4px ridge #b98547}.sectionhead h2{margin:0;color:#ffe1a0;font:9px var(--pixel);letter-spacing:.4px}.sectionhead span{color:#70d9d1;font:8px var(--pixel)}.strategybox{margin-bottom:14px}.strategies{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding:11px;background:linear-gradient(135deg,#101d30,#342b32)}.strategy{min-width:0;padding:10px 8px 9px;background:linear-gradient(150deg,#294355,#17283a);border:4px ridge #bd8c4b;box-shadow:inset 0 0 0 2px #101a2b,3px 4px #080e17;text-align:center;position:relative}.strategy:after{content:"";position:absolute;left:7px;right:7px;top:5px;height:1px;background:#f4d38c55}.sprite{height:46px;display:grid;place-items:center;margin-bottom:5px}.sprite svg{width:42px;height:42px;image-rendering:pixelated;filter:drop-shadow(2px 2px #101827)}.strategy h3{min-height:32px;margin:4px 0 5px;color:#ffe1a0;font:7px/1.7 var(--pixel);overflow-wrap:anywhere}.strategy .symbol{color:#8ed8d0;font:10px var(--mono)}.strategy .ret{margin:6px 0 3px;font:700 13px var(--mono)}.strategy .meta{font:9px var(--mono);color:#b9c4b7}.strategy .grade{display:block;margin-top:7px;padding:4px 3px;border-top:1px solid #b68a53;color:#e1c38a;font:7px var(--mono);overflow-wrap:anywhere}
+.content{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(270px,.8fr);gap:12px;margin-bottom:14px}.panelbody{padding:12px 14px}.chart{display:block;width:100%;height:auto;min-height:190px}.chart text{font:10px var(--mono);fill:#a8b9b3}.legend{display:flex;flex-wrap:wrap;gap:15px;margin-top:7px;color:#aebcb4;font:9px var(--mono)}.legend b{color:var(--cyan)}.trade-list{width:100%;border-collapse:collapse;font:10px var(--mono)}.trade-list th,.trade-list td{padding:10px 7px;border-bottom:1px solid #51616a;text-align:left;white-space:nowrap}.trade-list th{font:7px var(--pixel);color:#d5bb8a}.trade-list td{color:#f0e3c8}.trade-list .empty{text-align:center;color:#b9b09c;padding:22px}
+.lower{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.smallpanel .panelbody{min-height:125px}.statline{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #43565b;color:#bdc6b5;font:10px var(--mono)}.statline b{color:#f2d18d}.footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:17px 2px 0;color:#a69b83;font:9px var(--mono)}.footer strong{color:#e8c37d}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.muted{color:#b2b5a9}
+@media(max-width:980px){.strategies{grid-template-columns:repeat(3,minmax(0,1fr))}.content{grid-template-columns:1fr 1fr}.lower{grid-template-columns:1fr 1fr}.scene-title{width:47%}}
+@media(max-width:650px){.wrap{width:calc(100% - 16px)}.top{height:auto;min-height:60px}.topin{padding:8px 0;flex-wrap:wrap;gap:8px}.brand-mark{width:32px;height:32px}.brand-name{font-size:10px}.status{font-size:7px;margin-left:auto}.nav{order:3;width:100%;overflow-x:auto}.nav a{font-size:6px;padding:8px 9px;white-space:nowrap}.scene{height:235px;border-width:5px}.scene-title{top:16px;right:12px;width:53%}.scene-title h1{font-size:18px}.scene-title p{font-size:9px}.eyebrow{font-size:6px}.scene-seal{font-size:6px;margin-top:9px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.metric{padding:10px;min-height:90px}.metric .label{font-size:6px}.metric strong{font-size:17px}.metric small{font-size:9px}.strategies{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:8px}.strategy{padding:9px 6px}.strategy h3{font-size:6px}.content,.lower{grid-template-columns:1fr}.sectionhead h2{font-size:7px}.panelbody{padding:9px}.trade-list{min-width:530px}.trade-scroll{overflow-x:auto}.footer{font-size:8px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topin">
+<a class="brand" href="../wall.html"><span class="brand-mark">𒀭</span><span class="brand-name">ASHUR<small>THE WALL · PAPER REALM</small></span></a>
+<nav class="nav" aria-label="Разделы"><a href="../index.html">МИР</a><a href="#strategies" class="active">УРОВНИ</a><a href="#ledger">КОДЕКС</a><a href="../wall.html">СТЕНА ↗</a></nav>
+<div class="status"><i></i><span id="health">PAPER · CHECKING</span></div>
+</div></header>
+<main class="wrap">
+<section class="scene" aria-label="Вавилонский город и крылатый бык">
+<svg viewBox="0 0 1360 315" preserveAspectRatio="xMidYMid slice" shape-rendering="crispEdges" role="img" aria-label="Детализированный пиксельный Вавилон на закате с зиккуратом и ламассу">
+<defs>
+<linearGradient id="sky" x2="0" y2="1"><stop stop-color="#28365a"/><stop offset=".45" stop-color="#9a5960"/><stop offset=".78" stop-color="#e29a59"/><stop offset="1" stop-color="#f4c477"/></linearGradient>
+<linearGradient id="stone" x2=".1" y2="1"><stop stop-color="#f2cb7b"/><stop offset=".55" stop-color="#bd7948"/><stop offset="1" stop-color="#70413c"/></linearGradient>
+<linearGradient id="bull" x2="0" y2="1"><stop stop-color="#fff0b1"/><stop offset=".45" stop-color="#dba75e"/><stop offset="1" stop-color="#8e543f"/></linearGradient>
+<pattern id="brick" width="32" height="15" patternUnits="userSpaceOnUse"><path d="M0 0H32M0 14H32M16 0V7M0 7H32M6 7V14" stroke="#603d3a" stroke-width="1" opacity=".5"/></pattern>
+</defs>
+<rect width="1360" height="315" fill="url(#sky)"/>
+<rect x="0" y="0" width="1360" height="315" fill="#161e38" opacity=".08"/>
+<rect x="1040" y="35" width="86" height="86" fill="#f8d58b"/><rect x="1050" y="25" width="66" height="10" fill="#f8d58b"/><rect x="1050" y="121" width="66" height="9" fill="#eab56e"/>
+<g fill="#3a3850"><path d="M0 205V140h45v-28h22v42h37v-52h24v-26h25v26h22v103z"/><path d="M230 214V156h44v-31h20v31h32v-62h26v-24h26v24h22v120z"/><path d="M870 210V140h35v-30h24v30h42v-65h25v-23h28v23h20v135z"/><path d="M1160 212V158h44v-35h24v35h28v-70h27v-25h25v25h20v124z"/></g>
+<g fill="#523c50"><path d="M0 229V185h95v-22h50v66zM170 230v-54h60v-27h35v81zM390 230v-48h55v-25h42v73zM780 232v-50h70v-25h34v75zM1030 230v-60h55v-20h35v80z"/></g>
+<!-- ziggurat -->
+<g stroke="#603d3b" stroke-width="3" stroke-linejoin="miter">
+<path fill="#9a5d48" d="M510 247h390v-28h-42v-28h-42v-27h-42v-26h-42v-28h-94v28h-42v26h-42v27h-44v28h-40z"/>
+<path fill="#d18b51" d="M510 247h390v-28h-42v-28h-42v-27h-42v-26h-42v-28h-94v28h-42v26h-42v27h-44v28h-40z" opacity=".35"/>
+<path fill="url(#stone)" d="M570 112h180v12H570zM612 86h96v26h-96zM635 63h50v23h-50zM650 38h20v25h-20z"/>
+<path fill="#f1c477" d="M562 135h202v8H562zM526 164h272v8H526zM486 194h350v8H486zM470 220h390v8H470z"/>
+</g>
+<g fill="#ffe0a0"><rect x="593" y="147" width="12" height="17"/><rect x="625" y="147" width="12" height="17"/><rect x="657" y="147" width="12" height="17"/><rect x="689" y="147" width="12" height="17"/><rect x="721" y="147" width="12" height="17"/><rect x="550" y="178" width="13" height="17"/><rect x="584" y="178" width="13" height="17"/><rect x="618" y="178" width="13" height="17"/><rect x="652" y="178" width="13" height="17"/><rect x="686" y="178" width="13" height="17"/><rect x="720" y="178" width="13" height="17"/><rect x="754" y="178" width="13" height="17"/></g>
+<path d="M0 244H1360V315H0Z" fill="#28283a"/><path d="M0 252H1360" stroke="#e3a75e" stroke-width="5"/><path d="M0 270H1360" stroke="#684044" stroke-width="3"/>
+<!-- palm silhouettes -->
+<g fill="#253b3a"><path d="M100 252V134h10v118zM108 144l-62-40 7-9 70 36zM108 143l52-54 8 7-53 61zM108 139l-8-65 11-2 8 65zM110 142l72-9 2 11-72 10z"/><path d="M1230 254V150h10v104zM1238 158l-52-39 7-9 59 36zM1238 158l47-48 8 8-48 52zM1238 154l-2-57h11l2 57z"/></g>
+<!-- left foreground lamassu body and wings -->
+<g transform="translate(58 63)" stroke="#49303a" stroke-width="5" stroke-linejoin="miter">
+<path fill="#a66b48" d="M28 165L34 95 66 65 160 52 238 68 272 122 260 195 221 220H45Z"/>
+<path fill="url(#bull)" d="M32 154L44 95 78 66 160 58 232 75 260 123 246 190 215 208H53Z"/>
+<!-- far wing -->
+<path fill="#a86e4b" d="M178 75L230 24 279 0 262 35 316 16 287 53 329 44 293 81 313 78 278 113 251 143 215 125Z"/>
+<path fill="#e5b66d" stroke-width="3" d="M214 83L257 35 246 78 292 37 265 89 304 67 268 112 294 102 254 141Z"/>
+<path fill="#71434a" stroke-width="3" d="M228 92L262 67 248 104 280 87 249 121Z"/>
+<!-- head and beard -->
+<path fill="#e9c47d" d="M65 61L78 28 115 9 154 18 177 48 164 90 126 112 85 96Z"/>
+<path fill="#f4d99a" stroke-width="3" d="M75 43L87 15 103 5 111 25 124 4 140 18 157 15 174 42 159 57 91 60Z"/>
+<path fill="#9b5b45" stroke-width="3" d="M81 58L159 55 166 99 145 137 111 143 86 111Z"/>
+<path fill="#e6b86f" stroke-width="3" d="M91 65L150 63 145 96 123 112 99 99Z"/>
+<path fill="#362b38" stroke="none" d="M98 63h14v8H98zM139 62h12v8h-12z"/>
+<path fill="#f5df9e" stroke="none" d="M102 65h5v4h-5zM143 64h4v4h-4z"/>
+<path fill="#5a3440" stroke="none" d="M119 85h21v5h-21zM115 91h26v5h-26zM111 98h28v5h-28zM107 105h30v5h-30zM104 112h30v5h-30z"/>
+<!-- horn -->
+<path fill="#f6d990" d="M88 23L62 1 70 34 85 45Z"/>
+<path fill="#f6d990" d="M151 22L177 0 169 36 154 45Z"/>
+<!-- front wing -->
+<path fill="#c58b55" d="M46 83L13 38 0 6 33 28 23 0 64 35 59 4 91 49 104 79 89 133Z"/>
+<path fill="#f1c878" stroke-width="3" d="M30 58L10 18 44 49 34 17 66 56 61 31 85 75 75 120Z"/>
+<path fill="#815044" stroke-width="3" d="M43 82L65 69 62 105 81 88 75 120 57 134Z"/>
+<!-- legs -->
+<path fill="#b77a4e" d="M65 164H104L101 216H66Z M177 160H212L226 216H190Z"/>
+<path fill="#f0c579" stroke-width="3" d="M65 197H105V216H59Z M188 197H226L235 216H188Z"/>
+<path fill="#55353d" stroke-width="2" d="M59 214h48v9H59zM186 214h52v9h-52z"/>
+<!-- chest harness and rosette -->
+<path fill="none" stroke="#f4d58d" stroke-width="7" d="M66 128L205 125M78 145L195 143"/>
+<path fill="#f4d58d" stroke-width="2" d="M135 119l8 10-8 10-8-10zM135 124h14v10h-14z"/>
+<path fill="#684044" stroke-width="2" d="M52 154h183v8H52z"/>
+</g>
+<!-- foreground market buildings -->
+<g stroke="#52313a" stroke-width="3">
+<path fill="#7b4c45" d="M870 248v-65h45v-23h30v23h38v65z"/><path fill="#d99a5a" d="M864 184h128v10H864z"/><path fill="#2d2c42" d="M891 208h18v40h-18zM936 208h18v40h-18z"/>
+<path fill="#704349" d="M1005 248v-54h58v-24h26v24h42v54z"/><path fill="#e0a45e" d="M1000 192h139v9h-139z"/><path fill="#2b2a40" d="M1021 211h18v37h-18zM1080 211h18v37h-18z"/>
+<path fill="#9a5c45" d="M1150 250v-75h62v-28h35v28h40v75z"/><path fill="#e8b66c" d="M1145 174h147v9h-147z"/>
+</g>
+<!-- stars / hanging lights -->
+<g fill="#ffe0a0"><rect x="368" y="52" width="4" height="4"/><rect x="445" y="94" width="3" height="3"/><rect x="810" y="52" width="4" height="4"/><rect x="930" y="22" width="3" height="3"/><rect x="1190" y="70" width="4" height="4"/><rect x="332" y="155" width="3" height="3"/></g>
+<g stroke="#e7b46d" stroke-width="2" fill="none"><path d="M0 36H360M0 36v22M360 36v22"/><path d="M820 0v55M820 55l-7 13h14z"/><path d="M1270 0v45M1270 45l-7 13h14z"/></g>
+<g fill="#ffe09a"><rect x="353" y="53" width="12" height="14"/><rect x="814" y="68" width="12" height="13"/><rect x="1264" y="58" width="12" height="13"/></g>
+</svg>
+<div class="scene-shade"></div><div class="scene-title"><div class="eyebrow">MESOPOTAMIA · PAPER REALM</div><h1>ASHUR</h1><p>Стена торговых стратегий</p><span class="scene-seal">𒀭 · BABYLON INVENTORY · 01</span></div>
+</section>
+<section class="metrics" aria-label="Основные показатели">
+<article class="frame metric"><div class="label">TOTAL EQUITY</div><strong id="equity">—</strong><small id="equity-note">PAPER CAPITAL</small></article>
+<article class="frame metric"><div class="label">NET P&amp;L</div><strong id="pnl">—</strong><small id="pnl-note">SINCE BASELINE</small></article>
+<article class="frame metric"><div class="label">DRAWDOWN</div><strong id="drawdown">—</strong><small>OBSERVED FROM HISTORY</small></article>
+<article class="frame metric"><div class="label">WORKER HEALTH</div><strong id="workers">—</strong><small id="worker-note">PROTECTION CHECK</small></article>
+</section>
+<section class="frame strategybox" id="strategies">
+<div class="sectionhead"><h2>✦ ШЕСТЬ СТРАТЕГИЙ · SIX STRATEGY RELICS</h2><span id="strategy-status">LOADING</span></div>
+<div class="strategies" id="strategy-grid">
+<div class="strategy"><div class="sprite">♉</div><h3>BNB 15M EMA TREND</h3><div class="symbol">BNB / USDT</div></div>
+<div class="strategy"><div class="sprite">♜</div><h3>BNB 1D DONCHIAN55</h3><div class="symbol">BNB / USDT</div></div>
+<div class="strategy"><div class="sprite">◉</div><h3>BNB 1H DONCHIAN ADX25</h3><div class="symbol">BNB / USDT</div></div>
+<div class="strategy"><div class="sprite">♣</div><h3>BNB 4H ADX TREND</h3><div class="symbol">BNB / USDT</div></div>
+<div class="strategy"><div class="sprite">♨</div><h3>BNB 4H KELTNER ADX</h3><div class="symbol">BNB / USDT</div></div>
+<div class="strategy"><div class="sprite">✦</div><h3>SOL 4H DONCHIAN VOL</h3><div class="symbol">SOL / USDT</div></div>
+</div></section>
+<section class="content">
+<article class="frame">
+<div class="sectionhead"><h2>✦ EQUITY CHRONICLE</h2><span id="history-count">OBSERVED DATA</span></div>
+<div class="panelbody"><svg id="equity-chart" class="chart" viewBox="0 0 720 220" role="img" aria-label="График капитала"><text x="360" y="100" text-anchor="middle">COLLECTING HISTORY</text></svg><div class="legend"><span><b>━━</b> ASHUR EQUITY</span><span><b style="color:#efc16e">┄┄</b> BUY &amp; HOLD BENCHMARK</span></div></div>
+</article>
+<article class="frame" id="ledger">
+<div class="sectionhead"><h2>✦ RECENT TRADES</h2><span id="trade-count">LEDGER</span></div>
+<div class="panelbody trade-scroll"><table class="trade-list"><thead><tr><th>STRATEGY</th><th>PAIR</th><th>P&amp;L</th><th>EXIT</th></tr></thead><tbody id="trade-rows"><tr><td colspan="4" class="empty">WAITING FOR LEDGER</td></tr></tbody></table></div>
+</article>
+</section>
+<section class="lower">
+<article class="frame smallpanel"><div class="sectionhead"><h2>✦ MARKET PULSE</h2></div><div class="panelbody"><div class="statline"><span>OPEN POSITIONS</span><b id="positions">—</b></div><div class="statline"><span>CLOSED TRADES</span><b id="closed">—</b></div><div class="statline"><span>TRADING FEES</span><b id="fees">—</b></div></div></article>
+<article class="frame smallpanel"><div class="sectionhead"><h2>✦ WORKER WATCH</h2></div><div class="panelbody"><div class="statline"><span>LAST WORKER UPDATE</span><b id="worker-time">—</b></div><div class="statline"><span>ERRORS</span><b id="errors">—</b></div><div class="statline"><span>PROTECTION ALERTS</span><b id="protection">—</b></div></div></article>
+<article class="frame smallpanel"><div class="sectionhead"><h2>✦ EXPERIMENT SEAL</h2></div><div class="panelbody"><div class="statline"><span>MODE</span><b>PAPER ONLY</b></div><div class="statline"><span>BASELINE</span><b id="baseline">—</b></div><div class="statline"><span>LAST SNAPSHOT</span><b id="snapshot">—</b></div></div></article>
+</section>
+<footer class="footer"><span><strong>ASHUR</strong> · BABYLON INVENTORY · VISUAL REBUILD 01</span><span id="footer-state">WAITING FOR VERIFIED PAPER SNAPSHOT</span></footer>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),num=v=>Number.isFinite(Number(v))?Number(v):0;
+const fmt=(v,d=2)=>num(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const signed=v=>(num(v)>=0?'+':'')+fmt(v);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const stamp=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC':'—';
+const icons=[
+'<svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path fill="#f1c66f" d="M7 12h7l4 8 6-13 6 13 4-8h7l-5 14H12z"/><path fill="#9a563e" d="M12 27h25v7H12zM16 34h17v5H16z"/><path fill="#ffe5a0" d="M21 21h6v6h-6z"/></svg>',
+'<svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path fill="#d9a85e" d="M8 8h32v32H8z"/><path fill="#69434a" d="M13 13h22v22H13z"/><path fill="#f4d28b" d="M17 8h5v12h-5zM26 8h5v12h-5zM17 28h5v12h-5zM26 28h5v12h-5zM8 17h12v5H8zM28 17h12v5H28zM8 26h12v5H8zM28 26h12v5H28z"/><path fill="#15253a" d="M20 20h8v8h-8z"/></svg>',
+'<svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path fill="#e9c477" d="M4 24L14 8h20l10 16-10 16H14z"/><path fill="#7d4a47" d="M11 24l7-9h12l7 9-7 9H18z"/><path fill="#ffe7a4" d="M18 21h12v6H18z"/><path fill="#15243a" d="M22 21h4v6h-4z"/></svg>',
+'<svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path fill="#c48a51" d="M8 8h32v32H8z"/><path fill="#f2cd7d" d="M13 13h22v22H13z"/><path fill="#66434a" d="M18 17h12v14H18z"/><path fill="#ffe4a0" d="M8 19h8v5H8zM32 19h8v5h-8zM20 8h8v8h-8zM20 32h8v8h-8z"/><path fill="#13263a" d="M21 20h6v8h-6z"/></svg>',
+'<svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path fill="#f0c56f" d="M24 4l5 9 10-4-4 10 9 5-9 5 4 10-10-4-5 9-5-9-10 4 4-10-9-5 9-5-4-10 10 4z"/><path fill="#9d5944" d="M20 18h8v12h-8z"/><path fill="#ffe5a0" d="M22 20h4v8h-4z"/></svg>',
+'<svg viewBox="0 0 48 48" shape-rendering="crispEdges"><path fill="#e4b56b" d="M24 3l5 13 13 8-13 8-5 13-5-13-13-8 13-8z"/><path fill="#70434a" d="M20 18h8v12h-8z"/><path fill="#ffe6a2" d="M22 20h4v8h-4z"/></svg>'
+];
+function chart(history,current){
+ const pts=history?.points||[],svg=$('equity-chart');
+ if(!pts.length){svg.innerHTML='<text x="360" y="100" text-anchor="middle">HISTORY IS BEING COLLECTED</text>';return;}
+ const base=pts[0],baseMap=new Map((base.accounts||[]).map(a=>[a.strategy_id,a]));
+ const actual=pts.map(p=>num(p.total_equity));
+ const bench=pts.map(p=>(p.accounts||[]).reduce((s,a)=>{const b=baseMap.get(a.strategy_id),p0=num(b?.last_price),p1=num(a.last_price);return s+(p0>0?p1/p0*num(b?.equity):num(b?.equity));},0));
+ const vals=actual.concat(bench),lo=Math.min(...vals),hi=Math.max(...vals),pad=Math.max(1,(hi-lo)*.2),min=lo-pad,max=hi+pad;
+ const W=720,H=220,L=70,R=16,T=15,B=30,x=i=>L+(pts.length<2?(W-L-R)/2:i*(W-L-R)/(pts.length-1)),y=v=>T+(max-v)*(H-T-B)/(max-min);
+ let s='';for(let j=0;j<5;j++){const v=max-(max-min)*j/4,yy=y(v);s+='<line x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'" stroke="#50626a" stroke-dasharray="4 6"/><text x="'+(L-9)+'" y="'+(yy+4)+'" text-anchor="end">'+fmt(v,0)+'</text>';}
+ const line=(a,c,w,dash)=>'<polyline points="'+a.map((v,i)=>x(i)+','+y(v)).join(' ')+'" fill="none" stroke="'+c+'" stroke-width="'+w+'" '+(dash?'stroke-dasharray="7 6"':'')+' stroke-linejoin="round" stroke-linecap="square"/>';
+ s+=line(bench,'#e9bb70',2,true)+line(actual,'#64d8d0',3,false);
+ [0,Math.floor((pts.length-1)/2),pts.length-1].forEach(i=>s+='<text x="'+x(i)+'" y="210" text-anchor="middle">'+new Date(pts[i].generated_at).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit'})+'</text>');
+ svg.innerHTML=s;
+}
+function render(d,h){
+ const accounts=d.accounts||[],health=d.worker_health||{},equity=accounts.reduce((s,a)=>s+num(a.equity),0),pnl=accounts.reduce((s,a)=>s+num(a.net_pnl),0),fees=accounts.reduce((s,a)=>s+num(a.fees),0);
+ let peak=-Infinity,maxDD=0;for(const p of h?.points||[]){const v=num(p.total_equity);peak=Math.max(peak,v);if(peak>0)maxDD=Math.min(maxDD,(v/peak-1)*100);}
+ $('equity').textContent=fmt(equity)+' USDT';$('equity-note').textContent=accounts.length+' ACCOUNTS · '+fmt(equity/Math.max(1,accounts.length),2)+' AVG';
+ $('pnl').textContent=signed(pnl)+' USDT';$('pnl').className=pnl>=0?'pos':'';$('pnl-note').textContent=signed(pnl/Math.max(1,num(d.experiment?.starting_equity_per_strategy)*6)*100)+'% · PAPER RETURN';
+ $('drawdown').textContent=Math.abs(maxDD).toFixed(3)+'%';$('workers').textContent=(health.successful_strategies??0)+'/6';$('worker-note').textContent=(health.error_count??0)+' ERRORS · '+(health.all_protections_ok?'PROTECTION OK':'PROTECTION CHECK');
+ $('health').textContent=health.all_strategies_ok?'PAPER · ALL SYSTEMS OK':'PAPER · CHECK REQUIRED';$('strategy-status').textContent=accounts.length+' / 6 ACTIVE';
+ $('strategy-grid').innerHTML=accounts.map((a,i)=>'<article class="strategy"><div class="sprite">'+icons[i]+'</div><h3>'+esc(a.strategy_id.replace(/_/g,' '))+'</h3><div class="symbol">'+esc(a.symbol)+'</div><div class="ret '+(num(a.return_pct)>=0?'pos':'neg')+'">'+(num(a.return_pct)>=0?'+':'')+fmt(a.return_pct)+'%</div><div class="meta">EQUITY '+fmt(a.equity)+'<br>TRADES '+esc(a.trades??0)+'</div><span class="grade">'+esc(a.grade||'UNRATED')+'</span></article>').join('');
+ chart(h,equity);$('history-count').textContent=(h?.points?.length||0)+' SNAPSHOTS';
+ const trades=(d.closed_trades||[]).slice().reverse().slice(0,6);
+ $('trade-rows').innerHTML=trades.length?trades.map(t=>'<tr><td>'+esc(t.strategy_id.replace(/_/g,' '))+'</td><td>'+esc(t.symbol)+'</td><td class="'+(num(t.pnl)>=0?'pos':'neg')+'">'+signed(t.pnl)+'</td><td>'+stamp(t.closed_at)+'</td></tr>').join(''):'<tr><td colspan="4" class="empty">NO CLOSED TRADES YET</td></tr>';
+ $('trade-count').textContent=(d.ledger?.total_closed_trades??trades.length)+' CLOSED';
+ $('positions').textContent=(d.open_positions||[]).length;$('closed').textContent=d.ledger?.total_closed_trades??trades.length;$('fees').textContent=fmt(fees)+' USDT';
+ $('worker-time').textContent=stamp(d.source_updated_at);$('errors').textContent=health.error_count??'—';$('protection').textContent=health.protection_degraded_positions??0;
+ $('baseline').textContent=stamp(d.experiment?.baseline_at);$('snapshot').textContent=stamp(d.generated_at);$('footer-state').textContent='SNAPSHOT '+new Date(d.generated_at).toISOString()+' · SQLITE '+(d.ledger?.integrity||'UNKNOWN');
+}
+async function refresh(){try{const [r,h]=await Promise.all([fetch('../wall-data.json?ts='+Date.now(),{cache:'no-store'}),fetch('../wall-history.json?ts='+Date.now(),{cache:'no-store'})]);if(!r.ok)throw Error('DATA '+r.status);const d=await r.json(),history=h.ok?await h.json():{points:[]};if(d.mode!=='PAPER_ONLY'||!Array.isArray(d.accounts)||d.accounts.length!==6)throw Error('INVALID PAPER SNAPSHOT');render(d,history);}catch(e){$('health').textContent='DATA CHECK FAILED';$('footer-state').textContent='SNAPSHOT VALIDATION FAILED · '+String(e.message||e);}}
+refresh();setInterval(refresh,60000);
+})();
+</script>
+</body></html>
