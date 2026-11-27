@@ -4,14 +4,58 @@ import random
 
 def expand_generator(op: dict) -> list[dict]:
     kind = op.get("type")
-    if kind not in {"brick_wall", "stone_floor", "foliage", "stepped_ziggurat"}:
+    if kind not in {"brick_wall", "stone_floor", "foliage", "stepped_ziggurat", "column", "archway"}:
         return [op]
     rng = random.Random(int(op.get("seed", 1)))
     x, y, w, h = (int(op.get(k, 0)) for k in ("x", "y", "w", "h"))
     base, shade = op.get("color", "#888888"), op.get("shade", op.get("color", "#888888"))
     highlight, mortar = op.get("highlight", base), op.get("mortar", shade)
     out = []
-    if kind == "stepped_ziggurat":
+    if kind == "column":
+        shaft_w=max(3,int(op.get("shaft_w",w//2)))
+        shaft_x=x+(w-shaft_w)//2
+        cap_h=max(2,int(op.get("capital_h",max(2,h//7))))
+        base_h=max(2,int(op.get("base_h",max(2,h//8))))
+        shaft_y=y+cap_h
+        shaft_h=max(1,h-cap_h-base_h)
+        out.extend([
+            {"type":"rect","x":x,"y":y,"w":w,"h":cap_h,"color":highlight},
+            {"type":"rect","x":x+1,"y":y+cap_h-1,"w":max(1,w-2),"h":1,"color":shade},
+            {"type":"rect","x":shaft_x,"y":shaft_y,"w":shaft_w,"h":shaft_h,"color":base},
+            {"type":"line","points":[[shaft_x+1,shaft_y+1],[shaft_x+1,shaft_y+shaft_h-1]],"color":highlight},
+            {"type":"line","points":[[shaft_x+shaft_w-2,shaft_y+1],[shaft_x+shaft_w-2,shaft_y+shaft_h-1]],"color":shade},
+            {"type":"rect","x":x,"y":y+h-base_h,"w":w,"h":base_h,"color":highlight},
+            {"type":"line","points":[[x,y+h-1],[x+w-1,y+h-1]],"color":shade}
+        ])
+        if op.get("fluting",True) and shaft_w>=7:
+            for fx in range(shaft_x+3,shaft_x+shaft_w-2,3):
+                out.append({"type":"line","points":[[fx,shaft_y+2],[fx,shaft_y+shaft_h-2]],"color":shade})
+    elif kind == "archway":
+        thickness=max(2,int(op.get("thickness",max(3,w//8))))
+        arch_h=max(3,int(op.get("arch_h",h//3)))
+        spring_y=y+arch_h
+        left_w=max(2,(w-thickness)//2)
+        right_x=x+w-left_w
+        out.extend([
+            {"type":"rect","x":x,"y":spring_y,"w":left_w,"h":h-arch_h,"color":base},
+            {"type":"rect","x":right_x,"y":spring_y,"w":left_w,"h":h-arch_h,"color":base},
+            {"type":"line","points":[[x+1,spring_y],[x+left_w-1,spring_y]],"color":highlight},
+            {"type":"line","points":[[right_x+1,spring_y],[x+w-2,spring_y]],"color":highlight}
+        ])
+        # A stepped semicircular crown made of chunky stone courses.
+        steps=max(3,int(op.get("arch_steps",5)))
+        for i in range(steps):
+            inset=max(0,int((i/steps)*(w/2-thickness)))
+            block_y=y+i*max(1,arch_h//steps)
+            block_h=max(1,arch_h//steps)
+            block_w=max(2,w-2*inset)
+            out.append({"type":"rect","x":x+inset,"y":block_y,"w":block_w,"h":block_h,
+                        "color":highlight if i==0 else base})
+            if i>0:
+                out.append({"type":"line","points":[[x+inset,block_y],[x+inset+block_w-1,block_y]],
+                            "color":shade})
+        out.append({"type":"rect","x":x+w//2-thickness//2,"y":y,"w":thickness,"h":max(2,arch_h//steps),"color":highlight})
+    elif kind == "stepped_ziggurat":
         tiers=max(2,int(op.get("tiers",5)))
         tier_h=max(2,int(op.get("tier_h",max(2,h//tiers))))
         inset=max(1,int(op.get("inset",max(1,w//(tiers*3)))))
