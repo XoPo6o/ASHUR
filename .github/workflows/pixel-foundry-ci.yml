@@ -50,7 +50,7 @@ jobs:
       - name: Publish generated palette study to Pixel Lab
         run: |
           mkdir -p pages-site/assets/pixel/studies/palette-2026-11-27
-          cp /tmp/babylon-palette-study/*.png pages-site/assets/pixel/studies/palette-2026-11-27/
+          cp /tmp/babylon-palette-study/*.png pages-site/assets/pixel/studies/palette-2026-11-27/\n          cp /tmp/babylon-palette-study/*.json pages-site/assets/pixel/studies/palette-2026-11-27/
           cd pages-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
