@@ -81,7 +81,7 @@ def expand_generator(op: dict) -> list[dict]:
         lantern_x = x+w-7
         out.append({"type": "line", "part": "lantern-chain", "points": [
             [lantern_x+1,y+5],[lantern_x+1,y+9]
-        ], "color": detail if "detail" in op else wood})
+        ], "color": op.get("detail", wood)})
         out.append({"type": "rect", "part": "lantern-frame", "x": lantern_x,
                     "y": y+9, "w": 4, "h": 5, "color": wood})
         out.append({"type": "rect", "part": "lantern-light", "x": lantern_x+1,
