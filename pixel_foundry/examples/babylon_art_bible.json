@@ -1,6 +1,6 @@
 {
-  "name": "Babylon Inventory — reference-aligned night market Art Bible v2",
-  "style": "high-density 16-bit inspired pixel art; 2x authored pixel grid; fine material clusters; layered hard-edged shading; restrained neon accents",
+  "name": "Babylon Inventory — reference-aligned night market Art Bible v3",
+  "style": "high-density 16-bit inspired pixel art; expanded focal sprites; individually clustered facial and textile detail; hard-edged material shading; restrained neon accents",
   "target": "game-background",
   "canvas": {
     "width": 160,
@@ -685,10 +685,10 @@
         },
         {
           "type": "traveler_sprite",
-          "x": 69,
-          "y": 58,
-          "w": 18,
-          "h": 31,
+          "x": 67,
+          "y": 53,
+          "w": 22,
+          "h": 36,
           "pose": "drag",
           "color": "sand",
           "shade": "dark",
@@ -696,7 +696,16 @@
           "skin": "moon",
           "trim": "gold_shadow",
           "boots": "dark",
-          "limb_color": "sand_shadow"
+          "limb_color": "sand_shadow",
+          "skin_shadow": "sand_shadow",
+          "skin_light": "sand_light",
+          "eye": "dark",
+          "brow": "dark",
+          "beard": "sand_shadow",
+          "cloth_shadow": "sand_shadow",
+          "cloth_light": "sand_light",
+          "seam": "gold_shadow",
+          "hood_inner": "sand_light"
         },
         {
           "type": "lamassu_sprite",

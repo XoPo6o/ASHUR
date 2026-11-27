@@ -161,3 +161,22 @@ def test_market_stall_has_distinct_goods_and_hand_finished_materials():
     assert {"canopy-stitch","canopy-hem-stitch","jar-neck","jar-handle",
             "bowl-lip","bowl-foot","produce-glint","produce-stem",
             "counter-peg","wood-knot"} <= parts
+
+
+def test_traveler_face_and_cloth_have_readable_pixel_features():
+    spec = {
+        "type": "traveler_sprite", "x": 20, "y": 10, "w": 24, "h": 38,
+        "pose": "drag", "color": "#D9AD62", "shade": "#050A0E",
+        "highlight": "#F0D8A5", "skin": "#E9E5D6",
+    }
+    first = expand_generator(spec)
+    assert first == expand_generator(spec)
+    parts = {op.get("part") for op in first}
+    assert {
+        "face-shadow-plane", "face-brow", "face-eye", "face-eye-glint",
+        "face-nose", "face-cheek", "face-mouth", "face-beard",
+        "hood-inner-rim", "cloth-fold-shadow", "cloth-fold-light",
+        "tunic-side-seam", "cloak-edge-binding", "cloth-wear-patch",
+        "sleeve-cuff-stitch", "boot-sole", "boot-toe-wear",
+    } <= parts
+    assert sum(op.get("part") == "cloth-fold-shadow" for op in first) == 3

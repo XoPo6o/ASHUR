@@ -194,6 +194,43 @@ def expand_generator(op: dict) -> list[dict]:
                     "y": head_y + max(3, head_h // 2), "color": shade})
         out.append({"type": "pixel", "x": face_x + max(2, head_w // 2),
                     "y": head_y + max(4, head_h // 2 + 1), "color": highlight})
+
+        # Face planes: hood shadow, brow, eye, nose bridge, cheek light and beard edge.
+        # Keep features grouped into readable clusters at the authored logical scale.
+        face_w = max(3, head_w // 2)
+        face_h = max(4, head_h - 2)
+        eye_y = head_y + max(3, head_h // 2)
+        eye_x = face_x + max(1, face_w // 2)
+        face_shadow = op.get("skin_shadow", shade)
+        face_light = op.get("skin_light", highlight)
+        out.append({"type": "line", "part": "face-shadow-plane", "points": [
+            [face_x, head_y + 3], [face_x, head_y + face_h + 1]],
+            "color": face_shadow})
+        out.append({"type": "line", "part": "face-brow", "points": [
+            [face_x, eye_y - 1], [face_x + face_w - 1, eye_y - 1]],
+            "color": op.get("brow", shade)})
+        out.append({"type": "pixel", "part": "face-eye", "x": eye_x,
+                    "y": eye_y, "color": op.get("eye", "#171827")})
+        out.append({"type": "pixel", "part": "face-eye-glint", "x": eye_x + 1,
+                    "y": eye_y, "color": face_light})
+        out.append({"type": "line", "part": "face-nose", "points": [
+            [eye_x + 1, eye_y], [eye_x + 2, eye_y + 1]],
+            "color": face_light})
+        out.append({"type": "pixel", "part": "face-cheek", "x": face_x + face_w - 1,
+                    "y": eye_y + 1, "color": face_light})
+        out.append({"type": "line", "part": "face-mouth", "points": [
+            [face_x + 1, eye_y + 2], [face_x + max(2, face_w - 1), eye_y + 2]],
+            "color": face_shadow})
+        out.append({"type": "line", "part": "face-beard", "points": [
+            [face_x, head_y + head_h - 1], [face_x + 1, head_y + head_h],
+            [face_x + face_w - 1, head_y + head_h - 1]],
+            "color": op.get("beard", shade)})
+        out.append({"type": "pixel", "part": "face-beard-highlight",
+                    "x": face_x + max(1, face_w - 1), "y": head_y + head_h - 1,
+                    "color": face_light})
+        out.append({"type": "line", "part": "hood-inner-rim", "points": [
+            [head_x + 1, head_y + 4], [head_x + 2, head_y + head_h + 1]],
+            "color": op.get("hood_inner", highlight)})
         out.append({"type": "line", "points": [
             [head_x, head_y + 2], [head_x + head_w, head_y + 2]
         ], "color": highlight})
@@ -283,6 +320,40 @@ def expand_generator(op: dict) -> list[dict]:
                 [fold_x + (1 if fold_index else -1), hem_y-2]], "color": highlight})
         out.append({"type": "line", "part": "cloak-hem-stitch", "points": [
             [cx-w//5+1, hem_y], [cx+w//5-1, hem_y]], "color": op.get("trim", highlight)})
+
+        # Tailored cloth: offset folds, dark troughs, seam breaks and worn hem patches.
+        cloth_shadow = op.get("cloth_shadow", shade)
+        cloth_light = op.get("cloth_light", highlight)
+        fold_specs = (
+            (cx-w//5+1, shoulder_y+5, waist_y+2, hem_y-3, -1),
+            (cx-w//12, shoulder_y+3, waist_y+4, hem_y-1, 1),
+            (cx+w//8, shoulder_y+4, waist_y+1, hem_y-4, -1),
+        )
+        for fold_index, (fx, fy, my, by, drift) in enumerate(fold_specs):
+            out.append({"type": "line", "part": "cloth-fold-shadow", "points": [
+                [fx+1, fy], [fx, my], [fx+drift, by]], "color": cloth_shadow})
+            out.append({"type": "line", "part": "cloth-fold-light", "points": [
+                [fx, fy], [fx+1, my-1], [fx+1+drift, by-1]],
+                "color": cloth_light if fold_index != 1 else op.get("trim", highlight)})
+        out.append({"type": "line", "part": "tunic-side-seam", "points": [
+            [cx-w//4+1, shoulder_y+4], [cx-w//4, waist_y+2],
+            [cx-w//5, hem_y-2]], "color": op.get("seam", cloth_shadow)})
+        out.append({"type": "line", "part": "cloak-edge-binding", "points": [
+            [cx+w//5, shoulder_y+3], [cx+w//5+1, waist_y+3],
+            [cx+w//5, hem_y-1]], "color": op.get("trim", highlight)})
+        out.append({"type": "pixel", "part": "cloth-wear-patch",
+                    "x": cx-w//5+2, "y": hem_y-1, "color": cloth_shadow})
+        out.append({"type": "pixel", "part": "cloth-wear-highlight",
+                    "x": cx+w//5-1, "y": hem_y, "color": cloth_light})
+        out.append({"type": "line", "part": "sleeve-cuff-stitch", "points": [
+            [x+2, shoulder_y+h//4+1], [x+4, shoulder_y+h//4+2]],
+            "color": op.get("trim", highlight)})
+        out.append({"type": "line", "part": "boot-sole", "points": [
+            [legs[0][-1][0]-1, legs[0][-1][1]+1],
+            [legs[0][-1][0]+2, legs[0][-1][1]+1]], "color": cloth_shadow})
+        out.append({"type": "pixel", "part": "boot-toe-wear",
+                    "x": legs[1][-1][0]+1, "y": legs[1][-1][1],
+                    "color": cloth_light})
         out.append({"type": "rect", "part": "travel-pouch", "x": cx+w//5-1,
                     "y": waist_y+3, "w": 3, "h": 4, "color": op.get("boots", shade)})
         out.append({"type": "pixel", "part": "pouch-clasp", "x": cx+w//5,
