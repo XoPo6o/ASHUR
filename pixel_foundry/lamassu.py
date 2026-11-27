@@ -1,4 +1,4 @@
-"""Deterministic stepped-pixel Lamassu guardian sprite."""
+"""Deterministic Assyrian Lamassu guardian sprite built from hard-edged pixel clusters."""
 from __future__ import annotations
 
 
@@ -13,62 +13,78 @@ def expand_lamassu(op: dict) -> list[dict]:
     detail = op.get("detail", "#365564")
     out: list[dict] = []
 
-    # Broad wing rises behind the bull's shoulder; stepped feathers stay grouped.
+    # Tall feathered wing, kept behind the body as one readable stepped silhouette.
     out.append({"type": "polygon", "points": [
-        [x+8,y+18],[x+6,y+11],[x+10,y+6],[x+15,y+2],
-        [x+20,y+1],[x+22,y+4],[x+18,y+9],[x+25,y+6],
-        [x+28,y+9],[x+23,y+14],[x+28,y+15],[x+25,y+20],
-        [x+14,y+23]
+        [x+7,y+20],[x+5,y+14],[x+7,y+9],[x+12,y+4],
+        [x+18,y+1],[x+23,y+2],[x+20,y+6],[x+27,y+4],
+        [x+30,y+7],[x+25,y+11],[x+30,y+12],
+        [x+27,y+17],[x+18,y+22]
     ], "color": shade})
     out.append({"type": "polygon", "points": [
-        [x+10,y+16],[x+11,y+10],[x+16,y+5],[x+19,y+4],
-        [x+17,y+10],[x+23,y+8],[x+20,y+13],
-        [x+25,y+13],[x+21,y+18],[x+14,y+20]
+        [x+10,y+17],[x+10,y+12],[x+15,y+7],[x+19,y+5],
+        [x+17,y+10],[x+24,y+7],[x+21,y+12],
+        [x+26,y+12],[x+22,y+16],[x+17,y+19]
     ], "color": base})
-    for index, points in enumerate((
-        [[x+12,y+14],[x+16,y+8],[x+18,y+7]],
-        [[x+16,y+16],[x+20,y+11],[x+23,y+10]],
-        [[x+19,y+18],[x+23,y+15],[x+25,y+15]],
-    )):
-        out.append({"type": "line", "points": points, "color": highlight if index == 0 else detail})
+    # Three long feather bands create a wing fan rather than a flat triangular patch.
+    for points, color in (
+        ([[x+12,y+15],[x+16,y+9],[x+19,y+7]], highlight),
+        ([[x+15,y+17],[x+21,y+11],[x+24,y+9]], detail),
+        ([[x+18,y+19],[x+24,y+15],[x+27,y+14]], highlight),
+    ):
+        out.append({"type": "line", "points": points, "color": color})
 
-    # Powerful bull torso and raised shoulder.
+    # Bull's back, chest and muscular flank; the highlight separates shoulder from wing.
     out.append({"type": "polygon", "points": [
-        [x+7,y+18],[x+12,y+14],[x+28,y+14],[x+34,y+17],
-        [x+36,y+23],[x+32,y+27],[x+12,y+27],[x+7,y+23]
+        [x+6,y+20],[x+10,y+16],[x+17,y+15],[x+25,y+16],
+        [x+31,y+18],[x+35,y+21],[x+34,y+27],
+        [x+29,y+29],[x+12,y+28],[x+7,y+25]
     ], "color": base})
     out.append({"type": "polygon", "points": [
-        [x+10,y+22],[x+16,y+20],[x+31,y+21],
-        [x+33,y+25],[x+29,y+27],[x+12,y+26]
+        [x+9,y+23],[x+15,y+21],[x+26,y+22],
+        [x+32,y+24],[x+30,y+28],[x+13,y+27]
     ], "color": shade})
-    out.append({"type": "line", "points": [[x+12,y+16],[x+27,y+16]], "color": highlight})
+    out.append({"type": "line", "points": [[x+11,y+17],[x+25,y+17],[x+31,y+20]], "color": highlight})
+    # Assyrian rosette harness and a segmented chest collar.
+    out.append({"type": "line", "points": [[x+17,y+18],[x+19,y+22],[x+22,y+23]], "color": detail})
+    out.append({"type": "pixel", "x": x+20, "y": y+21, "color": highlight})
+    out.append({"type": "pixel", "x": x+19, "y": y+22, "color": highlight})
+    out.append({"type": "pixel", "x": x+21, "y": y+22, "color": highlight})
+    out.append({"type": "line", "points": [[x+27,y+18],[x+30,y+21]], "color": detail})
 
-    # Five legs preserve the distinctive guardian profile in Assyrian reliefs.
-    for lx in (x+8, x+15, x+22, x+30, x+37):
-        leg_top = y+24 if lx < x+30 else y+22
+    # Five distinct legs: four grouped under the body and one forward leg.
+    for index, lx in enumerate((x+8, x+15, x+23, x+30, x+36])):
+        top = y + (23 if index in (0, 4) else 25)
+        knee = y + (28 if index in (1, 3) else 29)
+        foot = y + 32
+        leg_color = shade if index % 2 == 0 else base
         out.append({"type": "polygon", "points": [
-            [lx,leg_top],[lx+3,leg_top],[lx+3,y+30],
-            [lx+5,y+31],[lx-1,y+31],[lx,y+29]
-        ], "color": shade})
-        out.append({"type": "line", "points": [[lx+1,leg_top+1],[lx+1,y+28]], "color": highlight})
-        out.append({"type": "rect", "x": lx-1, "y": y+30, "w": 6, "h": 3, "color": detail})
+            [lx,top],[lx+4,top],[lx+4,knee],
+            [lx+6,foot-1],[lx+5,foot],[lx-2,foot],
+            [lx-1,knee+1]
+        ], "color": leg_color})
+        out.append({"type": "line", "points": [[lx+1,top+1],[lx+1,knee]], "color": highlight})
+        out.append({"type": "line", "points": [[lx-1,foot-1],[lx+5,foot-1]], "color": detail})
 
-    # Human head, beard, brow and horned crown facing right.
-    out.append({"type": "rect", "x": x+31, "y": y+7, "w": 9, "h": 10, "color": base})
+    # Human head turned right, with tiered beard, eye, brow and paired horned crown.
     out.append({"type": "polygon", "points": [
-        [x+30,y+9],[x+33,y+5],[x+39,y+5],[x+42,y+9],
-        [x+41,y+15],[x+37,y+18],[x+32,y+16]
+        [x+34,y+8],[x+37,y+5],[x+42,y+6],
+        [x+44,y+10],[x+43,y+16],[x+40,y+19],
+        [x+35,y+17],[x+33,y+13]
     ], "color": highlight})
     out.append({"type": "polygon", "points": [
-        [x+31,y+6],[x+32,y+2],[x+35,y+5],
-        [x+39,y+4],[x+42,y+1],[x+41,y+7]
+        [x+34,y+7],[x+35,y+3],[x+38,y+6],
+        [x+40,y+3],[x+42,y+1],[x+43,y+6],
+        [x+45,y+8],[x+42,y+9],[x+40,y+7],[x+37,y+9]
     ], "color": shade})
+    out.append({"type": "line", "points": [[x+35,y+9],[x+40,y+9]], "color": detail})
+    out.append({"type": "pixel", "x": x+40, "y": y+10, "color": detail})
     out.append({"type": "polygon", "points": [
-        [x+32,y+15],[x+38,y+15],[x+39,y+21],
-        [x+36,y+24],[x+33,y+21]
+        [x+35,y+15],[x+41,y+15],[x+42,y+20],
+        [x+40,y+24],[x+37,y+22],[x+34,y+18]
     ], "color": shade})
-    out.append({"type": "line", "points": [[x+34,y+10],[x+38,y+10]], "color": detail})
-    out.append({"type": "pixel", "x": x+38, "y": y+11, "color": detail})
-    out.append({"type": "line", "points": [[x+34,y+6],[x+39,y+6]], "color": highlight})
-    out.append({"type": "line", "points": [[x+34,y+18],[x+37,y+21]], "color": highlight})
+    out.append({"type": "line", "points": [[x+36,y+17],[x+40,y+20],[x+39,y+22]], "color": highlight})
+    # Ear, cheek plane and small royal headband.
+    out.append({"type": "pixel", "x": x+34, "y": y+12, "color": base})
+    out.append({"type": "line", "points": [[x+35,y+7],[x+41,y+7]], "color": highlight})
+    out.append({"type": "pixel", "x": x+38, "y": y+6, "color": detail})
     return out
