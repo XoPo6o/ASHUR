@@ -20,6 +20,9 @@ def test_palette_study_renders_three_same_size_candidates_and_metrics(tmp_path):
     assert images[0].size == (160 * 2, 90 * 2)
     assert paths["comparison"].exists()
     assert paths["metrics"].exists()
+    metrics = json.loads(paths["metrics"].read_text())
+    assert len(metrics["comparisons"]) == 3
+    assert all(item["changed_pixel_ratio"] > 0 for item in metrics["comparisons"].values())
 
 
 def test_palette_candidates_are_visibly_distinct(tmp_path):
