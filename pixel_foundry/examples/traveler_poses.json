@@ -1,0 +1,54 @@
+{
+  "name": "Babylon traveler — walk and idle sprite proof",
+  "canvas": {
+    "width": 80,
+    "height": 42
+  },
+  "background": "#101426",
+  "palette": {
+    "colors": {
+      "night": "#101426",
+      "dark": "#24212B",
+      "cloth_shadow": "#75533F",
+      "cloth": "#B88B62",
+      "gold": "#E8B65A",
+      "skin": "#F4E6B8",
+      "stone": "#35405B"
+    }
+  },
+  "layers": [
+    {
+      "name": "two traveler poses",
+      "ops": [
+        {
+          "type": "traveler_sprite",
+          "x": 12,
+          "y": 5,
+          "w": 16,
+          "h": 30,
+          "pose": "walk",
+          "color": "cloth",
+          "shade": "dark",
+          "highlight": "gold",
+          "skin": "skin",
+          "trim": "gold",
+          "boots": "dark"
+        },
+        {
+          "type": "traveler_sprite",
+          "x": 50,
+          "y": 5,
+          "w": 16,
+          "h": 30,
+          "pose": "idle",
+          "color": "cloth",
+          "shade": "dark",
+          "highlight": "gold",
+          "skin": "skin",
+          "trim": "gold",
+          "boots": "dark"
+        }
+      ]
+    }
+  ]
+}
