@@ -8,7 +8,7 @@ A deterministic, spec-driven pixel-art raster toolkit. The AI describes the art 
 - Palette validation and exact-palette quantization.
 - Layered JSON scene specification.
 - Pixel primitives: rectangles, ellipses, lines, polygons, single pixels, bitmap text, hard palette ramps, silhouette outlines and controlled dithering.
-- Seeded procedural materials: brick walls, stone floors, clustered foliage and stepped ziggurats.
+- Seeded procedural materials: brick walls, stone floors, clustered foliage, stepped ziggurats, columns and stone archways.
 - Sprite atlas packing with JSON frame metadata and animation-strip export.
 - QA report: dimensions, palette drift, connected-component/cluster sizes, isolated pixels, silhouette boundary complexity and luminance separation.
 - CLI for rendering and inspecting PNG assets.
