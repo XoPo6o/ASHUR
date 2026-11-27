@@ -10,6 +10,8 @@ from .palette import Palette
 REQUIRED_BIBLE=("name","style","canvas","pixel_scale","perspective","lighting","palette","layers")
 ALLOWED_PERSPECTIVES={"side","top_down","three_quarter","isometric","frontal"}
 ALLOWED_LIGHT_DIRECTIONS={"top_left","top","top_right","left","right","bottom_left","bottom","bottom_right","ambient"}
+MAX_ART_BIBLE_COLORS=16
+
 
 def validate_art_bible(bible: dict) -> list[str]:
     errors=[]
@@ -31,7 +33,17 @@ def validate_art_bible(bible: dict) -> list[str]:
     if not isinstance(lighting,dict) or lighting.get("direction") not in ALLOWED_LIGHT_DIRECTIONS:
         errors.append(f"lighting.direction must be one of {sorted(ALLOWED_LIGHT_DIRECTIONS)}")
     try:
-        Palette.from_data(bible["palette"])
+        palette=Palette.from_data(bible["palette"])
+        if len(palette.ordered_hex()) > MAX_ART_BIBLE_COLORS:
+            errors.append(
+                f"Art Bible palette has {len(palette.ordered_hex())} unique colors; "
+                f"maximum is {MAX_ART_BIBLE_COLORS}"
+            )
+        if isinstance(lighting,dict):
+            for key in ("key_color","ambient_color"):
+                color=lighting.get(key)
+                if color is not None and color not in palette.colors:
+                    errors.append(f"lighting.{key} references unknown palette color: {color!r}")
     except (TypeError,ValueError,KeyError) as exc:
         errors.append(f"Invalid palette: {exc}")
     if not isinstance(bible["layers"],list) or not bible["layers"]:
@@ -41,6 +53,7 @@ def validate_art_bible(bible: dict) -> list[str]:
         if len(names)!=len(bible["layers"]) or any(not name for name in names):
             errors.append("every layer must be an object with a non-empty name")
     return errors
+
 
 def build_scene_spec(bible: dict) -> dict:
     """Convert a validated art bible to a renderer-ready scene spec."""
