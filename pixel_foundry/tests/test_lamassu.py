@@ -55,3 +55,7 @@ def test_lamassu_expands_anatomy_on_high_density_grid():
     assert min(point[0] for point in face["points"]) == 20 + 44 * 2
     assert max(point[0] for point in body["points"]) == 20 + 49 * 2
     assert spec["x"] == 20 and spec["y"] == 10
+    micro_parts = {item.get("part") for item in parts}
+    assert {"micro-feather", "coat-grain", "muscle-crease",
+            "harness-engraving", "eye-glint", "beard-engraving",
+            "hoof-seam"} <= micro_parts
