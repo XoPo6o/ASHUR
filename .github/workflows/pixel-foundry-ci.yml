@@ -50,11 +50,13 @@ jobs:
       - name: Publish generated palette study to Pixel Lab
         run: |
           mkdir -p pages-site/assets/pixel/studies/palette-2026-11-27
+          mkdir -p pages-site/assets/pixel/studies/lamassu-2026-11-27
           cp /tmp/babylon-palette-study/*.png pages-site/assets/pixel/studies/palette-2026-11-27/
           cp /tmp/babylon-palette-study/*.json pages-site/assets/pixel/studies/palette-2026-11-27/
+          cp /tmp/babylon-art-bible.png pages-site/assets/pixel/studies/lamassu-2026-11-27/babylon-lamassu-candidate.png
           cd pages-site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/pixel/studies/palette-2026-11-27
+          git add assets/pixel/studies/palette-2026-11-27 assets/pixel/studies/lamassu-2026-11-27
           git diff --cached --quiet || git commit -m "Publish Babylon palette study to Pixel Lab"
           git push origin HEAD:main
