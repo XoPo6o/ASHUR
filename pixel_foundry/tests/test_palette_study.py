@@ -11,6 +11,7 @@ def test_palette_study_renders_three_same_size_candidates(tmp_path):
     from PIL import Image
     sizes = [Image.open(path).size for path in images]
     assert len(set(sizes)) == 1
+    assert sizes[0] == (160 * 2, 90 * 2)
     assert paths["comparison"].exists()
 
 
