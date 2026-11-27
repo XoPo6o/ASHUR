@@ -199,6 +199,19 @@
       "name": "temple facade and royal reliefs",
       "ops": [
         {
+          "type": "temple_facade",
+          "x": 49,
+          "y": 42,
+          "w": 62,
+          "h": 9,
+          "color": "sand",
+          "shade": "sand_shadow",
+          "highlight": "sand_light",
+          "band": "sand_shadow",
+          "relief": "moon",
+          "rosette_spacing": 12
+        },
+        {
           "type": "rect",
           "x": 74,
           "y": 47,
