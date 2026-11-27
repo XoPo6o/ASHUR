@@ -32,7 +32,8 @@
           "highlight": "gold",
           "skin": "skin",
           "trim": "gold",
-          "boots": "dark"
+          "boots": "dark",
+          "limb_color": "cloth"
         },
         {
           "type": "traveler_sprite",
@@ -46,7 +47,8 @@
           "highlight": "gold",
           "skin": "skin",
           "trim": "gold",
-          "boots": "dark"
+          "boots": "dark",
+          "limb_color": "cloth"
         },
         {
           "type": "traveler_sprite",
@@ -60,7 +62,8 @@
           "highlight": "gold",
           "skin": "skin",
           "trim": "gold",
-          "boots": "dark"
+          "boots": "dark",
+          "limb_color": "cloth"
         }
       ]
     }
