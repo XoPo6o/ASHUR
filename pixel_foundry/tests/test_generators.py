@@ -44,3 +44,24 @@ def test_traveler_sprite_has_distinct_repeatable_poses():
     assert idle != drag
     assert len(walk) >= 20
     assert all(item["type"] in {"polygon","rect","line","pixel"} for item in walk)
+
+
+def test_market_stall_is_deterministic_and_has_readable_props():
+    spec = {
+        "type": "market_stall", "x": 24, "y": 63, "w": 40, "h": 22,
+        "color": "#D9AD62", "shade": "#9C7746", "highlight": "#F0D8A5",
+        "accent": "#65CFC0", "wood": "#365564", "lantern": "#E9E5D6",
+        "detail": "#365564",
+    }
+    first = expand_generator(spec)
+    assert first == expand_generator(spec)
+    parts = {op.get("part") for op in first}
+    assert {"awning", "awning-stripe", "post", "counter", "market-goods",
+            "lantern-frame", "lantern-light"} <= parts
+    assert all(op["type"] in {"polygon", "rect", "line", "pixel"} for op in first)
+
+
+def test_market_stall_rejects_too_small_canvas():
+    import pytest
+    with pytest.raises(ValueError, match="24x16"):
+        expand_generator({"type": "market_stall", "w": 20, "h": 12})
