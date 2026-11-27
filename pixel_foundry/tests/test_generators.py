@@ -31,3 +31,13 @@ def test_organic_generators_are_seeded_and_emit_raster_primitives():
 def test_organic_generators_change_with_seed():
     spec={"type":"boulder","x":0,"y":0,"w":20,"h":12,"color":"#916548","shade":"#4A3945","highlight":"#EDC17A"}
     assert expand_generator({**spec,"seed":1}) != expand_generator({**spec,"seed":2})
+
+
+def test_traveler_sprite_has_distinct_repeatable_poses():
+    base={"type":"traveler_sprite","x":10,"y":8,"w":16,"h":28,"color":"#B88B62","shade":"#171827","highlight":"#E8B65A","skin":"#F4E6B8","seed":4}
+    walk=expand_generator({**base,"pose":"walk"})
+    idle=expand_generator({**base,"pose":"idle"})
+    assert walk == expand_generator({**base,"pose":"walk"})
+    assert walk != idle
+    assert len(walk) >= 12
+    assert all(item["type"] in {"polygon","rect","line","pixel"} for item in walk)
