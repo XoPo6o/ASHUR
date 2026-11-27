@@ -1,0 +1,28 @@
+name: Pixel Foundry CI
+
+on:
+  push:
+    branches: [ashur-pixel-foundry]
+    paths:
+      - "pixel_foundry/**"
+      - ".github/workflows/pixel-foundry-ci.yml"
+  pull_request:
+    paths:
+      - "pixel_foundry/**"
+      - ".github/workflows/pixel-foundry-ci.yml"
+
+jobs:
+  test-render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install Pillow pytest
+      - run: python -m pytest pixel_foundry/tests -q
+      - run: python -m pixel_foundry.cli render pixel_foundry/examples/babylon_study.json --output /tmp/babylon.png --scale 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pixel-foundry-babylon-study
+          path: /tmp/babylon.png
