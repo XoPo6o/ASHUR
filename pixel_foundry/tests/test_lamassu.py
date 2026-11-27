@@ -13,6 +13,8 @@ def test_lamassu_has_five_legs_and_assyrian_features():
     ops = expand_generator(spec)
     assert ops == expand_lamassu(spec)
     assert len([op for op in ops if op.get("part") == "leg"]) == 5
+    leg_x = [op["points"][0][0] for op in ops if op.get("part") == "leg"]
+    assert [value - spec["x"] for value in leg_x] == [8, 18, 36, 43, 50]
     parts = {op.get("part") for op in ops}
     assert {"wing", "feather", "body", "human-face", "horn", "beard", "rosette"} <= parts
     assert all(op["type"] in {"polygon", "line", "rect", "pixel"} for op in ops)
