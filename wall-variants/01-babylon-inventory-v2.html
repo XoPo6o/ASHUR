@@ -306,7 +306,7 @@ function render(d,h){
 }
 async function refresh(){try{const [r,h]=await Promise.all([fetch('../wall-data.json?ts='+Date.now(),{cache:'no-store'}),fetch('../wall-history.json?ts='+Date.now(),{cache:'no-store'})]);if(!r.ok)throw Error('DATA '+r.status);const d=await r.json(),history=h.ok?await h.json():{points:[]};if(d.mode!=='PAPER_ONLY'||!Array.isArray(d.accounts)||d.accounts.length!==6)throw Error('INVALID PAPER SNAPSHOT');render(d,history);}catch(e){$('health').textContent='DATA CHECK FAILED';$('footer-state').textContent='SNAPSHOT VALIDATION FAILED · '+String(e.message||e);}}
 const sceneSvg=document.querySelector('.scene svg');
-function fitSceneArt(){sceneSvg.setAttribute('viewBox',window.matchMedia('(max-width:650px)').matches?'0 0 560 315':'0 0 1000 315');}
+function fitSceneArt(){sceneSvg.setAttribute('viewBox',window.matchMedia('(max-width:650px)').matches?'0 0 560 315':'0 0 1360 315');}
 fitSceneArt();window.addEventListener('resize',fitSceneArt);
 refresh();setInterval(refresh,60000);
 })();
