@@ -8,7 +8,7 @@ def expand_generator(op: dict) -> list[dict]:
     supported = {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "palm_tree", "cloud_bank", "boulder",
-        "water_surface",
+        "water_surface", "traveler_sprite",
     }
     if kind not in supported:
         return [op]
@@ -20,7 +20,87 @@ def expand_generator(op: dict) -> list[dict]:
     mortar = op.get("mortar", shade)
     out: list[dict] = []
 
-    if kind == "palm_tree":
+    if kind == "traveler_sprite":
+        # Compact human silhouette designed for a 16-bit side-view market scene.
+        # The pose changes limb offsets while the cloak, hood and belt retain
+        # the same cluster grammar across the character family.
+        pose = op.get("pose", "walk")
+        if pose not in {"walk", "idle"}:
+            raise ValueError(f"Unsupported traveler pose: {pose!r}")
+        head_w = max(5, w // 3)
+        head_h = max(5, h // 5)
+        head_x = x + (w - head_w) // 2
+        head_y = y
+        cx = x + w // 2
+        shoulder_y = y + head_h
+        waist_y = y + h * 3 // 5
+        hem_y = y + h - 5
+        # Hood and face are separate stepped silhouettes.
+        out.append({"type": "polygon", "points": [
+            [head_x - 2, head_y + head_h // 2],
+            [head_x, head_y + 1], [head_x + head_w // 2, head_y - 1],
+            [head_x + head_w + 1, head_y + 2],
+            [head_x + head_w + 2, head_y + head_h - 1],
+            [head_x + head_w - 1, head_y + head_h + 1],
+            [head_x + 1, head_y + head_h + 1],
+        ], "color": shade})
+        face_x = head_x + max(1, head_w // 4)
+        out.append({"type": "rect", "x": face_x, "y": head_y + 3,
+                    "w": max(2, head_w // 2), "h": max(3, head_h - 3),
+                    "color": op.get("skin", highlight)})
+        out.append({"type": "pixel", "x": face_x + max(1, head_w // 3),
+                    "y": head_y + max(3, head_h // 2), "color": shade})
+        out.append({"type": "line", "points": [
+            [head_x, head_y + 2], [head_x + head_w, head_y + 2]
+        ], "color": highlight})
+        # Cloak: broad shoulders tapering to a stepped hem.
+        out.append({"type": "polygon", "points": [
+            [cx - w // 3, shoulder_y], [cx - w // 4, shoulder_y - 1],
+            [cx + w // 4, shoulder_y - 1], [cx + w // 3, shoulder_y + 2],
+            [cx + w // 3 - 1, hem_y], [cx + w // 5, hem_y + 1],
+            [cx - w // 5, hem_y + 1], [cx - w // 3, hem_y - 1],
+        ], "color": shade})
+        out.append({"type": "polygon", "points": [
+            [cx - w // 4, shoulder_y + 1], [cx + w // 5, shoulder_y + 1],
+            [cx + w // 5 - 1, hem_y - 2], [cx - w // 5, hem_y - 2],
+        ], "color": base})
+        out.append({"type": "line", "points": [
+            [cx - w // 5, waist_y], [cx + w // 5, waist_y]
+        ], "color": highlight})
+        out.append({"type": "pixel", "x": cx, "y": waist_y + 1,
+                    "color": op.get("trim", highlight)})
+        # Arms swing opposite the legs during the walk cycle.
+        arm_drop = max(3, h // 5)
+        if pose == "walk":
+            left_arm = [[cx - w // 4, shoulder_y + 2],
+                        [x + 1, shoulder_y + arm_drop],
+                        [x + 3, shoulder_y + arm_drop + 2]]
+            right_arm = [[cx + w // 4, shoulder_y + 2],
+                         [x + w - 2, shoulder_y + arm_drop - 2],
+                         [x + w - 4, shoulder_y + arm_drop + 1]]
+            left_leg = [[cx - 3, hem_y], [cx - 5, y + h - 2], [cx - 8, y + h - 1]]
+            right_leg = [[cx + 2, hem_y], [cx + 5, y + h - 4], [cx + 8, y + h - 3]]
+        else:
+            left_arm = [[cx - w // 4, shoulder_y + 2],
+                        [cx - w // 3, waist_y], [cx - w // 4, waist_y + 1]]
+            right_arm = [[cx + w // 4, shoulder_y + 2],
+                         [cx + w // 3, waist_y], [cx + w // 4, waist_y + 1]]
+            left_leg = [[cx - 3, hem_y], [cx - 4, y + h - 2], [cx - 7, y + h - 1]]
+            right_leg = [[cx + 2, hem_y], [cx + 3, y + h - 2], [cx + 6, y + h - 1]]
+        for limb in (left_arm, right_arm):
+            out.append({"type": "polygon", "points": limb, "color": shade})
+            out.append({"type": "line", "points": limb[:2], "color": highlight})
+        for leg in (left_leg, right_leg):
+            out.append({"type": "polygon", "points": leg, "color": shade})
+            foot_x, foot_y = leg[-1]
+            out.append({"type": "rect", "x": foot_x - 1, "y": foot_y,
+                        "w": 4, "h": 2, "color": op.get("boots", shade)})
+        # A narrow shoulder sash gives the traveler a readable diagonal.
+        out.append({"type": "line", "points": [
+            [cx - w // 5, shoulder_y + 2], [cx + w // 6, waist_y - 1]
+        ], "color": highlight})
+
+    elif kind == "palm_tree":
         # A bent, tapered trunk with six broad fronds. The fronds use stepped
         # polygon contours and a few deliberate vein pixels, never ellipses.
         trunk_w = max(2, int(op.get("trunk_w", max(2, w // 8))))
