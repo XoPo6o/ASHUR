@@ -29,6 +29,9 @@
       {"type":"polygon","points":[[66,42],[76,30],[84,30],[94,42]],"color":"sand_light"},
       {"type":"rect","x":76,"y":24,"w":8,"h":6,"color":"gold"}
     ]},
+    {"name":"market paving","ops":[
+      {"type":"stone_floor","x":0,"y":82,"w":160,"h":8,"color":"#35405B","shade":"#222D4B","mortar":"#171827","highlight":"#5D9A91","block_w":14,"block_h":6,"seed":23}
+    ]},
     {"name":"foreground market","ops":[
       {"type":"rect","x":0,"y":76,"w":160,"h":14,"color":"dark"},
       {"type":"polygon","points":[[8,75],[20,65],[34,75]],"color":"gold_shadow"},
