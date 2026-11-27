@@ -7,6 +7,7 @@ from .qa import inspect_image
 from .palette import Palette
 from .art_director import build_scene_spec, validate_art_bible
 from .ui_kit import export_panel_set
+from .data_widgets import export_dashboard_components
 
 def main():
     parser = argparse.ArgumentParser(prog="pixel-foundry")
@@ -19,6 +20,9 @@ def main():
     ui_kit = sub.add_parser("ui-kit", help="Export Babylon Inventory pixel UI panel primitives")
     ui_kit.add_argument("palette")
     ui_kit.add_argument("-o", "--output", default="out/babylon-ui-kit")
+    widgets = sub.add_parser("widgets", help="Export Babylon Inventory KPI and chart widgets")
+    widgets.add_argument("palette")
+    widgets.add_argument("-o", "--output", default="out/babylon-widgets")
     args = parser.parse_args()
     if args.command == "render":
         data = load_scene(args.scene)
@@ -32,9 +36,13 @@ def main():
     elif args.command == "inspect":
         report = inspect_image(Image.open(args.image))
         print(json.dumps(report, ensure_ascii=False, indent=2))
-    else:
+    elif args.command == "ui-kit":
         palette_data = json.loads(open(args.palette, encoding="utf-8").read())
         paths = export_panel_set(args.output, Palette.from_data(palette_data))
+        print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
+    else:
+        palette_data = json.loads(open(args.palette, encoding="utf-8").read())
+        paths = export_dashboard_components(args.output, Palette.from_data(palette_data))
         print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
