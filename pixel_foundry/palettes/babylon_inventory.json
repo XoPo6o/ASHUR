@@ -1,0 +1,62 @@
+{
+  "name": "ASHUR · 01 Babylon Inventory",
+  "source_reference": "wall-variants/01-babylon-inventory.html",
+  "status": "controlled-first-pass",
+  "colors": {
+    "void": "#0B1422",
+    "surface": "#142333",
+    "surface_raised": "#1B2D3D",
+    "surface_deep": "#101C2A",
+    "border": "#425568",
+    "border_gold": "#A98A5C",
+    "gold": "#D6B574",
+    "gold_light": "#E9D6A7",
+    "text": "#E6DDC8",
+    "muted": "#8F9DA5",
+    "teal": "#5D9692",
+    "teal_deep": "#315F63"
+  },
+  "ramps": {
+    "background": [
+      "void",
+      "surface_deep",
+      "surface"
+    ],
+    "panel": [
+      "surface_deep",
+      "surface",
+      "surface_raised"
+    ],
+    "gold": [
+      "border_gold",
+      "gold",
+      "gold_light"
+    ],
+    "text": [
+      "muted",
+      "text",
+      "gold_light"
+    ],
+    "teal": [
+      "teal_deep",
+      "teal"
+    ]
+  },
+  "rules": {
+    "max_colors": 12,
+    "background_role": "void",
+    "panel_role": "surface",
+    "primary_accent": "gold",
+    "secondary_accent": "teal",
+    "pixel_edges": "hard",
+    "anti_aliasing": false,
+    "dithering": "off-by-default",
+    "forbidden": [
+      "saturated green foliage palette in UI",
+      "purple or magenta neon",
+      "bright orange gradients",
+      "rainbow accents",
+      "glossy 3D shading"
+    ]
+  }
+}
