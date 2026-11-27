@@ -38,13 +38,63 @@ main.wrap{position:relative;padding:0;margin:14px auto 24px;aspect-ratio:768/554
 <section class="content"><article class="frame"><div class="ph"><b>EQUITY CHRONICLE</b><span id="history-count">HISTORY</span></div><div class="pb"><canvas id="chart" class="chart" width="640" height="190"></canvas><div class="legend">━━ ASHUR EQUITY　 ┄ BUY &amp; HOLD</div></div></article><article class="frame" id="ledger"><div class="ph"><b>TRADES</b><span id="trade-count">LEDGER</span></div><div class="pb" style="overflow:auto"><table><thead><tr><th>STRATEGY</th><th>PAIR</th><th>P&amp;L</th></tr></thead><tbody id="trade-rows"><tr><td class="empty" colspan="3">WAITING FOR LEDGER</td></tr></tbody></table></div></article></section>
 <section class="lower"><article class="frame"><div class="ph"><b>MARKET PULSE</b></div><div class="pb"><div class="stat"><span>OPEN POSITIONS</span><b id="positions">—</b></div><div class="stat"><span>CLOSED TRADES</span><b id="closed">—</b></div><div class="stat"><span>TRADING FEES</span><b id="fees">—</b></div></div></article><article class="frame"><div class="ph"><b>WORKER WATCH</b></div><div class="pb"><div class="stat"><span>LAST UPDATE</span><b id="worker-time">—</b></div><div class="stat"><span>ERRORS</span><b id="errors">—</b></div><div class="stat"><span>PROTECTION</span><b id="protection">—</b></div></div></article><article class="frame"><div class="ph"><b>EXPERIMENT SEAL</b></div><div class="pb"><div class="stat"><span>MODE</span><b>PAPER ONLY</b></div><div class="stat"><span>BASELINE</span><b id="baseline">—</b></div><div class="stat"><span>SNAPSHOT</span><b id="snapshot">—</b></div></div></article></section><nav class="game-nav"><a href="../index.html">МИР</a><a href="#relics">УРОВНИ</a><a href="#ledger">КОДЕКС</a><a href="../wall.html">СТЕНА</a></nav><footer class="footer"><b>ASHUR · BABYLON INVENTORY</b><span id="footer-state">WAITING FOR VERIFIED PAPER SNAPSHOT</span></footer></main>
 <script>(()=>{'use strict';const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0,F=(v,d=2)=>N(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}),S=v=>(N(v)>=0?'+':'')+F(v),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),stamp=s=>s?new Date(s).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC':'—';
-// Procedural hand-pixelled environment, rendered at 680x264 and enlarged with nearest-neighbour sampling.
-const c=$('babylon'),x=c.getContext('2d');x.imageSmoothingEnabled=false;x.setTransform(768/680,0,0,554/264,0,0);const R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
-function tower(a,b,w,h){R(a,b,w,h,'#704052');R(a-3,b,w+6,5,'#efb86b');for(let yy=b+9;yy<b+h-5;yy+=12)for(let xx=a+5;xx<a+w-4;xx+=10)R(xx,yy,4,6,'#ffc879');R(a+w/2-5,b-9,10,9,'#e5aa65')}
-function palm(a,b){R(a,b,5,65,'#684337');[[-35,-15],[-28,-28],[-15,-37],[0,-42],[15,-36],[29,-25],[37,-12]].forEach(([dx,dy],i)=>R(a+dx,b+dy,Math.abs(dx)+7,4,i%2?'#28513e':'#37664a'))}
-function scene(){let g=x.createLinearGradient(0,0,0,264);g.addColorStop(0,'#20294b');g.addColorStop(.56,'#99546a');g.addColorStop(1,'#e99b4e');x.fillStyle=g;x.fillRect(0,0,680,264);for(let i=0;i<105;i++)R(i*83%680,i*47%112,2,2,i%3?'#f4c77e':'#aab7d7');R(0,194,680,70,'#20283a');[[83,61,38,132],[128,34,48,159],[184,52,42,141],[238,83,34,110],[435,96,34,100],[485,62,48,134],[550,85,42,112],[606,113,34,84]].forEach(t=>tower(...t));for(let i=0;i<17;i++){let a=12+i*42;R(a,169-i%4*7,24,5,'#d18d59');R(a+4,175-i%4*7,15,35,'#754657');R(a+8,185-i%4*7,5,10,'#ffc878')}palm(22,147);palm(655,147);palm(606,153);
-// monumental Lamassu silhouette, pixel-block anatomy, beard, horned crown and feathered wing
-R(0,207,163,57,'#704b3d');R(0,198,166,9,'#d9a45e');for(let a=0;a<160;a+=12)R(a,212,7,3,'#edc078');R(18,115,110,78,'#b87849');R(29,103,91,83,'#d69b59');R(34,96,75,16,'#f1c77d');R(43,82,55,18,'#dca45e');R(48,70,43,18,'#e9bd76');R(56,64,26,12,'#f2d18a');R(59,73,5,5,'#30283a');R(82,73,5,5,'#30283a');R(65,88,23,5,'#70404a');R(69,93,14,5,'#f1d08a');R(18,112,17,73,'#d69c5d');R(10,100,20,17,'#f0c477');R(12,87,8,18,'#d9a05b');R(21,76,8,17,'#f0c477');R(31,91,8,16,'#d9a05b');R(98,108,23,75,'#c78b50');R(112,119,18,64,'#e1ad68');R(121,133,18,48,'#b97a48');R(30,184,96,9,'#80513d');R(40,193,18,24,'#d6a05e');R(93,193,18,24,'#d6a05e');for(let i=0;i<8;i++){R(28+i*11,122+i%2*7,6,5,'#f5d28d');R(28+i*11,140+i%2*7,6,5,'#86503e')}R(15,110,7,75,'#f3ca7c');R(122,117,8,67,'#f3ca7c');R(0,236,680,5,'#d79a4d');R(0,244,680,3,'#68433c')}
+// Native 768x554 pixel-art Babylon environment. All shapes snap to a 4px grid.
+const c=$('babylon'),x=c.getContext('2d');x.imageSmoothingEnabled=false;
+const R=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
+const P=(pts,col)=>{x.fillStyle=col;x.beginPath();pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.fill()};
+function cloud(a,b,n,col){for(let i=0;i<n;i++)R(a+i*12,b+(i%3-1)*5,16+(i%2)*8,4,col);R(a+12,b-6,n*12-12,4,col)}
+function palm(a,b,k=1){R(a,b,6*k,86*k,'#493b43');R(a-3*k,b+24*k,10*k,5*k,'#9b6547');const fr=[[-54,-34],[-43,-53],[-25,-65],[-7,-70],[15,-65],[35,-53],[51,-34],[-48,-19],[-25,-28],[5,-31],[29,-26]];fr.forEach(([dx,dy],i)=>{R(a+dx*k,b+dy*k,(18+(i%3)*6)*k,5*k,i%2?'#39734e':'#55905a');R(a+(dx+5)*k,(b+dy-4)*k,8*k,4*k,'#8ca75c')})}
+function tower(a,b,w,h,shade='#8a554b'){R(a,b,w,h,shade);R(a-4,b,w+8,7,'#e5a85e');R(a+4,b-8,w-8,8,'#bd784e');for(let yy=b+14;yy<b+h-8;yy+=17)for(let xx=a+8;xx<a+w-5;xx+=14){R(xx,yy,6,9,'#342d43');R(xx-2,yy-2,10,3,'#e2a35b')}R(a+w/2-4,b-17,8,9,'#f0bd69')}
+function scene(){
+let g=x.createLinearGradient(0,0,0,554);g.addColorStop(0,'#202b55');g.addColorStop(.38,'#41406a');g.addColorStop(.68,'#bb6d60');g.addColorStop(1,'#e6a45c');x.fillStyle=g;x.fillRect(0,0,768,554);
+// distant twilight, stars and stepped clouds
+for(let i=0;i<155;i++){let a=(i*97+31)%768,b=(i*53+17)%230;R(a,b,2+(i%3),2,i%4?'#f6d18b':'#9ab1d2')}
+cloud(235,84,18,'#626081');cloud(438,116,15,'#805b70');cloud(90,151,10,'#8c5c69');cloud(540,190,12,'#d58a68');
+R(0,300,768,254,'#283449');R(0,326,768,228,'#34404a');
+// far city layers
+for(let i=0;i<23;i++){let a=i*37-8,w=22+(i*13%24),h=90+(i*29%135),b=305-h;R(a,b,w,h,i%3?'#57435a':'#705064');R(a-3,b,w+6,5,'#d58e60');for(let yy=b+13;yy<305;yy+=18)for(let xx=a+5;xx<a+w-3;xx+=10)R(xx,yy,4,7,'#f2bb70')}
+tower(205,168,55,145,'#8b5750');tower(272,131,62,183,'#9b5c4b');tower(349,181,44,133,'#70485a');tower(405,203,49,111,'#805064');tower(475,170,57,144,'#765067');tower(551,206,42,108,'#81515a');tower(618,184,58,130,'#67465a');
+// iconic stepped ziggurat, behind the UI but visible around its edges
+P([[220,330],[286,247],[350,247],[416,330]],'#5c4655');for(let i=0;i<5;i++){let yy=258+i*14,xx=284-i*12,ww=68+i*24;R(xx,yy,ww,12,i%2?'#bd7855':'#d99a60');R(xx-4,yy,ww+8,4,'#f0b66d');for(let q=xx+8;q<xx+ww-4;q+=17)R(q,yy+5,6,6,'#4a394d')}
+// palms frame the ancient city
+palm(34,290,1.35);palm(720,290,1.1);palm(645,326,.75);
+// lower market walls, gates and distant terraces
+R(0,399,768,155,'#554047');R(0,410,768,9,'#d39457');R(0,431,768,5,'#8c5b49');
+for(let i=0;i<28;i++){let a=i*29;R(a,448,24,62,i%2?'#704b45':'#805347');R(a,448,24,5,'#d29a5b');R(a+8,463,8,22,'#352f42')}
+for(let i=0;i<38;i++){let a=(i*41)%768,b=355+(i*17)%76;R(a,b,5,4,'#f7c477');R(a+2,b+4,2,7,'#d58a56')}
+// monumental Assyrian winged Lamassu and carved plinth at left
+// plinth and base
+R(0,458,190,96,'#60433d');R(0,449,194,12,'#d9a45f');R(0,465,188,7,'#a96f4c');R(0,520,190,8,'#dca45d');R(0,535,190,19,'#3d3540');
+for(let i=0;i<12;i++){R(8+i*15,476,8,5,'#e8b86d');R(8+i*15,492,8,5,'#b97d50');R(8+i*15,508,8,5,'#e8b86d')}
+// rear wing: broad fan with individually stepped feathers
+P([[55,287],[22,239],[10,190],[25,174],[46,199],[65,213],[83,222],[112,233],[145,260],[158,312],[139,379],[86,396]],'#b8794e');
+for(let i=0;i<10;i++){let yy=205+i*16;P([[24+i*3,yy],[10+i*2,yy-24],[16+i*3,yy-30],[43+i*3,yy+2],[58+i*2,yy+17],[46+i*2,yy+24]],i%2?'#f0c77a':'#dba15d');R(28+i*5,yy+5,23,5,'#8e5a49')}
+for(let i=0;i<7;i++){R(56+i*11,275+i*7,8,38,'#e8bd73');R(59+i*11,280+i*7,3,28,'#9a6248')}
+// body and haunch
+P([[48,299],[76,273],[125,280],[151,310],[159,399],[141,451],[56,451],[37,404]],'#c58a52');
+P([[51,309],[80,289],[124,294],[144,322],[146,402],[126,433],[60,431],[45,397]],'#e0ad68');
+R(53,338,86,12,'#f0c77b');R(49,365,96,8,'#a86c4c');R(55,386,85,7,'#f0c77b');
+for(let i=0;i<7;i++){R(58+i*12,402+(i%2)*7,7,7,'#805044');R(58+i*12,420+(i%2)*4,6,5,'#f0c77b')}
+// four powerful legs, hooves and ornamental bands
+R(49,412,25,77,'#d9a05e');R(111,411,25,78,'#d9a05e');R(42,476,39,13,'#8d5945');R(104,476,43,13,'#8d5945');R(39,488,46,10,'#e4b36d');R(101,488,50,10,'#e4b36d');
+R(47,445,27,5,'#f2d08a');R(109,445,28,5,'#f2d08a');
+// neck, chest and head
+P([[58,294],[44,255],[54,224],[83,208],[119,220],[139,251],[132,305],[102,327]],'#d69b5b');
+R(58,238,67,58,'#e8b86e');R(66,227,57,16,'#f3cf87');R(72,214,45,20,'#dba15f');
+// head profile and muzzle
+R(66,176,54,54,'#e8b96e');R(75,163,42,22,'#f1cb83');R(83,154,29,18,'#d99d5d');R(91,181,5,6,'#2d2a3b');R(111,181,5,6,'#2d2a3b');R(88,194,31,7,'#8c4f49');R(95,201,19,5,'#f4d08a');R(80,188,5,4,'#fff0bd');R(115,188,5,4,'#fff0bd');
+// curled horns and ceremonial crown
+P([[70,174],[53,164],[49,146],[57,135],[61,153],[78,158]],'#f0c77b');P([[113,171],[128,157],[130,139],[122,132],[120,151],[106,159]],'#f0c77b');
+R(75,154,39,8,'#9c6047');R(80,144,30,11,'#dca35f');R(84,136,22,9,'#f0c77b');R(89,129,12,8,'#bd784f');R(92,122,7,8,'#f5d28a');
+// ornate beard, curls and necklace
+R(83,205,31,15,'#69434a');for(let i=0;i<5;i++){R(84+i*6,218+i*5,5,9,i%2?'#d69b5b':'#8a5148')}R(89,244,28,8,'#f0c77b');R(94,253,23,7,'#9d6048');R(101,260,13,8,'#e8b86e');
+// jewelry, rosettes and carved details
+for(let i=0;i<5;i++){R(56+i*17,316,7,7,'#f3d28d');R(58+i*17,318,3,3,'#5d4650')}
+R(47,293,6,94,'#f0c77b');R(140,310,6,91,'#f0c77b');R(45,298,9,5,'#fff0b2');R(137,306,10,5,'#fff0b2');
+// engraved border and ambient foreground foliage
+for(let i=0;i<15;i++){let a=i*13;R(a,548,7,6,i%2?'#6e9a57':'#47744e');R(a+4,543,5,7,'#83a45d')}
+R(0,552,768,2,'#e0a65e');
+}
 scene();
 const grids={head:["....22222222....","...2233333322...","..223333333322..",".22334444443322.","2233444444443322","2233404400443322","2233444444443322","..223344443322..","...222444422....","....2444442.....","...2244444422...","..224422224422..","..2222....2222..","..22........22..","................","................"],ankh:[".......22.......","......2332......","......2332......",".......22.......",".......22.......","..222222222222..",".22333333333322.","..222222222222..",".......22.......",".......22.......","......2332......","......2332......","......2332......","......2332......",".....222222.....","................"],beard:["....22222222....","...2233333322...","..223333333322..",".22333333333322.","2233444444443322","2233404400443322","2233444444443322","..223344443322..","...222444422....","....2444442.....","...2244444422...","..224444444422..","..224444444422..","...2244444422...","....22222222....","................"],scarab:["....22222222....","..222333333322..",".22333333333322.","2233333333333322","2233443333443322","2233334444333322","2233333333333322",".22333333333322.","..223333333322..","...2233333322...","..22.222222.22..",".22..........22.","22............22","................","................","................"],bull:["......2222......",".....233332.....","....23333332....","...2233333322...","..223344443322..",".22334444443322.","2233404400443322","2233444444443322","..223344443322..","...222444422....","....2444442.....","...2244444422...","..224422224422..","..22........22..","................","................"],wing:["22............22","2222........2222",".22222....22222..","..222222222222...","...2222332222....","....22333322.....",".....233332......","....22333322.....","...2222332222....","..222222222222...",".22222....22222..","2222........2222","22............22","................","................","................"]},pal={head:['#18243a','#d49a59','#f0c77c','#8e4f45','#f8dfa0'],ankh:['#17253b','#c38b4d','#f3ce7c','#75d8c8'],beard:['#18243a','#e1b66e','#f6d48e','#4c3940','#b77b49'],scarab:['#17253a','#e6b35e','#53b8ad','#f6d68b'],bull:['#17253a','#d99d55','#f2cc7d','#75454a'],wing:['#18243a','#f1c36e','#d88f54','#6bc9c2']};document.querySelectorAll('[data-s]').forEach(el=>{let z=el.getContext('2d');grids[el.dataset.s].forEach((row,j)=>[...row].forEach((v,i)=>{if(v!=='.'){z.fillStyle=pal[el.dataset.s][+v-1];z.fillRect(i,j,1,1)}}))});
 function plot(points){let c=$('chart'),z=c.getContext('2d');z.imageSmoothingEnabled=false;z.fillStyle='#10223a';z.fillRect(0,0,640,190);for(let j=0;j<5;j++){let yy=14+j*39;z.fillStyle='#405563';z.fillRect(34,yy,590,1)}if(!points.length){z.fillStyle='#d5c29a';z.font='11px monospace';z.fillText('COLLECTING HISTORY',250,96);return}let a=points.map(p=>N(p.total_equity)),lo=Math.min(...a),span=Math.max(...a)-lo||1;z.strokeStyle='#65ded0';z.lineWidth=3;z.beginPath();a.forEach((v,i)=>{let px=35+i*588/Math.max(1,a.length-1),py=175-(v-lo)/span*145;i?z.lineTo(px,py):z.moveTo(px,py)});z.stroke();a.forEach((v,i)=>{z.fillStyle='#c1fff1';z.fillRect(Math.round(35+i*588/Math.max(1,a.length-1))-2,Math.round(175-(v-lo)/span*145)-2,4,4)})}
