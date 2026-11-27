@@ -654,7 +654,8 @@
           "accent": "teal",
           "wood": "stone",
           "detail": "stone_dark",
-          "lantern": "moon"
+          "lantern": "moon",
+          "seed": 229
         },
         {
           "type": "market_stall",
@@ -668,7 +669,8 @@
           "accent": "teal",
           "wood": "stone",
           "detail": "stone_dark",
-          "lantern": "moon"
+          "lantern": "moon",
+          "seed": 229
         },
         {
           "type": "boulder",

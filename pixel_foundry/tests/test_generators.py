@@ -138,3 +138,26 @@ def test_stone_floor_has_depth_variation_and_individual_surface_marks():
     assert sum(op.get("part") == "slab-top-bevel" for op in first) == len(slabs)
     assert sum(op.get("part") == "slab-side-shadow" for op in first) == len(slabs)
     assert any(op.get("part") == "stone-vein" for op in first)
+
+
+def test_temple_columns_and_frieze_have_carved_microdetails():
+    facade=expand_generator({"type":"temple_facade","x":0,"y":0,"w":62,"h":9,
+        "color":"#D9AD62","shade":"#9C7746","highlight":"#F0D8A5",
+        "band":"#9C7746","relief":"#E9E5D6","rosette_spacing":12})
+    column=expand_generator({"type":"column","x":0,"y":0,"w":12,"h":29,"shaft_w":8,
+        "capital_h":4,"base_h":4,"color":"#D9AD62","shade":"#9C7746",
+        "highlight":"#F0D8A5","fluting":True})
+    fp={o.get("part") for o in facade}; cp={o.get("part") for o in column}
+    assert {"rosette-cut","rosette-engraving","chisel-mark","frieze-wear"} <= fp
+    assert {"column-flute","flute-glint","capital-carving","capital-volute",
+            "shaft-joint","base-lower-bevel"} <= cp
+
+
+def test_market_stall_has_distinct_goods_and_hand_finished_materials():
+    ops=expand_generator({"type":"market_stall","x":20,"y":65,"w":24,"h":20,
+        "color":"#D9AD62","shade":"#9C7746","highlight":"#F0D8A5",
+        "accent":"#65CFC0","wood":"#365564","detail":"#050A0E","lantern":"#E9E5D6"})
+    parts={o.get("part") for o in ops}
+    assert {"canopy-stitch","canopy-hem-stitch","jar-neck","jar-handle",
+            "bowl-lip","bowl-foot","produce-glint","produce-stem",
+            "counter-peg","wood-knot"} <= parts

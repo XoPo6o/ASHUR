@@ -54,6 +54,23 @@ def expand_generator(op: dict) -> list[dict]:
         for px in (x + 1, x + w // 3, x + 2*w // 3, x + w - 2):
             out.append({"type": "line", "part": "frieze-panel-joint",
                         "points": [[px, y+2], [px, y+h-3]], "color": band})
+        for index, cx in enumerate(range(x + 5, x + w - 4, spacing)):
+            cy=y+h//2
+            petals=((( -2,0),(2,0),(0,-2),(0,2),(-1,-1),(1,1)),
+                    ((-2,0),(2,0),(0,-1),(0,2),(-1,1),(1,-1)),
+                    ((-1,0),(2,0),(0,-2),(0,1),(-2,-1),(1,2)))[index%3]
+            for dx,dy in petals:
+                out.append({"type":"pixel","part":"rosette-cut","x":cx+dx,"y":cy+dy,
+                            "color":band if (index+dx+dy)%2 else relief})
+            out.append({"type":"line","part":"rosette-engraving","points":[
+                [cx-1,cy+3],[cx,cy+4],[cx+2,cy+3]],"color":band})
+        for index, px in enumerate(range(x+4,x+w-5,9)):
+            mark_y=y+2+(index%3)
+            out.append({"type":"line","part":"chisel-mark","points":[
+                [px,mark_y],[px+1,mark_y+1],[px+3,mark_y]],
+                "color":relief if index%2 else band})
+        for px in (x+2,x+w//2,x+w-3):
+            out.append({"type":"pixel","part":"frieze-wear","x":px,"y":y+h-3,"color":relief})
 
     elif kind == "market_stall":
         if w < 24 or h < 16:
@@ -78,10 +95,14 @@ def expand_generator(op: dict) -> list[dict]:
                         "y": y+7, "w": 3, "h": 2,
                         "color": highlight if (sx//3) % 2 else base})
         # Short crease strokes follow the canopy drape instead of adding random noise.
-        for fold_x in range(x+stripe_w, x+w-3, stripe_w*2):
-            out.append({"type": "line", "part": "canopy-fold", "points": [
-                [fold_x,y+2],[fold_x-1,y+4],[fold_x,y+6]
-            ], "color": highlight})
+        for fold_index,fold_x in enumerate(range(x+stripe_w,x+w-3,max(3,stripe_w))):
+            out.append({"type":"line","part":"canopy-fold","points":[
+                [fold_x,y+1],[fold_x-1,y+3],[fold_x+1,y+5],[fold_x,y+7]],
+                "color":highlight if fold_index%2==0 else accent})
+            out.append({"type":"pixel","part":"canopy-stitch","x":fold_x+1,"y":y+6,"color":shade})
+        for stitch_x in range(x+2,x+w-2,3):
+            out.append({"type":"pixel","part":"canopy-hem-stitch","x":stitch_x,
+                        "y":y+8+(stitch_x%2),"color":accent if stitch_x%3 else shade})
 
         # Two timber posts, a counter and a shadowed front panel.
         post_y = y+7
@@ -100,10 +121,12 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type": "line", "part": "counter-trim", "points": [
             [x+3,counter_y+4],[x+w-4,counter_y+4]
         ], "color": shade})
-        for grain_y in (counter_y+1, counter_y+5):
-            out.append({"type": "line", "part": "wood-grain", "points": [
-                [x+5,grain_y],[x+w//3,grain_y+1],[x+w//2,grain_y]
-            ], "color": shade})
+        for grain_index,grain_y in enumerate((counter_y+1,counter_y+5)):
+            out.append({"type":"line","part":"wood-grain","points":[
+                [x+4+grain_index,grain_y],[x+w//3,grain_y+(1 if grain_index==0 else -1)],
+                [x+w//2,grain_y],[x+w-6,grain_y+1]],"color":shade if grain_index==0 else detail})
+        for peg_x in (x+5,x+w//3,x+2*w//3,x+w-6):
+            out.append({"type":"pixel","part":"counter-peg","x":peg_x,"y":counter_y+2,"color":detail})
         out.append({"type": "pixel", "part": "wood-knot",
                     "x": x+w//2+2, "y": counter_y+5, "color": highlight})
 
@@ -113,12 +136,18 @@ def expand_generator(op: dict) -> list[dict]:
             (x+15, counter_y-5, 5, 5, highlight),
             (x+25, counter_y-4, 4, 4, shade),
         )
-        for gx, gy, gw, gh, goods_color in goods:
-            out.append({"type": "rect", "part": "market-goods", "x": gx,
-                        "y": gy, "w": gw, "h": gh, "color": goods_color})
-            out.append({"type": "line", "part": "goods-rim", "points": [
-                [gx,gy],[gx+gw-1,gy]
-            ], "color": highlight})
+        for index,(gx,gy,gw,gh,goods_color) in enumerate(goods):
+            out.append({"type":"rect","part":"market-goods","x":gx,"y":gy,"w":gw,"h":gh,"color":goods_color})
+            out.append({"type":"line","part":"goods-rim","points":[[gx,gy],[gx+gw-1,gy]],"color":highlight})
+            if index==0:
+                out.append({"type":"line","part":"jar-neck","points":[[gx+1,gy-1],[gx+gw-2,gy-1]],"color":accent})
+                out.append({"type":"pixel","part":"jar-handle","x":gx-1,"y":gy+1,"color":highlight})
+            elif index==1:
+                out.append({"type":"line","part":"bowl-lip","points":[[gx-1,gy+1],[gx+gw,gy+1]],"color":accent})
+                out.append({"type":"line","part":"bowl-foot","points":[[gx+1,gy+gh],[gx+gw-2,gy+gh]],"color":shade})
+            else:
+                out.append({"type":"pixel","part":"produce-glint","x":gx+1,"y":gy+1,"color":highlight})
+                out.append({"type":"line","part":"produce-stem","points":[[gx+gw//2,gy-1],[gx+gw//2+1,gy]],"color":shade})
 
         # Hanging oil lantern on the right post.
         lantern_x = x+w-7
@@ -371,8 +400,28 @@ def expand_generator(op: dict) -> list[dict]:
             {"type":"line","points":[[x,y+h-1],[x+w-1,y+h-1]],"color":shade}
         ])
         if op.get("fluting",True) and shaft_w>=7:
-            for fx in range(shaft_x+3,shaft_x+shaft_w-2,3):
-                out.append({"type":"line","points":[[fx,shaft_y+2],[fx,shaft_y+shaft_h-2]],"color":shade})
+            for index,fx in enumerate(range(shaft_x+2,shaft_x+shaft_w-1,2)):
+                out.append({"type":"line","part":"column-flute","points":[
+                    [fx,shaft_y+2],[fx,shaft_y+shaft_h-2]],
+                    "color":highlight if index%3==0 else shade})
+                if index%2==0:
+                    out.append({"type":"pixel","part":"flute-glint","x":fx+1,
+                                "y":shaft_y+3+index%4,"color":highlight})
+        out.extend([
+            {"type":"line","part":"capital-abacus","points":[[x+1,y+1],[x+w-2,y+1]],"color":shade},
+            {"type":"line","part":"capital-neck","points":[[shaft_x-1,shaft_y-1],[shaft_x+shaft_w,y+cap_h]],"color":highlight},
+            {"type":"line","part":"base-upper-bead","points":[[x+1,y+h-base_h],[x+w-2,y+h-base_h]],"color":shade},
+            {"type":"line","part":"base-lower-bevel","points":[[x+1,y+h-1],[x+w-2,y+h-1]],"color":shade},
+        ])
+        if w>=10 and cap_h>=3:
+            for motif_x in (x+2,x+w-4):
+                out.append({"type":"pixel","part":"capital-carving","x":motif_x,"y":y+2,"color":shade})
+                out.append({"type":"line","part":"capital-volute","points":[
+                    [motif_x,y+2],[motif_x+1,y+1],[motif_x+2,y+2]],"color":highlight})
+        if shaft_h>=8:
+            for seam_y in (shaft_y+shaft_h//3,shaft_y+2*shaft_h//3):
+                out.append({"type":"line","part":"shaft-joint","points":[
+                    [shaft_x+1,seam_y],[shaft_x+shaft_w-2,seam_y]],"color":shade})
 
     elif kind == "archway":
         thickness=max(2,int(op.get("thickness",max(3,w//8))))
