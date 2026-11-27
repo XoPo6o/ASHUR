@@ -71,10 +71,13 @@ def expand_lamassu(op: dict) -> list[dict]:
         [x+43,y+29],[x+45,y+33],[x+38,y+36],
         [x+18,y+35],[x+11,y+33]
     ], "color": shade})
-    out.append({"type": "polygon", "part": "shoulder", "points": [
-        [x+30,y+20],[x+39,y+21],[x+46,y+25],
-        [x+47,y+31],[x+41,y+34],[x+34,y+31]
-    ], "color": highlight})
+    out.append({"type": "polygon", "part": "shoulder-shadow", "points": [
+        [x+31,y+21],[x+39,y+22],[x+44,y+26],
+        [x+43,y+31],[x+37,y+32],[x+33,y+28]
+    ], "color": shade})
+    out.append({"type": "line", "part": "shoulder-highlight", "points": [
+        [x+34,y+22],[x+40,y+24],[x+43,y+27]
+    ], "color": highlight, "width": 2})
     out.append({"type": "line", "part": "back-highlight", "points": [
         [x+11,y+21],[x+23,y+19],[x+34,y+20],[x+41,y+23]
     ], "color": highlight, "width": 2})
@@ -107,39 +110,39 @@ def expand_lamassu(op: dict) -> list[dict]:
 
     # Human head in profile, with a distinct nose, eye, beard and horned royal crown.
     out.append({"type": "polygon", "part": "human-face", "points": [
-        [x+43,y+10],[x+48,y+7],[x+54,y+9],[x+56,y+13],
-        [x+59,y+16],[x+56,y+18],[x+55,y+23],
-        [x+51,y+25],[x+46,y+22],[x+43,y+17]
+        [x+45,y+10],[x+49,y+8],[x+53,y+10],[x+55,y+13],
+        [x+57,y+16],[x+55,y+18],[x+54,y+21],
+        [x+50,y+22],[x+47,y+19],[x+45,y+15]
     ], "color": highlight})
     out.append({"type": "polygon", "part": "hair", "points": [
-        [x+42,y+12],[x+43,y+6],[x+48,y+4],
-        [x+53,y+6],[x+56,y+11],[x+52,y+12],
-        [x+49,y+9],[x+46,y+12]
+        [x+43,y+12],[x+44,y+7],[x+48,y+5],
+        [x+52,y+6],[x+55,y+10],[x+53,y+12],
+        [x+49,y+10],[x+46,y+13]
     ], "color": shade})
-    # Two horns and a tiered crown make the human head unmistakable.
+    # Paired horns sit above the hairline; the face remains a compact profile.
     out.append({"type": "polygon", "part": "horn", "points": [
-        [x+44,y+7],[x+41,y+2],[x+44,y+3],[x+47,y+7]
+        [x+44,y+8],[x+41,y+3],[x+44,y+4],[x+47,y+8]
     ], "color": highlight})
     out.append({"type": "polygon", "part": "horn", "points": [
-        [x+51,y+6],[x+54,y+1],[x+55,y+5],[x+54,y+9]
+        [x+51,y+7],[x+54,y+2],[x+55,y+6],[x+54,y+9]
     ], "color": highlight})
-    out.append({"type": "rect", "part": "crown", "x": x+45, "y": y+5, "w": 8, "h": 2, "color": detail})
+    out.append({"type": "rect", "part": "crown", "x": x+45, "y": y+6, "w": 8, "h": 2, "color": detail})
     out.append({"type": "line", "part": "brow", "points": [
-        [x+47,y+12],[x+52,y+12]
+        [x+47,y+12],[x+51,y+12]
     ], "color": shade, "width": 2})
-    out.append({"type": "pixel", "part": "eye", "x": x+51, "y": y+14, "color": detail})
+    out.append({"type": "pixel", "part": "eye", "x": x+50, "y": y+14, "color": detail})
     out.append({"type": "polygon", "part": "nose", "points": [
-        [x+54,y+15],[x+59,y+16],[x+57,y+19],[x+54,y+18]
+        [x+54,y+15],[x+58,y+16],[x+56,y+18],[x+54,y+18]
     ], "color": highlight})
     out.append({"type": "polygon", "part": "beard", "points": [
-        [x+46,y+20],[x+52,y+21],[x+54,y+26],
-        [x+52,y+31],[x+48,y+30],[x+45,y+26]
+        [x+47,y+19],[x+52,y+19],[x+54,y+23],
+        [x+53,y+28],[x+50,y+30],[x+47,y+26],[x+46,y+22]
     ], "color": shade})
     for offset in (0, 3, 6):
         out.append({"type": "line", "part": "beard-curl", "points": [
-            [x+47+offset//2,y+23+offset//3],
-            [x+49+offset//2,y+25+offset//3],
-            [x+48+offset//2,y+27+offset//3]
+            [x+47+offset//2,y+22+offset//3],
+            [x+49+offset//2,y+24+offset//3],
+            [x+48+offset//2,y+26+offset//3]
         ], "color": highlight})
     out.append({"type": "line", "part": "headband", "points": [
         [x+45,y+9],[x+52,y+8]
