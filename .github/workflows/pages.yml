@@ -2,7 +2,7 @@ name: Deploy ASHUR to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "wall-rebuild-babylon"]
   workflow_dispatch:
 
 permissions:
