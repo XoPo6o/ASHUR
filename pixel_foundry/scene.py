@@ -5,6 +5,7 @@ from pathlib import Path
 from .palette import Palette
 from .renderer import PixelRenderer
 from .qa import inspect_image
+from .generators import expand_generator
 
 def load_scene(path: str | Path) -> dict:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
