@@ -41,7 +41,7 @@ def expand_lamassu(op: dict) -> list[dict]:
 
     # Five legs are drawn first so the torso naturally occludes their upper joints.
     # Two hind legs plus three clustered forelegs create the classic double-aspect five-leg read.
-    leg_positions = (8, 18, 36, 43, 50)
+    leg_positions = (8, 19, 37, 44, 51)
     for index, offset in enumerate(leg_positions):
         lx = x + offset
         top = y + (28 if index in (0, 4) else 30)
@@ -49,16 +49,16 @@ def expand_lamassu(op: dict) -> list[dict]:
         hoof_y = y + 41
         leg_color = base if index in (1, 3) else shade
         out.append({"type": "polygon", "part": "leg", "leg_index": index, "points": [
-            [lx,top],[lx+5,top],[lx+5,knee],[lx+7,hoof_y-2],
-            [lx+6,hoof_y],[lx-2,hoof_y],[lx-1,knee+1]
+            [lx,top],[lx+4,top],[lx+4,knee],[lx+5,hoof_y-2],
+            [lx+4,hoof_y],[lx-1,hoof_y],[lx-1,knee+1]
         ], "color": leg_color})
         out.append({"type": "line", "part": "leg-highlight", "points": [
             [lx+1,top+2],[lx+1,knee]
         ], "color": highlight})
         out.append({"type": "polygon", "part": "hoof", "points": [
-            [lx-2,hoof_y-1],[lx+6,hoof_y-1],
-            [lx+7,hoof_y+1],[lx-2,hoof_y+1]
-        ], "color": detail})
+            [lx-1,hoof_y-1],[lx+4,hoof_y-1],
+            [lx+5,hoof_y+1],[lx-1,hoof_y+1]
+        ], "color": shade})
 
     # Heavy bull torso: high shoulder, broad flank, chest and separate belly plane.
     out.append({"type": "polygon", "part": "body", "points": [
@@ -111,33 +111,40 @@ def expand_lamassu(op: dict) -> list[dict]:
 
     # Human head in profile, with a distinct nose, eye, beard and horned royal crown.
     out.append({"type": "polygon", "part": "human-face", "points": [
-        [x+45,y+10],[x+49,y+8],[x+53,y+10],[x+55,y+13],
-        [x+57,y+16],[x+55,y+18],[x+54,y+21],
-        [x+50,y+22],[x+47,y+19],[x+45,y+15]
+        [x+45,y+10],[x+48,y+8],[x+53,y+8],[x+56,y+11],
+        [x+57,y+16],[x+55,y+20],[x+53,y+22],
+        [x+48,y+22],[x+46,y+19],[x+44,y+15]
     ], "color": highlight})
     out.append({"type": "polygon", "part": "hair", "points": [
         [x+43,y+12],[x+44,y+7],[x+48,y+5],
-        [x+52,y+6],[x+55,y+10],[x+53,y+12],
-        [x+49,y+10],[x+46,y+13]
+        [x+53,y+5],[x+56,y+9],[x+55,y+12],
+        [x+52,y+10],[x+47,y+11]
     ], "color": shade})
-    # Paired horns sit above the hairline; the face remains a compact profile.
+    # Front-facing royal head: paired eyes, central nose, beard and horned crown.
     out.append({"type": "polygon", "part": "horn", "points": [
         [x+44,y+8],[x+41,y+3],[x+44,y+4],[x+47,y+8]
     ], "color": highlight})
     out.append({"type": "polygon", "part": "horn", "points": [
-        [x+51,y+7],[x+54,y+2],[x+55,y+6],[x+54,y+9]
+        [x+52,y+7],[x+55,y+2],[x+56,y+6],[x+55,y+9]
     ], "color": highlight})
-    out.append({"type": "rect", "part": "crown", "x": x+45, "y": y+6, "w": 8, "h": 2, "color": detail})
+    out.append({"type": "rect", "part": "crown", "x": x+45, "y": y+6, "w": 9, "h": 2, "color": detail})
     out.append({"type": "line", "part": "brow", "points": [
-        [x+47,y+12],[x+51,y+12]
+        [x+47,y+12],[x+54,y+12]
     ], "color": shade, "width": 2})
-    out.append({"type": "pixel", "part": "eye", "x": x+50, "y": y+14, "color": detail})
+    out.append({"type": "pixel", "part": "eye", "x": x+48, "y": y+14, "color": detail})
+    out.append({"type": "pixel", "part": "eye", "x": x+53, "y": y+14, "color": detail})
+    out.append({"type": "line", "part": "nose-bridge", "points": [
+        [x+51,y+14],[x+51,y+18]
+    ], "color": shade})
     out.append({"type": "polygon", "part": "nose", "points": [
-        [x+54,y+15],[x+58,y+16],[x+56,y+18],[x+54,y+18]
+        [x+49,y+18],[x+53,y+18],[x+54,y+20],[x+50,y+21],[x+48,y+20]
     ], "color": highlight})
+    out.append({"type": "line", "part": "mouth", "points": [
+        [x+49,y+22],[x+53,y+22]
+    ], "color": detail})
     out.append({"type": "polygon", "part": "beard", "points": [
-        [x+47,y+19],[x+52,y+19],[x+54,y+23],
-        [x+53,y+28],[x+50,y+30],[x+47,y+26],[x+46,y+22]
+        [x+46,y+21],[x+54,y+21],[x+56,y+25],
+        [x+54,y+30],[x+50,y+31],[x+46,y+28],[x+45,y+24]
     ], "color": shade})
     for offset in (0, 3, 6):
         out.append({"type": "line", "part": "beard-curl", "points": [
