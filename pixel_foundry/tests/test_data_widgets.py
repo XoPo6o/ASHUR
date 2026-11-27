@@ -9,7 +9,8 @@ PALETTE = Palette.from_data({
         "void": "#0B1422", "surface": "#142333", "surface_raised": "#1B2D3D",
         "surface_deep": "#101C2A", "border": "#425568", "border_gold": "#A98A5C",
         "gold": "#D6B574", "gold_light": "#E9D6A7", "text": "#E6DDC8",
-        "muted": "#8F9DA5", "teal": "#5D9692", "teal_deep": "#315F63"
+        "muted": "#9AB0B6", "teal": "#65CFC0", "teal_deep": "#2D6B70",
+        "green": "#83D59B", "red": "#ED7774"
     }
 })
 
