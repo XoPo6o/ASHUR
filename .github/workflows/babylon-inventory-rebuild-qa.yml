@@ -48,7 +48,7 @@ jobs:
               page.on('pageerror',e=>errors.push(String(e)));
               const response=await page.goto('http://127.0.0.1:8765/wall-variants/01-babylon-inventory-v2.html',{waitUntil:'networkidle',timeout:30000});
               await page.waitForFunction(()=>document.querySelectorAll('#strategy-grid .strategy').length===6 && document.querySelector('#equity')?.textContent!=='—',{timeout:15000}).catch(()=>{});
-              await page.screenshot({path:\`qa/\${name}.png\`,fullPage:true,animations:'disabled'});
+              await page.screenshot({path:'qa/'+name+'.png',fullPage:true,animations:'disabled'});
               const diagnostics=await page.evaluate(()=>({
                 title:document.title,
                 equity:document.querySelector('#equity')?.textContent,
