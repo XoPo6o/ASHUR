@@ -2,16 +2,121 @@
 from __future__ import annotations
 import random
 
+
 def expand_generator(op: dict) -> list[dict]:
     kind = op.get("type")
-    if kind not in {"brick_wall", "stone_floor", "foliage", "stepped_ziggurat", "column", "archway"}:
+    supported = {
+        "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
+        "column", "archway", "palm_tree", "cloud_bank", "boulder",
+        "water_surface",
+    }
+    if kind not in supported:
         return [op]
     rng = random.Random(int(op.get("seed", 1)))
     x, y, w, h = (int(op.get(k, 0)) for k in ("x", "y", "w", "h"))
-    base, shade = op.get("color", "#888888"), op.get("shade", op.get("color", "#888888"))
-    highlight, mortar = op.get("highlight", base), op.get("mortar", shade)
-    out = []
-    if kind == "column":
+    base = op.get("color", "#888888")
+    shade = op.get("shade", base)
+    highlight = op.get("highlight", base)
+    mortar = op.get("mortar", shade)
+    out: list[dict] = []
+
+    if kind == "palm_tree":
+        # A bent, tapered trunk with six broad fronds. The fronds use stepped
+        # polygon contours and a few deliberate vein pixels, never ellipses.
+        trunk_w = max(2, int(op.get("trunk_w", max(2, w // 8))))
+        crown_y = y + max(3, h // 3)
+        trunk_points = [
+            [x + w // 2 - trunk_w // 2, crown_y],
+            [x + w // 2 + trunk_w // 2, crown_y],
+            [x + w // 2 + trunk_w // 2 + 2, y + h - 2],
+            [x + w // 2 - trunk_w // 2 + 1, y + h - 1],
+        ]
+        out.append({"type": "polygon", "points": trunk_points, "color": shade})
+        out.append({"type": "line", "points": [
+            [x + w // 2, crown_y + 3], [x + w // 2 + 1, y + h - 4]
+        ], "color": highlight})
+        cx = x + w // 2
+        cy = crown_y
+        fronds = [
+            [[0, 0], [-w//2+2, -h//4], [-w//2, -h//3], [-w//4, -h//4], [-1, 2]],
+            [[0, 0], [-w//3, -h//2], [-w//4, -h//2], [0, -h//5], [1, 2]],
+            [[0, 0], [w//5, -h//2], [w//3, -h//2], [w//4, -h//4], [1, 2]],
+            [[0, 0], [w//2, -h//3], [w//2, -h//4], [w//4, -h//5], [1, 2]],
+            [[0, 0], [w//2, 0], [w//2, h//10], [w//4, 0], [1, 2]],
+            [[0, 0], [-w//2, h//12], [-w//2+2, h//6], [-w//4, h//10], [-1, 2]],
+        ]
+        for index, rel in enumerate(fronds):
+            pts = [[cx + dx, cy + dy] for dx, dy in rel]
+            out.append({"type": "polygon", "points": pts,
+                        "color": base if index % 2 == 0 else shade})
+            if index in (0, 2, 4):
+                out.append({"type": "line", "points": [pts[0], pts[2]], "color": highlight})
+        for _ in range(max(1, int(op.get("fruit_clusters", 2)))):
+            px = cx + rng.randint(-2, 2)
+            py = cy + rng.randint(-1, 2)
+            out.append({"type": "pixel", "x": px, "y": py, "color": highlight})
+
+    elif kind == "cloud_bank":
+        # Layered stepped masses: dark underside, midtone body, top light.
+        lumps = max(3, int(op.get("lumps", 5)))
+        widths = [max(3, w // lumps + rng.randint(-2, 2)) for _ in range(lumps)]
+        cursor = x
+        for index, lump_w in enumerate(widths):
+            lump_h = max(3, int(h * rng.uniform(0.48, 0.82)))
+            lump_y = y + max(0, h - lump_h - rng.randint(0, max(1, h // 5)))
+            out.append({"type": "rect", "x": cursor, "y": lump_y,
+                        "w": lump_w, "h": y + h - lump_y, "color": shade})
+            cap_w = max(3, lump_w - 2)
+            cap_h = max(2, lump_h // 2)
+            out.append({"type": "rect", "x": cursor + 1, "y": lump_y,
+                        "w": cap_w, "h": cap_h, "color": base})
+            if index % 2 == 0:
+                out.append({"type": "line", "points": [
+                    [cursor + 2, lump_y], [cursor + cap_w - 1, lump_y]
+                ], "color": highlight})
+            cursor += max(2, lump_w - max(1, w // (lumps * 3)))
+
+    elif kind == "boulder":
+        # Irregular stepped silhouette with a distinct light plane and dark foot.
+        steps = max(5, int(op.get("steps", 8)))
+        top = y + max(1, h // 5)
+        points = [[x, y + h - 2]]
+        for i in range(steps + 1):
+            px = x + (w * i // steps)
+            jitter = rng.randint(-1, max(1, h // 6))
+            py = min(y + h - 4, top + jitter)
+            points.append([px, py])
+        points.extend([[x + w - 1, y + h - 2], [x + w - 3, y + h - 1], [x + 2, y + h - 1]])
+        out.append({"type": "polygon", "points": points, "color": base})
+        out.append({"type": "polygon", "points": [
+            [x + 2, y + h - 3], [x + w - 3, y + h - 3],
+            [x + w - 1, y + h - 1], [x + 1, y + h - 1]
+        ], "color": shade})
+        out.append({"type": "line", "points": [
+            [x + max(1, w // 5), y + max(1, h // 3)],
+            [x + max(2, w // 2), top]
+        ], "color": highlight})
+        for _ in range(max(1, int(op.get("chips", 3)))):
+            px = rng.randint(x + 2, x + max(2, w - 3))
+            py = rng.randint(top + 1, y + max(1, h - 4))
+            out.append({"type": "pixel", "x": px, "y": py,
+                        "color": highlight if rng.random() > 0.35 else shade})
+
+    elif kind == "water_surface":
+        # Quiet dark water with sparse, grouped horizontal glints.
+        out.append({"type": "rect", "x": x, "y": y, "w": w, "h": h, "color": shade})
+        for row in range(max(2, h // 3)):
+            yy = y + 1 + row * max(2, h // max(2, h // 3))
+            cursor = x + rng.randint(0, max(0, w // 8))
+            while cursor < x + w - 2:
+                length = rng.randint(2, max(3, min(8, w // 4)))
+                color = highlight if rng.random() > 0.72 else base
+                out.append({"type": "line", "points": [
+                    [cursor, yy], [min(x + w - 1, cursor + length), yy]
+                ], "color": color})
+                cursor += length + rng.randint(3, max(4, w // 7))
+
+    elif kind == "column":
         shaft_w=max(3,int(op.get("shaft_w",w//2)))
         shaft_x=x+(w-shaft_w)//2
         cap_h=max(2,int(op.get("capital_h",max(2,h//7))))
@@ -30,6 +135,7 @@ def expand_generator(op: dict) -> list[dict]:
         if op.get("fluting",True) and shaft_w>=7:
             for fx in range(shaft_x+3,shaft_x+shaft_w-2,3):
                 out.append({"type":"line","points":[[fx,shaft_y+2],[fx,shaft_y+shaft_h-2]],"color":shade})
+
     elif kind == "archway":
         thickness=max(2,int(op.get("thickness",max(3,w//8))))
         arch_h=max(3,int(op.get("arch_h",h//3)))
@@ -42,7 +148,6 @@ def expand_generator(op: dict) -> list[dict]:
             {"type":"line","points":[[x+1,spring_y],[x+left_w-1,spring_y]],"color":highlight},
             {"type":"line","points":[[right_x+1,spring_y],[x+w-2,spring_y]],"color":highlight}
         ])
-        # A stepped semicircular crown made of chunky stone courses.
         steps=max(3,int(op.get("arch_steps",5)))
         for i in range(steps):
             inset=max(0,int((i/steps)*(w/2-thickness)))
@@ -55,6 +160,7 @@ def expand_generator(op: dict) -> list[dict]:
                 out.append({"type":"line","points":[[x+inset,block_y],[x+inset+block_w-1,block_y]],
                             "color":shade})
         out.append({"type":"rect","x":x+w//2-thickness//2,"y":y,"w":thickness,"h":max(2,arch_h//steps),"color":highlight})
+
     elif kind == "stepped_ziggurat":
         tiers=max(2,int(op.get("tiers",5)))
         tier_h=max(2,int(op.get("tier_h",max(2,h//tiers))))
@@ -68,7 +174,6 @@ def expand_generator(op: dict) -> list[dict]:
             tier_height=min(tier_h,y+h-tier_y)
             if tier_height<=0:
                 continue
-            # Front face is built from hard-edged bands; a narrow side plane gives volume.
             front_width=max(2,tier_width-max(2,inset//2))
             out.append({"type":"rect","x":tier_x,"y":tier_y,"w":front_width,"h":tier_height,"color":base})
             if front_width<tier_width:
@@ -77,12 +182,12 @@ def expand_generator(op: dict) -> list[dict]:
             if op.get("course_lines",True) and tier_height>=4:
                 line_y=tier_y+tier_height-2
                 out.append({"type":"line","points":[[tier_x+1,line_y],[tier_x+front_width-2,line_y]],"color":shade})
-        # Upper shrine block and capstone.
         shrine_w=max(5,w//5); shrine_h=max(4,tier_h)
         shrine_x=x+(w-shrine_w)//2
         shrine_y=max(y,y+h-tiers*tier_h-shrine_h)
         out.append({"type":"rect","x":shrine_x,"y":shrine_y,"w":shrine_w,"h":shrine_h,"color":base})
         out.append({"type":"line","points":[[shrine_x,shrine_y],[shrine_x+shrine_w-1,shrine_y]],"color":top})
+
     elif kind == "brick_wall":
         bw, bh = max(3, int(op.get("brick_w", 10))), max(2, int(op.get("brick_h", 5)))
         out.append({"type":"rect","x":x,"y":y,"w":w,"h":h,"color":mortar})
@@ -100,6 +205,7 @@ def expand_generator(op: dict) -> list[dict]:
                         out.append({"type":"line","points":[[left,top],[right-1,top]],"color":highlight})
                 xx += bw
             row += 1
+
     elif kind == "stone_floor":
         bw, bh = max(4,int(op.get("block_w",12))), max(3,int(op.get("block_h",6)))
         out.append({"type":"rect","x":x,"y":y,"w":w,"h":h,"color":mortar})
@@ -114,8 +220,8 @@ def expand_generator(op: dict) -> list[dict]:
                     if rng.random()>.55:
                         out.append({"type":"pixel","x":l+1,"y":t,"color":highlight})
                 xx += bw
+
     else:
-        # Foliage is built from overlapping stepped ellipses, not a smooth vector blob.
         count=max(3,int(op.get("clusters",8)))
         for _ in range(count):
             cx=rng.randint(x,x+max(0,w-1)); cy=rng.randint(y,y+max(0,h-1))
