@@ -1,8 +1,11 @@
-name: Deploy ASHUR to GitHub Pages
+name: Deploy ASHUR Babylon Inventory to GitHub Pages
 
 on:
   push:
-    branches: ["main", "wall-rebuild-babylon"]
+    branches: ["wall-rebuild-babylon"]
+    paths:
+      - "wall-variants/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -11,54 +14,24 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout latest Babylon branch
         uses: actions/checkout@v4
-      - name: Validate dashboard JavaScript and data
-        run: |
-          python - <<'PY'
-          import json, re
-          from pathlib import Path
-          html = Path("wall.html").read_text()
-          scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
-          if len(scripts) != 1:
-              raise SystemExit(f"Expected one inline dashboard script, found {len(scripts)}")
-          Path("/tmp/ashur-wall.js").write_text(scripts[0])
-          ids = set(re.findall(r'\bid="([^"]+)"', html))
-          refs = set(re.findall(r"\$\('([^']+)'\)", scripts[0]))
-          missing = refs - ids
-          if missing:
-              raise SystemExit("Dashboard references missing DOM IDs: " + ", ".join(sorted(missing)))
-          data = json.loads(Path("wall-data.json").read_text())
-          history = json.loads(Path("wall-history.json").read_text())
-          if data.get("mode") != "PAPER_ONLY" or len(data.get("accounts", [])) != 6:
-              raise SystemExit("Dashboard snapshot failed Paper/Shadow schema validation")
-          if len(data.get("trade_stats", [])) != 6:
-              raise SystemExit("Expected trade statistics for all six strategies")
-          if not history.get("points"):
-              raise SystemExit("No verified equity history points found")
-          print("Dashboard assets validated:", len(history["points"]), "history points")
-          PY
-          node --check /tmp/ashur-wall.js
-      - name: Configure Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Upload site
+      - name: Upload the actual five-skin website
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
-      - name: Wait for Pages artifact registration
-        run: sleep 20
-      - name: Deploy
+          path: wall-variants
+      - name: Publish website
         id: deployment
         uses: actions/deploy-pages@v4
