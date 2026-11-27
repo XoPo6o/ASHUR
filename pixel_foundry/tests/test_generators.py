@@ -65,3 +65,16 @@ def test_market_stall_rejects_too_small_canvas():
     import pytest
     with pytest.raises(ValueError, match="24x16"):
         expand_generator({"type": "market_stall", "w": 20, "h": 12})
+
+
+def test_stepped_ziggurat_has_staggered_masonry_and_wear_at_dense_scale():
+    spec = {
+        "type": "stepped_ziggurat", "x": 10, "y": 8, "w": 140, "h": 100,
+        "tiers": 5, "tier_h": 14, "inset": 12,
+        "color": "#D9AD62", "shade": "#9C7746", "highlight": "#F0D8A5",
+        "top_color": "#D9AD62", "seed": 17,
+    }
+    first = expand_generator(spec)
+    assert first == expand_generator(spec)
+    assert sum(op.get("part") == "ziggurat-brick-joint" for op in first) >= 20
+    assert sum(op.get("part") == "stone-wear" for op in first) >= 5
