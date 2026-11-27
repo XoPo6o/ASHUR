@@ -1,11 +1,8 @@
 {
-  "name": "Babylon Inventory — night market study",
-  "style": "detailed 16-bit inspired pixel art; deliberate chunky clusters; restrained neon accents",
+  "name": "Babylon Inventory — reference-aligned night market Art Bible v2",
+  "style": "detailed 16-bit inspired pixel art; deliberate chunky clusters; restrained neon accents; hard-edged architectural silhouettes",
   "target": "game-background",
-  "canvas": {
-    "width": 160,
-    "height": 90
-  },
+  "canvas": { "width": 160, "height": 90 },
   "pixel_scale": 1,
   "perspective": "three_quarter",
   "lighting": {
@@ -20,280 +17,83 @@
   },
   "palette": {
     "colors": {
-      "night": "#10152B",
-      "far_blue": "#222D4B",
-      "blue_stone": "#35405B",
-      "sand_shadow": "#75533F",
-      "sand": "#B88B62",
-      "sand_light": "#D8B17A",
-      "gold_shadow": "#A66B3D",
-      "gold": "#E8B65A",
-      "moon": "#F4E6B8",
-      "teal": "#5D9A91",
-      "dark": "#171827",
-      "leaf_shadow": "#24483F",
-      "leaf": "#386B52",
-      "leaf_light": "#78A66A",
-      "water_shadow": "#1B3A4C",
-      "water": "#2E6874",
-      "water_light": "#73B3A2",
-      "stone": "#916548",
-      "stone_dark": "#4A3945"
+      "night": "#0B141D",
+      "far_blue": "#101E2A",
+      "blue_stone": "#142633",
+      "sand_shadow": "#9C7746",
+      "sand": "#D9AD62",
+      "sand_light": "#F0D8A5",
+      "gold_shadow": "#9C7746",
+      "gold": "#D9AD62",
+      "moon": "#E9E5D6",
+      "teal": "#65CFC0",
+      "dark": "#050A0E",
+      "leaf_shadow": "#2D6B70",
+      "leaf": "#83D59B",
+      "leaf_light": "#E9E5D6",
+      "water_shadow": "#2D6B70",
+      "water": "#65CFC0",
+      "water_light": "#9AB0B6",
+      "stone": "#365564",
+      "stone_dark": "#050A0E"
     },
     "ramps": {
-      "sky": [
-        "night",
-        "far_blue",
-        "blue_stone"
-      ],
-      "sandstone": [
-        "sand_shadow",
-        "sand",
-        "sand_light"
-      ],
-      "gold": [
-        "gold_shadow",
-        "gold",
-        "moon"
-      ],
-      "foliage": [
-        "leaf_shadow",
-        "leaf",
-        "leaf_light"
-      ],
-      "water": [
-        "water_shadow",
-        "water",
-        "water_light"
-      ]
+      "sky": ["night", "far_blue", "blue_stone"],
+      "sandstone": ["sand_shadow", "sand", "sand_light"],
+      "gold": ["gold_shadow", "gold", "moon"],
+      "foliage": ["leaf_shadow", "leaf", "leaf_light"],
+      "water": ["water_shadow", "water", "water_light"]
     }
   },
   "layers": [
     {
       "name": "sky and stars",
       "ops": [
-        {
-          "type": "ramp_rect",
-          "x": 0,
-          "y": 0,
-          "w": 160,
-          "h": 55,
-          "ramp": "sky",
-          "axis": "vertical"
-        },
-        {
-          "type": "ellipse",
-          "x": 124,
-          "y": 8,
-          "w": 13,
-          "h": 13,
-          "color": "moon"
-        },
-        {
-          "type": "pixel",
-          "x": 18,
-          "y": 12,
-          "color": "moon"
-        },
-        {
-          "type": "pixel",
-          "x": 41,
-          "y": 8,
-          "color": "sand_light"
-        },
-        {
-          "type": "pixel",
-          "x": 96,
-          "y": 17,
-          "color": "sand_light"
-        }
+        { "type": "ramp_rect", "x": 0, "y": 0, "w": 160, "h": 55, "ramp": "sky", "axis": "vertical" },
+        { "type": "ellipse", "x": 124, "y": 8, "w": 13, "h": 13, "color": "moon" },
+        { "type": "pixel", "x": 18, "y": 12, "color": "moon" },
+        { "type": "pixel", "x": 41, "y": 8, "color": "sand_light" },
+        { "type": "pixel", "x": 96, "y": 17, "color": "sand_light" }
       ]
     },
     {
       "name": "cloud banks",
       "ops": [
-        {
-          "type": "cloud_bank",
-          "x": 12,
-          "y": 18,
-          "w": 42,
-          "h": 11,
-          "color": "blue_stone",
-          "shade": "far_blue",
-          "highlight": "sand_shadow",
-          "seed": 13,
-          "lumps": 4
-        },
-        {
-          "type": "cloud_bank",
-          "x": 66,
-          "y": 12,
-          "w": 36,
-          "h": 9,
-          "color": "far_blue",
-          "shade": "night",
-          "highlight": "blue_stone",
-          "seed": 5,
-          "lumps": 4
-        }
+        { "type": "cloud_bank", "x": 12, "y": 18, "w": 42, "h": 11, "color": "blue_stone", "shade": "far_blue", "highlight": "stone", "seed": 13, "lumps": 4 },
+        { "type": "cloud_bank", "x": 66, "y": 12, "w": 36, "h": 9, "color": "far_blue", "shade": "night", "highlight": "blue_stone", "seed": 5, "lumps": 4 }
       ]
     },
     {
       "name": "distant city",
       "ops": [
-        {
-          "type": "rect",
-          "x": 0,
-          "y": 55,
-          "w": 160,
-          "h": 35,
-          "color": "far_blue"
-        },
-        {
-          "type": "rect",
-          "x": 4,
-          "y": 48,
-          "w": 10,
-          "h": 7,
-          "color": "far_blue"
-        },
-        {
-          "type": "rect",
-          "x": 34,
-          "y": 44,
-          "w": 12,
-          "h": 11,
-          "color": "far_blue"
-        },
-        {
-          "type": "rect",
-          "x": 137,
-          "y": 43,
-          "w": 13,
-          "h": 12,
-          "color": "far_blue"
-        }
+        { "type": "rect", "x": 0, "y": 55, "w": 160, "h": 35, "color": "far_blue" },
+        { "type": "rect", "x": 4, "y": 48, "w": 10, "h": 7, "color": "far_blue" },
+        { "type": "rect", "x": 34, "y": 44, "w": 12, "h": 11, "color": "far_blue" },
+        { "type": "rect", "x": 137, "y": 43, "w": 13, "h": 12, "color": "far_blue" }
       ]
     },
     {
       "name": "ziggurat",
       "ops": [
-        {
-          "type": "stepped_ziggurat",
-          "x": 45,
-          "y": 24,
-          "w": 70,
-          "h": 50,
-          "tiers": 5,
-          "tier_h": 7,
-          "inset": 6,
-          "color": "sand",
-          "shade": "sand_shadow",
-          "highlight": "sand_light",
-          "side_color": "sand_shadow",
-          "top_color": "gold"
-        }
+        { "type": "stepped_ziggurat", "x": 45, "y": 24, "w": 70, "h": 50, "tiers": 5, "tier_h": 7, "inset": 6, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "side_color": "sand_shadow", "top_color": "gold" }
       ]
     },
     {
       "name": "hanging gardens and palms",
       "ops": [
-        {
-          "type": "foliage",
-          "x": 10,
-          "y": 48,
-          "w": 18,
-          "h": 10,
-          "color": "leaf",
-          "shade": "leaf_shadow",
-          "highlight": "leaf_light",
-          "seed": 9,
-          "clusters": 6
-        },
-        {
-          "type": "palm_tree",
-          "x": 12,
-          "y": 49,
-          "w": 18,
-          "h": 32,
-          "color": "leaf",
-          "shade": "leaf_shadow",
-          "highlight": "leaf_light",
-          "seed": 17
-        },
-        {
-          "type": "palm_tree",
-          "x": 129,
-          "y": 52,
-          "w": 18,
-          "h": 29,
-          "color": "leaf",
-          "shade": "leaf_shadow",
-          "highlight": "leaf_light",
-          "seed": 23
-        }
+        { "type": "foliage", "x": 10, "y": 48, "w": 18, "h": 10, "color": "leaf", "shade": "leaf_shadow", "highlight": "leaf_light", "seed": 9, "clusters": 6 },
+        { "type": "palm_tree", "x": 12, "y": 49, "w": 18, "h": 32, "color": "leaf", "shade": "leaf_shadow", "highlight": "leaf_light", "seed": 17 },
+        { "type": "palm_tree", "x": 129, "y": 52, "w": 18, "h": 29, "color": "leaf", "shade": "leaf_shadow", "highlight": "leaf_light", "seed": 23 }
       ]
     },
     {
       "name": "foreground market",
       "ops": [
-        {
-          "type": "rect",
-          "x": 0,
-          "y": 76,
-          "w": 160,
-          "h": 14,
-          "color": "dark"
-        },
-        {
-          "type": "archway",
-          "x": 8,
-          "y": 65,
-          "w": 28,
-          "h": 22,
-          "thickness": 5,
-          "arch_h": 8,
-          "color": "sand_shadow",
-          "shade": "dark",
-          "highlight": "gold"
-        },
-        {
-          "type": "water_surface",
-          "x": 0,
-          "y": 82,
-          "w": 42,
-          "h": 7,
-          "color": "water",
-          "shade": "water_shadow",
-          "highlight": "water_light",
-          "seed": 31
-        },
-        {
-          "type": "boulder",
-          "x": 40,
-          "y": 79,
-          "w": 14,
-          "h": 10,
-          "color": "stone",
-          "shade": "stone_dark",
-          "highlight": "sand_light",
-          "seed": 6
-        },
-        {
-          "type": "traveler_sprite",
-          "x": 69,
-          "y": 58,
-          "w": 18,
-          "h": 31,
-          "pose": "drag",
-          "color": "sand",
-          "shade": "dark",
-          "highlight": "gold",
-          "skin": "moon",
-          "trim": "gold_shadow",
-          "boots": "dark",
-          "limb_color": "sand_shadow"
-        }
+        { "type": "rect", "x": 0, "y": 76, "w": 160, "h": 14, "color": "dark" },
+        { "type": "archway", "x": 8, "y": 65, "w": 28, "h": 22, "thickness": 5, "arch_h": 8, "color": "sand_shadow", "shade": "dark", "highlight": "gold" },
+        { "type": "water_surface", "x": 0, "y": 82, "w": 42, "h": 7, "color": "water", "shade": "water_shadow", "highlight": "water_light", "seed": 31 },
+        { "type": "boulder", "x": 40, "y": 79, "w": 14, "h": 10, "color": "stone", "shade": "stone_dark", "highlight": "sand_light", "seed": 6 },
+        { "type": "traveler_sprite", "x": 69, "y": 58, "w": 18, "h": 31, "pose": "drag", "color": "sand", "shade": "dark", "highlight": "gold", "skin": "moon", "trim": "gold_shadow", "boots": "dark", "limb_color": "sand_shadow" }
       ]
     }
   ]
