@@ -74,7 +74,7 @@ jobs:
                       };
                     });
                     const fixedPath = html.includes('../wall-data.json') && html.includes('../wall-history.json');
-                    const deployedLatest = html.includes('final-overrides.css?v=20261127-6');
+                    const deployedLatest = html.includes('final-overrides.css?v=20261127-7');
                     const sharedCssLoaded = await page.evaluate(() => Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css')));
                     const ready = readiness.snapshot && readiness.worker && readiness.equity && readiness.strategies >= 6 && readiness.matrixRows >= 6;
                     const noOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2);
@@ -95,7 +95,7 @@ jobs:
                     horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
                     overflowNodes: Array.from(document.querySelectorAll('body *')).map(el=>({tag:el.tagName, id:el.id, cls:typeof el.className==='string'?el.className:'', left:Math.round(el.getBoundingClientRect().left), right:Math.round(el.getBoundingClientRect().right), width:Math.round(el.getBoundingClientRect().width)})).filter(x=>x.right>window.innerWidth+1 || x.left < -1).slice(0,12),
                     chartPresent: !!document.querySelector('#equity-chart')?.children.length,
-              sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css?v=20261127-6')),
+              sharedCssLoaded: Array.from(document.styleSheets).some(s => s.href && s.href.includes('final-overrides.css?v=20261127-7')),
               navVisible: getComputedStyle(document.querySelector('.nav')).display !== 'none',
               heroBackgroundPresent: getComputedStyle(document.querySelector('.hero')).backgroundImage !== 'none',
               gameMenuVisible: getComputedStyle(document.querySelector('.game-menu')).display !== 'none',
