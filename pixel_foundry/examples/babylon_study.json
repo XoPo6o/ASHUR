@@ -1,0 +1,41 @@
+{
+  "canvas": {"width": 160, "height": 90},
+  "background": "night",
+  "palette": {"colors": {
+    "night": "#10152B", "far_blue": "#222D4B", "blue_stone": "#35405B",
+    "sand_shadow": "#75533F", "sand": "#B88B62", "sand_light": "#D8B17A",
+    "gold_shadow": "#A66B3D", "gold": "#E8B65A", "moon": "#F4E6B8",
+    "teal": "#5D9A91", "dark": "#171827"
+  }},
+  "layers": [
+    {"name":"night sky","ops":[
+      {"type":"ellipse","x":124,"y":8,"w":13,"h":13,"color":"moon"},
+      {"type":"pixel","x":18,"y":12,"color":"moon"},{"type":"pixel","x":41,"y":8,"color":"sand_light"},
+      {"type":"pixel","x":96,"y":17,"color":"sand_light"},{"type":"pixel","x":148,"y":29,"color":"moon"}
+    ]},
+    {"name":"distant city","ops":[
+      {"type":"rect","x":0,"y":55,"w":160,"h":35,"color":"far_blue"},
+      {"type":"rect","x":4,"y":48,"w":10,"h":7,"color":"far_blue"},
+      {"type":"rect","x":18,"y":51,"w":13,"h":4,"color":"far_blue"},
+      {"type":"rect","x":34,"y":44,"w":12,"h":11,"color":"far_blue"},
+      {"type":"rect","x":49,"y":49,"w":14,"h":6,"color":"far_blue"},
+      {"type":"rect","x":101,"y":46,"w":11,"h":9,"color":"far_blue"},
+      {"type":"rect","x":116,"y":50,"w":15,"h":5,"color":"far_blue"},
+      {"type":"rect","x":137,"y":43,"w":13,"h":12,"color":"far_blue"}
+    ]},
+    {"name":"ziggurat silhouette","ops":[
+      {"type":"polygon","points":[[47,72],[64,57],[96,57],[113,72]],"color":"sand_shadow"},
+      {"type":"polygon","points":[[56,57],[70,42],[90,42],[104,57]],"color":"sand"},
+      {"type":"polygon","points":[[66,42],[76,30],[84,30],[94,42]],"color":"sand_light"},
+      {"type":"rect","x":76,"y":24,"w":8,"h":6,"color":"gold"}
+    ]},
+    {"name":"foreground market","ops":[
+      {"type":"rect","x":0,"y":76,"w":160,"h":14,"color":"dark"},
+      {"type":"polygon","points":[[8,75],[20,65],[34,75]],"color":"gold_shadow"},
+      {"type":"rect","x":8,"y":75,"w":26,"h":9,"color":"sand_shadow"},
+      {"type":"polygon","points":[[119,72],[132,63],[145,72]],"color":"teal"},
+      {"type":"rect","x":119,"y":72,"w":26,"h":12,"color":"blue_stone"}
+    ]}
+  ],
+  "export": {"indexed": true}
+}
