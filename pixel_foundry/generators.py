@@ -351,6 +351,25 @@ def expand_generator(op: dict) -> list[dict]:
             if op.get("course_lines",True) and tier_height>=4:
                 line_y=tier_y+tier_height-2
                 out.append({"type":"line","points":[[tier_x+1,line_y],[tier_x+front_width-2,line_y]],"color":shade})
+            # Fine staggered masonry joints and sparse worn chips reveal individual blocks.
+            if op.get("brick_detail", True) and tier_height >= 8 and front_width >= 20:
+                brick_h = max(4, tier_height // 3)
+                brick_w = max(8, front_width // 7)
+                row_index = 0
+                for joint_y in range(tier_y + 3, tier_y + tier_height - 2, brick_h):
+                    offset = brick_w // 2 if row_index % 2 else 0
+                    for joint_x in range(tier_x + 3 + offset, tier_x + front_width - 2, brick_w):
+                        out.append({"type": "line", "part": "ziggurat-brick-joint",
+                                    "points": [[joint_x, joint_y],
+                                               [joint_x, min(tier_y + tier_height - 2, joint_y + brick_h - 2)]],
+                                    "color": shade})
+                    row_index += 1
+                for _ in range(max(1, front_width // 36)):
+                    chip_x = rng.randint(tier_x + 2, tier_x + front_width - 3)
+                    chip_y = rng.randint(tier_y + 2, tier_y + tier_height - 3)
+                    out.append({"type": "pixel", "part": "stone-wear",
+                                "x": chip_x, "y": chip_y,
+                                "color": top if rng.random() > 0.5 else shade})
         shrine_w=max(5,w//5); shrine_h=max(4,tier_h)
         shrine_x=x+(w-shrine_w)//2
         shrine_y=max(y,y+h-tiers*tier_h-shrine_h)
