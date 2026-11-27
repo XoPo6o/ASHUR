@@ -1,22 +1,45 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#211d31"><title>ASHUR · Pixel Art Lab 01</title>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101426"><title>ASHUR · Pixel Wall — Babylon Inventory</title>
 <style>
-:root{color-scheme:dark;--ink:#f7e6bd;--panel:#18283b}*{box-sizing:border-box}body{margin:0;background:#101827;color:var(--ink);font:14px/1.55 ui-monospace,monospace}main{width:min(920px,calc(100% - 28px));margin:0 auto;padding:28px 0 48px}
-.kicker{color:#73d3c8;font-size:11px;letter-spacing:2px}h1{font-size:clamp(20px,4vw,32px);line-height:1.3;margin:8px 0;color:#ffe2a0}.lead{color:#c7b596;max-width:700px}
-.stage{margin:24px 0 18px;padding:10px;background:#1a2639;border:4px solid #76533b;box-shadow:inset 0 0 0 3px #d4a45e,0 7px 0 #080e17}.scene{display:block;width:320px;height:100px;max-width:100%;object-fit:contain;image-rendering:pixelated;margin:auto;background:#28334f}
-.meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 24px}.tag{padding:5px 8px;border:1px solid #735b45;background:#1c2a3c;color:#e8c98d;font-size:11px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.panel{background:var(--panel);border:4px solid #6d4b36;box-shadow:inset 0 0 0 2px #d5a45e;padding:14px;min-width:0}.panel h2{font-size:13px;color:#ffe0a0;margin:0 0 12px}
-.sample{min-height:92px;display:flex;align-items:center;justify-content:center;gap:18px;background:#111c2d;border:3px solid #3d4650;padding:12px}.icon{width:64px;height:64px;image-rendering:pixelated;object-fit:contain}
-.frame-sample{width:110px;height:64px;border:12px solid transparent;border-image-source:url('../assets/pixel/frame-tile.png');border-image-slice:4 fill;border-image-width:12px;border-image-repeat:stretch;background:#203247;display:grid;place-items:center;color:#f6d58f;font-size:10px;text-align:center}
-.palette{display:flex;gap:0;height:20px;margin-top:14px;overflow:hidden;border:2px solid #111}.palette i{flex:1}.note{color:#c4b18e;font-size:12px;margin:12px 0 0}.rules{margin-top:18px;padding:14px 16px;background:#172538;border-left:4px solid #d6a45f;color:#d4c09c}.rules strong{color:#ffe0a0}
-@media(max-width:620px){main{padding-top:18px}.grid{grid-template-columns:1fr}.stage{padding:6px}.panel{padding:11px}}
+:root{color-scheme:dark;--ink:#f3dfb5;--muted:#b7a68a;--gold:#e8b96e;--line:#76563e;--panel:#1b2639}
+*{box-sizing:border-box}body{margin:0;background:#101426;color:var(--ink);font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+main{width:min(1080px,calc(100% - 28px));margin:auto;padding:26px 0 54px}
+.kicker{font-size:11px;letter-spacing:2px;color:#82b9a0}
+h1{font-size:clamp(22px,4vw,36px);line-height:1.2;margin:8px 0;color:#f5d28d}
+h2{font-size:14px;color:#f5d28d;margin:0 0 12px}
+.lead{max-width:780px;color:#c6b99e}
+.stage{margin:22px 0 12px;padding:9px;background:#1b2639;border:4px solid var(--line);box-shadow:inset 0 0 0 3px #d4a15e,0 7px 0 #080d17}
+.scene{display:block;width:100%;height:auto;image-rendering:pixelated;background:#171d32}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 26px}
+.tag{padding:5px 8px;border:1px solid #725a43;background:#1b2b3b;color:#e6c68c;font-size:10px}
+.section{margin-top:24px}.section-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:12px}
+.assets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.asset{min-width:0;background:var(--panel);border:3px solid #644a38;box-shadow:inset 0 0 0 2px #b58a57;padding:10px}
+.asset-view{height:112px;display:grid;place-items:center;background-color:#111a2b;background-image:linear-gradient(45deg,#1b2639 25%,transparent 25%),linear-gradient(-45deg,#1b2639 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1b2639 75%),linear-gradient(-45deg,transparent 75%,#1b2639 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.asset img{max-width:100%;max-height:92px;object-fit:contain;image-rendering:pixelated}
+.asset-name{font-size:11px;color:#f0d29b;margin-top:9px}.asset-size{font-size:10px;color:#a99b83;margin-top:3px}
+.palette{display:flex;height:20px;border:2px solid #0a101b;margin-top:10px}.palette i{flex:1}
+.note{margin-top:18px;padding:14px 16px;background:#172337;border-left:4px solid #d4a15e;color:#c9b99a;font-size:12px}
+footer{margin-top:22px;color:#817d78;font-size:10px}
+@media(max-width:760px){.assets{grid-template-columns:repeat(2,minmax(0,1fr))}.assets .asset:first-child{grid-column:span 2}.stage{padding:6px}}
 </style></head><body><main>
-<div class="kicker">ASHUR / GRAPHICS WORKSHOP / 01</div><h1>Пиксельный стандарт · Вавилон</h1>
-<p class="lead">Первый тест новой технологии: растровая сцена, собранная на низком разрешении из цветовых кластеров. Никаких SVG-контуров, CSS-градиентов или фильтра Pixelate внутри иллюстрации.</p>
-<div class="stage"><img class="scene" src="../assets/pixel/babylon-scene.png" width="320" height="100" alt="Пиксельная сцена Вавилона с зиккуратом и ламассу"></div>
-<div class="meta"><span class="tag">320 × 100 px</span><span class="tag">PNG · RASTER</span><span class="tag">NEAREST-NEIGHBOR</span><span class="tag">ограниченная палитра</span></div>
-<div class="grid"><section class="panel"><h2>01 · Рамка интерфейса</h2><div class="sample"><div class="frame-sample">ASHUR<br>WALL</div></div><p class="note">Рамка построена из растрового тайла с пиксельными углами и кромкой.</p></section>
-<section class="panel"><h2>02 · Иконка стратегии</h2><div class="sample"><img class="icon" src="../assets/pixel/strategy-breakout.png" width="32" height="32" alt="Пиксельная иконка стратегии"></div><p class="note">Иконка на сетке 32 × 32, показана в масштабе 2× без сглаживания.</p></section></div>
-<section class="panel" style="margin-top:14px"><h2>03 · Рабочая палитра</h2><div class="palette"><i style="background:#1b233b"></i><i style="background:#2a3555"></i><i style="background:#51415a"></i><i style="background:#98605f"></i><i style="background:#cf7955"></i><i style="background:#e69a5d"></i><i style="background:#b9774d"></i><i style="background:#efc477"></i><i style="background:#ffe2a0"></i><i style="background:#34534f"></i></div><p class="note">Палитра ограничена; распределение света и детали сцены будут уточняться по референсу.</p></section>
-<div class="rules"><strong>Критерии следующей итерации:</strong> читаемый силуэт ламассу, более сложная архитектура, выразительные световые кластеры, единый масштаб пикселя, отсутствие случайного шума и гладких контуров. Это первый технический эталон, не финальная художественная версия.</div>
+<div class="kicker">ASHUR / PIXEL FOUNDRY / PROOF ASSET 01</div>
+<h1>Вавилон. Ночной рынок.</h1>
+<p class="lead">Первый самостоятельный растровый проход новой мастерской. Сцена собрана на логической сетке 192 × 108: зиккурат, дальний город, висячие сады, торговые навесы, канал и страж-ламассу. Ниже — отдельные спрайты, из которых будет расти библиотека мира.</p>
+<div class="stage"><img class="scene" src="../assets/pixel/babylon-night-market-v1.png" width="192" height="108" alt="Ночной рынок Вавилона, зиккурат и пиксельный ламассу"></div>
+<div class="tags"><span class="tag">192 × 108 LOGICAL PX</span><span class="tag">PNG / RGBA</span><span class="tag">NEAREST NEIGHBOR</span><span class="tag">HAND-AUTHORED CLUSTERS</span><span class="tag">BABYLON INVENTORY</span></div>
+<section class="section"><div class="section-head"><h2>01 · Библиотека спрайтов</h2><span class="muted">каждый объект — отдельный PNG</span></div>
+<div class="assets">
+<article class="asset"><div class="asset-view"><img src="../assets/pixel/lamassu-guardian.png" alt="Страж ламассу"></div><div class="asset-name">Ламассу · страж</div><div class="asset-size">64 × 56 px · 4 ramp</div></article>
+<article class="asset"><div class="asset-view"><img src="../assets/pixel/palm-tree.png" alt="Пальма"></div><div class="asset-name">Финиковая пальма</div><div class="asset-size">40 × 56 px · foliage</div></article>
+<article class="asset"><div class="asset-view"><img src="../assets/pixel/rock-cluster.png" alt="Камни"></div><div class="asset-name">Каменный кластер</div><div class="asset-size">32 × 20 px · stone</div></article>
+<article class="asset"><div class="asset-view"><img src="../assets/pixel/cloud.png" alt="Облако"></div><div class="asset-name">Ночное облако</div><div class="asset-size">48 × 20 px · sky</div></article>
+<article class="asset"><div class="asset-view"><img src="../assets/pixel/water-tile.png" alt="Вода"></div><div class="asset-name">Канал · тайл воды</div><div class="asset-size">32 × 16 px · water</div></article>
+</div></section>
+<section class="section"><h2>02 · Палитра сцены</h2><div class="palette"><i style="background:#101426"></i><i style="background:#202b48"></i><i style="background:#41445c"></i><i style="background:#705044"></i><i style="background:#916548"></i><i style="background:#b17b50"></i><i style="background:#d29a5d"></i><i style="background:#edc17a"></i><i style="background:#315b58"></i><i style="background:#58905d"></i><i style="background:#286276"></i><i style="background:#f4e8bd"></i></div></section>
+<div class="note"><b>Это первая художественная итерация, не финал.</b> Здесь уже есть отдельные растровые спрайты и цельная сцена. Следующий проход: увеличить детализацию ламассу и архитектуры, добавить повторяемые органические генераторы, рыночные предметы и персонажа-путника. Основная «Стена» и торговый контур не затронуты.</div>
+<footer>ASHUR PIXEL FOUNDRY · ART STUDY 01 · RASTER ASSETS</footer>
 </main></body></html>
