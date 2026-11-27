@@ -20,7 +20,13 @@ def render_scene(scene: dict, output: str | Path | None = None, scale: int = 1) 
     palette = Palette.from_data(scene["palette"])
     renderer = PixelRenderer(int(canvas["width"]), int(canvas["height"]), palette,
                              scene.get("background", "transparent"))
-    image = renderer.render_layers(scene["layers"])
+    expanded_layers = []
+    for layer in scene["layers"]:
+        expanded = dict(layer)
+        expanded["ops"] = [primitive for op in layer.get("ops", [])
+                           for primitive in expand_generator(op)]
+        expanded_layers.append(expanded)
+    image = renderer.render_layers(expanded_layers)
     report = inspect_image(image, palette)
     if output:
         renderer.export(output, scale=scale, indexed=scene.get("export", {}).get("indexed", True))
