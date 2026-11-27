@@ -156,6 +156,101 @@ def expand_lamassu(op: dict) -> list[dict]:
         [x+45,y+9],[x+52,y+8]
     ], "color": highlight})
 
+    # Individual feather barbs follow the wing's fan instead of repeating a single stripe.
+    wing_details = [
+        ([[x+12,y+21],[x+14,y+18],[x+17,y+16]], highlight),
+        ([[x+16,y+23],[x+19,y+20],[x+22,y+18]], detail),
+        ([[x+20,y+25],[x+23,y+22],[x+27,y+19]], highlight),
+        ([[x+25,y+25],[x+28,y+23],[x+32,y+20]], detail),
+        ([[x+29,y+23],[x+32,y+21],[x+35,y+19]], highlight),
+        ([[x+15,y+15],[x+18,y+12],[x+21,y+10]], detail),
+        ([[x+22,y+13],[x+25,y+11],[x+28,y+9]], highlight),
+    ]
+    for points, color in wing_details:
+        out.append({"type": "line", "part": "feather-barb",
+                    "points": points, "color": color})
+    out.append({"type": "line", "part": "wing-quill", "points": [
+        [x+10,y+24],[x+18,y+17],[x+27,y+12],[x+36,y+10]
+    ], "color": detail, "width": 2})
+    out.append({"type": "line", "part": "wing-rim-light", "points": [
+        [x+7,y+14],[x+12,y+8],[x+19,y+3],[x+26,y+1]
+    ], "color": highlight})
+
+    # Rib cage, shoulder mass and flank folds are separated into short anatomical clusters.
+    anatomy_lines = [
+        ([[x+14,y+27],[x+17,y+30],[x+21,y+31]], shade),
+        ([[x+19,y+28],[x+22,y+31],[x+26,y+32]], detail),
+        ([[x+25,y+28],[x+28,y+31],[x+32,y+32]], highlight),
+        ([[x+31,y+27],[x+34,y+29],[x+37,y+29]], detail),
+        ([[x+35,y+24],[x+38,y+26],[x+40,y+29]], highlight),
+        ([[x+12,y+32],[x+17,y+34],[x+23,y+34]], detail),
+        ([[x+28,y+34],[x+34,y+34],[x+39,y+32]], shade),
+    ]
+    for points, color in anatomy_lines:
+        out.append({"type": "line", "part": "rib-engraving",
+                    "points": points, "color": color})
+    out.append({"type": "line", "part": "neck-muscle", "points": [
+        [x+39,y+21],[x+42,y+24],[x+44,y+28]
+    ], "color": highlight})
+    out.append({"type": "line", "part": "flank-fold", "points": [
+        [x+18,y+34],[x+24,y+35],[x+30,y+35]
+    ], "color": shade})
+
+    # Joint planes and hoof cuts are repeated by anatomy, not by a decorative tile.
+    for index, offset in enumerate(leg_positions):
+        lx = x + offset
+        knee = y + (35 if index % 2 == 0 else 36)
+        hoof_y = y + 41
+        out.append({"type": "line", "part": "leg-joint", "points": [
+            [lx, knee-1],[lx+3, knee-1]
+        ], "color": detail if index % 2 == 0 else shade})
+        out.append({"type": "line", "part": "shin-plane", "points": [
+            [lx+2, knee+1],[lx+2, hoof_y-2]
+        ], "color": highlight if index in (1,3) else shade})
+        out.append({"type": "line", "part": "hoof-seam", "points": [
+            [lx, hoof_y],[lx+3, hoof_y]
+        ], "color": detail})
+
+    # Royal regalia: horn ridges, crown bands, ear, cheek and layered beard curls.
+    out.append({"type": "polygon", "part": "ear", "points": [
+        [x+43,y+15],[x+41,y+17],[x+43,y+20],[x+46,y+19]
+    ], "color": shade})
+    out.append({"type": "line", "part": "ear-inner", "points": [
+        [x+43,y+17],[x+44,y+18]
+    ], "color": highlight})
+    out.append({"type": "line", "part": "crown-band", "points": [
+        [x+46,y+7],[x+53,y+7]
+    ], "color": highlight})
+    out.append({"type": "pixel", "part": "crown-rosette", "x": x+50,
+                "y": y+6, "color": highlight})
+    for points in (
+        [[x+44,y+5],[x+45,y+6],[x+46,y+7]],
+        [[x+54,y+5],[x+53,y+6],[x+52,y+7]],
+    ):
+        out.append({"type": "line", "part": "horn-ridge",
+                    "points": points, "color": detail})
+    out.append({"type": "line", "part": "eye-socket", "points": [
+        [x+46,y+13],[x+49,y+12],[x+51,y+13]
+    ], "color": shade})
+    out.append({"type": "line", "part": "eye-socket", "points": [
+        [x+52,y+13],[x+54,y+12],[x+56,y+13]
+    ], "color": shade})
+    out.append({"type": "line", "part": "cheek-plane", "points": [
+        [x+46,y+18],[x+48,y+20],[x+50,y+20]
+    ], "color": shade})
+    out.append({"type": "line", "part": "moustache", "points": [
+        [x+47,y+21],[x+49,y+22],[x+51,y+21]
+    ], "color": detail})
+    for points, color in (
+        ([[x+47,y+23],[x+49,y+25],[x+48,y+27]], highlight),
+        ([[x+50,y+23],[x+52,y+25],[x+51,y+28]], detail),
+        ([[x+53,y+23],[x+55,y+25],[x+54,y+28]], highlight),
+        ([[x+48,y+27],[x+50,y+29],[x+49,y+30]], detail),
+        ([[x+52,y+27],[x+54,y+29],[x+53,y+30]], highlight),
+    ):
+        out.append({"type": "line", "part": "beard-curl",
+                    "points": points, "color": color})
+
     detail_scale = int(op.get("_detail_scale", 1))
     if detail_scale > 1:
         for primitive in out:
@@ -178,6 +273,16 @@ def expand_lamassu(op: dict) -> list[dict]:
                 {"type": "line", "part": "micro-feather", "points": [[x+25*detail_scale+1,y+9*detail_scale+1],[x+21*detail_scale+1,y+14*detail_scale+1]], "color": highlight},
                 {"type": "line", "part": "micro-feather", "points": [[x+31*detail_scale+1,y+13*detail_scale+1],[x+27*detail_scale+1,y+18*detail_scale+1]], "color": detail},
                 {"type": "line", "part": "micro-feather", "points": [[x+36*detail_scale+1,y+17*detail_scale+1],[x+32*detail_scale+1,y+21*detail_scale+1]], "color": highlight},
+                {"type": "line", "part": "micro-feather", "points": [[x+15*detail_scale+1,y+18*detail_scale+1],[x+18*detail_scale+1,y+15*detail_scale+1]], "color": detail},
+                {"type": "line", "part": "micro-feather", "points": [[x+23*detail_scale+1,y+22*detail_scale+1],[x+26*detail_scale+1,y+19*detail_scale+1]], "color": highlight},
+                {"type": "line", "part": "micro-feather", "points": [[x+29*detail_scale+1,y+23*detail_scale+1],[x+33*detail_scale+1,y+20*detail_scale+1]], "color": detail},
+                {"type": "pixel", "part": "wing-quill-glint", "x": x+18*detail_scale+1, "y": y+17*detail_scale+1, "color": highlight},
+                {"type": "line", "part": "rib-highlight", "points": [[x+17*detail_scale+1,y+30*detail_scale+1],[x+20*detail_scale+1,y+31*detail_scale+1]], "color": highlight},
+                {"type": "line", "part": "rib-highlight", "points": [[x+26*detail_scale+1,y+31*detail_scale+1],[x+29*detail_scale+1,y+32*detail_scale+1]], "color": detail},
+                {"type": "line", "part": "neck-engraving", "points": [[x+40*detail_scale+1,y+24*detail_scale+1],[x+42*detail_scale+1,y+27*detail_scale+1]], "color": detail},
+                {"type": "line", "part": "crown-engraving", "points": [[x+47*detail_scale+1,y+6*detail_scale+1],[x+52*detail_scale+1,y+6*detail_scale+1]], "color": highlight},
+                {"type": "pixel", "part": "eye-glint", "x": x+54*detail_scale+1, "y": y+14*detail_scale+1, "color": highlight},
+                {"type": "line", "part": "beard-engraving", "points": [[x+50*detail_scale+1,y+26*detail_scale+1],[x+52*detail_scale+1,y+28*detail_scale+1]], "color": highlight},
                 {"type": "pixel", "part": "coat-grain", "x": x+17*detail_scale+1, "y": y+24*detail_scale+1, "color": highlight},
                 {"type": "pixel", "part": "coat-grain", "x": x+20*detail_scale+1, "y": y+27*detail_scale+1, "color": detail},
                 {"type": "line", "part": "muscle-crease", "points": [[x+18*detail_scale+1,y+29*detail_scale+1],[x+23*detail_scale+1,y+30*detail_scale+1]], "color": highlight},

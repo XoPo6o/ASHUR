@@ -16,7 +16,13 @@ def test_lamassu_has_five_legs_and_assyrian_features():
     leg_x = [op["points"][0][0] for op in ops if op.get("part") == "leg"]
     assert [value - spec["x"] for value in leg_x] == [8, 19, 37, 44, 51]
     parts = {op.get("part") for op in ops}
-    assert {"wing", "feather", "body", "human-face", "horn", "beard", "rosette"} <= parts
+    assert {"wing", "feather", "body", "human-face", "horn", "beard", "rosette",
+            "feather-barb", "wing-quill", "rib-engraving", "leg-joint",
+            "shin-plane", "hoof-seam", "crown-band", "horn-ridge",
+            "eye-socket", "ear", "moustache"} <= parts
+    assert sum(op.get("part") == "leg-joint" for op in ops) == 5
+    assert sum(op.get("part") == "hoof-seam" for op in ops) == 5
+    assert sum(op.get("part") == "feather-barb" for op in ops) >= 7
     assert all(op["type"] in {"polygon", "line", "rect", "pixel"} for op in ops)
 
 
@@ -58,4 +64,5 @@ def test_lamassu_expands_anatomy_on_high_density_grid():
     micro_parts = {item.get("part") for item in parts}
     assert {"micro-feather", "coat-grain", "muscle-crease",
             "harness-engraving", "eye-glint", "beard-engraving",
-            "hoof-seam"} <= micro_parts
+            "hoof-seam", "wing-quill-glint", "rib-highlight",
+            "neck-engraving", "crown-engraving"} <= micro_parts
