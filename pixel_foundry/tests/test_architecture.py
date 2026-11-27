@@ -37,3 +37,22 @@ def test_babylon_art_bible_has_distinct_city_facades_and_paved_street():
     assert len(streets) == 1
     assert streets[0]["seed"] == 20261128
     assert art_bible["pixel_scale"] == 2
+
+
+
+def test_generator_bounds_and_material_dimensions_scale_on_dense_grid():
+    from pixel_foundry.scene import _scale_operation
+
+    floor = _scale_operation({
+        "type": "stone_floor", "x": 10, "y": 20, "w": 30, "h": 12,
+        "block_w": 12, "block_h": 5,
+    }, 2)
+    assert (floor["x"], floor["y"], floor["w"], floor["h"]) == (20, 40, 60, 24)
+    assert (floor["block_w"], floor["block_h"]) == (24, 10)
+
+    frieze = _scale_operation({
+        "type": "temple_facade", "x": 5, "y": 8, "w": 40, "h": 9,
+        "rosette_spacing": 12,
+    }, 2)
+    assert (frieze["x"], frieze["y"], frieze["w"], frieze["h"]) == (10, 16, 80, 18)
+    assert frieze["rosette_spacing"] == 24

@@ -8,8 +8,11 @@ from .qa import inspect_image
 from .generators import expand_generator
 
 _GENERATOR_GEOMETRY = {
+    # Generator anchors and bounds must use the same dense authored grid as primitives.
+    "x", "y", "w", "h",
     "shaft_w", "capital_h", "base_h", "arch_h", "thickness",
     "brick_w", "brick_h", "block_w", "block_h", "trunk_w", "tier_h", "inset",
+    "rosette_spacing",
 }
 _PRIMITIVE_GEOMETRY = {"x", "y", "w", "h", "width", "stroke", "radius", "step"}
 
@@ -30,6 +33,7 @@ def _scale_operation(op: dict, factor: int) -> dict:
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "market_stall", "palm_tree", "cloud_bank",
         "boulder", "water_surface", "traveler_sprite", "lamassu_sprite",
+        "temple_facade",
     }
     if op.get("type") == "lamassu_sprite":
         # Keep the authored 60x43 anatomy grid; expand it inside the sprite generator.
