@@ -1,0 +1,90 @@
+{
+  "name": "ASHUR · 01 Babylon Inventory · Reference Matched v2",
+  "source_reference": "wall-variants/01-babylon-inventory.html",
+  "status": "review-candidate-not-approved",
+  "colors": {
+    "void": "#0B141D",
+    "surface_deep": "#101E2A",
+    "surface": "#142633",
+    "surface_raised": "#1B3340",
+    "border": "#365564",
+    "border_gold": "#9C7746",
+    "gold": "#D9AD62",
+    "gold_light": "#F0D8A5",
+    "text": "#E9E5D6",
+    "muted": "#9AB0B6",
+    "teal": "#65CFC0",
+    "teal_deep": "#2D6B70",
+    "green": "#83D59B",
+    "red": "#ED7774",
+    "shadow": "#050A0E"
+  },
+  "ramps": {
+    "background": [
+      "void",
+      "surface_deep",
+      "surface"
+    ],
+    "panel": [
+      "surface_deep",
+      "surface",
+      "surface_raised"
+    ],
+    "border_gold": [
+      "border_gold",
+      "gold",
+      "gold_light"
+    ],
+    "text": [
+      "muted",
+      "text",
+      "gold_light"
+    ],
+    "teal": [
+      "teal_deep",
+      "teal"
+    ],
+    "positive": [
+      "teal_deep",
+      "green"
+    ],
+    "negative": [
+      "border_gold",
+      "red"
+    ]
+  },
+  "semantic": {
+    "profit": "green",
+    "live": "teal",
+    "warning": "gold",
+    "loss": "red",
+    "primary_action": "gold",
+    "body_text": "text",
+    "secondary_text": "muted"
+  },
+  "rules": {
+    "max_colors": 16,
+    "background_role": "void",
+    "panel_role": "surface",
+    "primary_accent": "gold",
+    "secondary_accent": "teal",
+    "positive_status": "green",
+    "negative_status": "red",
+    "pixel_edges": "hard",
+    "anti_aliasing": false,
+    "dithering": "off-by-default",
+    "forbidden": [
+      "purple or magenta neon",
+      "bright orange gradients",
+      "rainbow accents",
+      "glossy 3D shading",
+      "blue-gray dominant panels that suppress teal and gold accents"
+    ]
+  },
+  "review_notes": [
+    "Values are sampled directly from the primary Babylon Inventory HTML reference tokens.",
+    "This is a candidate palette for raster assets; do not publish to the production Wall until visually approved.",
+    "Preserve warm gold for hierarchy, cyan-teal for live/data accents, green for positive values and red for negative values.",
+    "Use surface_raised sparingly; the main panel should remain deep blue-teal rather than generic slate gray."
+  ]
+}
