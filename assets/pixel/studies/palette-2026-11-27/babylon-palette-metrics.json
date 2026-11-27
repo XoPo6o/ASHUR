@@ -2,15 +2,15 @@
   "comparisons": {
     "A-reference__vs__B-desert-dusk": {
       "changed_pixel_ratio": 1.0,
-      "mean_channel_delta": 19.13,
+      "mean_channel_delta": 19.55,
       "dimensions": [
         640,
         360
       ]
     },
     "A-reference__vs__C-moonlit-cyan": {
-      "changed_pixel_ratio": 0.8576,
-      "mean_channel_delta": 18.11,
+      "changed_pixel_ratio": 0.8461,
+      "mean_channel_delta": 18.54,
       "dimensions": [
         640,
         360
@@ -18,7 +18,7 @@
     },
     "B-desert-dusk__vs__C-moonlit-cyan": {
       "changed_pixel_ratio": 1.0,
-      "mean_channel_delta": 29.09,
+      "mean_channel_delta": 29.27,
       "dimensions": [
         640,
         360
