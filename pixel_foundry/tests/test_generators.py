@@ -56,7 +56,8 @@ def test_market_stall_is_deterministic_and_has_readable_props():
     first = expand_generator(spec)
     assert first == expand_generator(spec)
     parts = {op.get("part") for op in first}
-    assert {"awning", "awning-stripe", "post", "counter", "market-goods",
+    assert {"awning", "awning-stripe", "awning-scallop", "canopy-fold",
+            "post", "counter", "wood-grain", "wood-knot", "market-goods",
             "lantern-frame", "lantern-light"} <= parts
     assert all(op["type"] in {"polygon", "rect", "line", "pixel"} for op in first)
 
