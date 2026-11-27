@@ -1,12 +1,13 @@
 """Palette utilities: named ramps, nearest-color mapping and indexed PNG export."""
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Iterable
 from PIL import Image
 
 @dataclass(frozen=True)
 class Palette:
     colors: dict[str, str]
+    ramps: dict[str, list[str]] = field(default_factory=dict)
 
     @classmethod
     def from_data(cls, data: dict) -> "Palette":
@@ -16,7 +17,14 @@ class Palette:
         for name, value in raw.items():
             if not isinstance(value, str) or len(value) not in (4, 7) or not value.startswith("#"):
                 raise ValueError(f"Invalid color for {name}: {value!r}")
-        return cls(dict(raw))
+        ramps = data.get('ramps', {}) if 'colors' in data else {}
+        for name, values in ramps.items():
+            if not isinstance(values, list) or len(values) < 2:
+                raise ValueError(f'Ramp {name!r} must contain at least two palette color names')
+            missing = [value for value in values if value not in raw]
+            if missing:
+                raise ValueError(f'Ramp {name!r} references unknown colors: {missing}')
+        return cls(dict(raw), dict(ramps))
 
     def hex(self, name_or_hex: str) -> str:
         value = self.colors.get(name_or_hex, name_or_hex)
@@ -29,6 +37,11 @@ class Palette:
     def rgb(self, name_or_hex: str) -> tuple[int, int, int]:
         value = self.hex(name_or_hex)
         return tuple(int(value[i:i+2], 16) for i in (1, 3, 5))
+
+    def ramp(self, name: str) -> list[str]:
+        if name not in self.ramps:
+            raise KeyError(f\"Unknown palette ramp: {name}\")
+        return list(self.ramps[name])
 
     def ordered_hex(self) -> list[str]:
         return list(dict.fromkeys(self.hex(v) for v in self.colors.values()))
