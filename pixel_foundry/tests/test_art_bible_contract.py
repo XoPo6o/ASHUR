@@ -1,5 +1,17 @@
 from pixel_foundry.art_director import validate_art_bible
-from test_art_director import sample
+
+
+def sample():
+    return {
+        "name": "test",
+        "style": "chunky pixel art",
+        "canvas": {"width": 32, "height": 32},
+        "pixel_scale": 1,
+        "perspective": "frontal",
+        "lighting": {"direction": "top_left"},
+        "palette": {"colors": {"dark": "#111122", "light": "#EEEECC"}},
+        "layers": [{"name": "background", "ops": []}],
+    }
 
 
 def test_art_bible_rejects_unknown_lighting_palette_tokens():
