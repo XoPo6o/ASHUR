@@ -7,10 +7,10 @@ A deterministic, spec-driven pixel-art raster toolkit. The AI describes the art 
 - Logical-resolution raster canvas; integer nearest-neighbour scaling only.
 - Palette validation and exact-palette quantization.
 - Layered JSON scene specification.
-- Pixel primitives: rectangles, ellipses, lines, polygons, single pixels, bitmap text and controlled dithering.
-- Seeded procedural materials: brick walls, stone floors and clustered foliage.
+- Pixel primitives: rectangles, ellipses, lines, polygons, single pixels, bitmap text, hard palette ramps, silhouette outlines and controlled dithering.
+- Seeded procedural materials: brick walls, stone floors, clustered foliage and stepped ziggurats.
 - Sprite atlas packing with JSON frame metadata and animation-strip export.
-- QA report: dimensions, visible/transparent pixels, unique colors, out-of-palette pixels and isolated-pixel warnings.
+- QA report: dimensions, palette drift, connected-component/cluster sizes, isolated pixels, silhouette boundary complexity and luminance separation.
 - CLI for rendering and inspecting PNG assets.
 
 ## Quick start
