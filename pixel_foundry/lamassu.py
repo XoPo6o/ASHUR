@@ -5,8 +5,8 @@ from __future__ import annotations
 def expand_lamassu(op: dict) -> list[dict]:
     x, y = int(op.get("x", 0)), int(op.get("y", 0))
     w, h = int(op.get("w", 0)), int(op.get("h", 0))
-    if w < 44 or h < 30:
-        raise ValueError("lamassu_sprite requires a canvas of at least 44x30 logical pixels")
+    if w < 44 or h < 34:
+        raise ValueError("lamassu_sprite requires a canvas of at least 44x34 logical pixels")
     base = op.get("color", "#D9AD62")
     shade = op.get("shade", "#9C7746")
     highlight = op.get("highlight", "#F0D8A5")
@@ -43,15 +43,15 @@ def expand_lamassu(op: dict) -> list[dict]:
     ], "color": shade})
     out.append({"type": "line", "points": [[x+12,y+16],[x+27,y+16]], "color": highlight})
 
-    # Four separated legs suggest the traditional five-legged guardian in profile.
-    for lx in (x+11, x+20, x+30, x+36):
+    # Five legs preserve the distinctive guardian profile in Assyrian reliefs.
+    for lx in (x+8, x+15, x+22, x+30, x+37):
         leg_top = y+24 if lx < x+30 else y+22
         out.append({"type": "polygon", "points": [
-            [lx,leg_top],[lx+4,leg_top],[lx+4,y+30],
-            [lx+6,y+31],[lx-1,y+31],[lx,y+29]
+            [lx,leg_top],[lx+3,leg_top],[lx+3,y+30],
+            [lx+5,y+31],[lx-1,y+31],[lx,y+29]
         ], "color": shade})
         out.append({"type": "line", "points": [[lx+1,leg_top+1],[lx+1,y+28]], "color": highlight})
-        out.append({"type": "rect", "x": lx-1, "y": y+30, "w": 7, "h": 3, "color": detail})
+        out.append({"type": "rect", "x": lx-1, "y": y+30, "w": 6, "h": 3, "color": detail})
 
     # Human head, beard, brow and horned crown facing right.
     out.append({"type": "rect", "x": x+31, "y": y+7, "w": 9, "h": 10, "color": base})
