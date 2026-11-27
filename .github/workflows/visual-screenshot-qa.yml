@@ -58,7 +58,8 @@ jobs:
                 for (let attempt=0; attempt<1; attempt++) {
                   try {
                     response = await page.goto(base+path, {waitUntil:'domcontentloaded',timeout:20000});
-                    await page.waitForTimeout(1500);\n          await page.waitForFunction(() => Array.from(document.querySelectorAll('link[rel=stylesheet]')).some(l => l.href.includes('final-overrides.css') && l.sheet), { timeout: 8000 }).catch(() => {});
+                    await page.waitForTimeout(1500);
+          await page.waitForFunction(() => Array.from(document.querySelectorAll('link[rel=stylesheet]')).some(l => l.href.includes('final-overrides.css') && l.sheet), { timeout: 8000 }).catch(() => {});
                     await page.evaluate(() => document.fonts.ready).catch(()=>{});
                     body = await page.locator('body').innerText().catch(()=> '');
                     html = await page.content().catch(()=> '');
