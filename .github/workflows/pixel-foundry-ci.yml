@@ -11,6 +11,9 @@ on:
       - "pixel_foundry/**"
       - ".github/workflows/pixel-foundry-ci.yml"
 
+permissions:
+  contents: write
+
 jobs:
   test-render:
     runs-on: ubuntu-latest
@@ -40,3 +43,17 @@ jobs:
             /tmp/babylon-widgets/
             /tmp/babylon-controls/
             /tmp/babylon-palette-study/
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: /tmp/ashur-pages
+      - name: Publish generated palette study to Pixel Lab
+        run: |
+          mkdir -p /tmp/ashur-pages/assets/pixel/studies/palette-2026-11-27
+          cp /tmp/babylon-palette-study/*.png /tmp/ashur-pages/assets/pixel/studies/palette-2026-11-27/
+          cd /tmp/ashur-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pixel/studies/palette-2026-11-27
+          git diff --cached --quiet || git commit -m "Publish Babylon palette study to Pixel Lab"
+          git push origin HEAD:main
