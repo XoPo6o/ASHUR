@@ -104,3 +104,37 @@ def test_traveler_has_material_details_without_changing_pose_contract():
     parts = {op.get("part") for op in expand_generator(spec)}
     assert {"pack-strap", "belt-buckle", "cloak-fold", "cloak-hem-stitch",
             "travel-pouch", "hood-seam", "boot-highlight"} <= parts
+
+
+def test_brick_wall_has_individual_bevels_and_seeded_material_variation():
+    spec = {
+        "type": "brick_wall", "x": 0, "y": 0, "w": 72, "h": 28,
+        "brick_w": 9, "brick_h": 6, "color": "#B88B62",
+        "shade": "#72513D", "highlight": "#E8C58C",
+        "mortar": "#352B2A", "seed": 44,
+    }
+    first = expand_generator(spec)
+    assert first == expand_generator(spec)
+    faces = [op for op in first if op.get("part") == "brick-face"]
+    assert len(faces) >= 12
+    assert len({(op["w"], op["h"], op["color"]) for op in faces}) >= 4
+    assert sum(op.get("part") == "brick-top-bevel" for op in first) == len(faces)
+    assert sum(op.get("part") == "brick-side-shadow" for op in first) == len(faces)
+    assert any(op.get("part") == "brick-grain" for op in first)
+
+
+def test_stone_floor_has_depth_variation_and_individual_surface_marks():
+    spec = {
+        "type": "stone_floor", "x": 0, "y": 0, "w": 96, "h": 32,
+        "block_w": 12, "block_h": 6, "color": "#365564",
+        "shade": "#142633", "highlight": "#D9AD62",
+        "mortar": "#050A0E", "seed": 2026,
+    }
+    first = expand_generator(spec)
+    assert first == expand_generator(spec)
+    slabs = [op for op in first if op.get("part") == "paving-slab"]
+    assert len(slabs) >= 12
+    assert len({(op["w"], op["h"]) for op in slabs}) >= 5
+    assert sum(op.get("part") == "slab-top-bevel" for op in first) == len(slabs)
+    assert sum(op.get("part") == "slab-side-shadow" for op in first) == len(slabs)
+    assert any(op.get("part") == "stone-vein" for op in first)

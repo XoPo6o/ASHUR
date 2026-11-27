@@ -446,38 +446,107 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type":"line","points":[[shrine_x,shrine_y],[shrine_x+shrine_w-1,shrine_y]],"color":top})
 
     elif kind == "brick_wall":
-        bw, bh = max(3, int(op.get("brick_w", 10))), max(2, int(op.get("brick_h", 5)))
-        out.append({"type":"rect","x":x,"y":y,"w":w,"h":h,"color":mortar})
+        bw, bh = max(5, int(op.get("brick_w", 10))), max(3, int(op.get("brick_h", 5)))
+        out.append({"type": "rect", "part": "masonry-mortar", "x": x, "y": y,
+                    "w": w, "h": h, "color": mortar})
         row = 0
-        for yy in range(y, y+h, bh):
-            offset = -(bw//2) if row % 2 else 0
-            xx = x + offset
-            while xx < x+w:
-                ww = max(2, bw + rng.randint(-1, 1))
-                left, right = max(x, xx+1), min(x+w, xx+ww-1)
-                top, bottom = yy+1, min(y+h, yy+bh-1)
-                if right > left and bottom > top:
-                    out.append({"type":"rect","x":left,"y":top,"w":right-left,"h":bottom-top,"color":base if rng.random()>.22 else shade})
-                    if rng.random() > .35:
-                        out.append({"type":"line","points":[[left,top],[right-1,top]],"color":highlight})
-                xx += bw
+        yy = y
+        while yy < y + h:
+            row_h = max(3, bh + rng.randint(-1, 1))
+            xx = x - (bw // 2 if row % 2 else 0)
+            while xx < x + w:
+                ww = max(4, bw + rng.randint(-2, 2))
+                left, right = max(x, xx + 1), min(x + w, xx + ww - 1)
+                top, bottom = yy + 1, min(y + h, yy + row_h - 1)
+                if right - left >= 2 and bottom - top >= 1:
+                    face = base if rng.random() > 0.2 else shade
+                    out.append({"type": "rect", "part": "brick-face", "x": left,
+                                "y": top, "w": right-left, "h": bottom-top,
+                                "color": face})
+                    # A tiny bevel on every block gives the masonry a readable light direction.
+                    out.append({"type": "line", "part": "brick-top-bevel",
+                                "points": [[left, top], [right-1, top]],
+                                "color": highlight})
+                    out.append({"type": "line", "part": "brick-side-shadow",
+                                "points": [[right-1, top+1], [right-1, bottom]],
+                                "color": shade})
+                    if right-left >= 6 and bottom-top >= 3 and rng.random() > 0.28:
+                        gx = rng.randint(left+1, right-3)
+                        gy = rng.randint(top+1, bottom-1)
+                        out.append({"type": "line", "part": "brick-grain",
+                                    "points": [[gx, gy], [gx+1, gy],
+                                               [min(right-2, gx+2), gy + (1 if rng.random() > .5 else 0)]],
+                                    "color": highlight if rng.random() > .45 else shade})
+                    # Chips and hairline fractures are sparse, connected marks, not pixel confetti.
+                    if right-left >= 5 and bottom-top >= 3 and rng.random() > .78:
+                        cx = rng.randint(left+1, right-2)
+                        cy = rng.choice((top+1, bottom-1))
+                        out.append({"type": "line", "part": "brick-chip",
+                                    "points": [[cx, cy], [min(right-1, cx+1), cy]],
+                                    "color": mortar})
+                    if right-left >= 7 and bottom-top >= 4 and rng.random() > .9:
+                        cx = rng.randint(left+2, right-3)
+                        cy = rng.randint(top+1, bottom-2)
+                        out.append({"type": "line", "part": "brick-hairline-crack",
+                                    "points": [[cx, cy], [cx+1, cy+1],
+                                               [min(right-1, cx+2), min(bottom, cy+1)]],
+                                    "color": shade})
+                xx += ww + 1
+            yy += row_h
             row += 1
 
     elif kind == "stone_floor":
-        bw, bh = max(4,int(op.get("block_w",12))), max(3,int(op.get("block_h",6)))
-        out.append({"type":"rect","x":x,"y":y,"w":w,"h":h,"color":mortar})
-        for row, yy in enumerate(range(y,y+h,bh)):
-            xx=x-(bw//2 if row%2 else 0)
-            while xx<x+w:
-                ww=max(3,bw+rng.randint(-2,2)); hh=max(2,bh+rng.randint(-1,1))
-                l,t=max(x,xx+1),yy+1
-                r,b=min(x+w,xx+ww-1),min(y+h,yy+hh-1)
-                if r>l and b>t:
-                    out.append({"type":"rect","x":l,"y":t,"w":r-l,"h":b-t,"color":base if rng.random()>.2 else shade})
-                    if rng.random()>.55:
-                        out.append({"type":"pixel","x":l+1,"y":t,"color":highlight})
-                xx += bw
-
+        bw, bh = max(6, int(op.get("block_w", 12))), max(4, int(op.get("block_h", 6)))
+        out.append({"type": "rect", "part": "street-mortar", "x": x, "y": y,
+                    "w": w, "h": h, "color": mortar})
+        row = 0
+        yy = y
+        while yy < y + h:
+            depth = (yy-y) / max(1, h-1)
+            row_h = max(3, int(round(bh * (0.82 + 0.36*depth) * rng.uniform(0.92, 1.08))))
+            xx = x - (bw // 2 if row % 2 else 0)
+            while xx < x + w:
+                ww = max(5, int(round(bw * (0.84 + 0.22*depth) * rng.uniform(0.88, 1.12))))
+                left, right = max(x, xx+1), min(x+w, xx+ww-1)
+                top, bottom = yy+1, min(y+h, yy+row_h-1)
+                if right-left >= 3 and bottom-top >= 2:
+                    face = base if rng.random() > 0.18 else shade
+                    out.append({"type": "rect", "part": "paving-slab", "x": left,
+                                "y": top, "w": right-left, "h": bottom-top,
+                                "color": face})
+                    # Raised upper/left edges and a darker lower/right edge make each slab read in relief.
+                    out.append({"type": "line", "part": "slab-top-bevel",
+                                "points": [[left, top], [right-1, top]],
+                                "color": highlight})
+                    out.append({"type": "line", "part": "slab-left-bevel",
+                                "points": [[left, top+1], [left, bottom]],
+                                "color": base})
+                    out.append({"type": "line", "part": "slab-side-shadow",
+                                "points": [[right-1, top+1], [right-1, bottom]],
+                                "color": shade})
+                    if right-left >= 7 and bottom-top >= 3 and rng.random() > 0.3:
+                        gx = rng.randint(left+1, right-3)
+                        gy = rng.randint(top+1, bottom-1)
+                        out.append({"type": "line", "part": "stone-vein",
+                                    "points": [[gx, gy], [gx+1, gy],
+                                               [min(right-2, gx+2), gy]],
+                                    "color": highlight if rng.random() > .5 else shade})
+                    if right-left >= 6 and bottom-top >= 3 and rng.random() > 0.72:
+                        cx = rng.randint(left+1, right-2)
+                        cy = rng.choice((top+1, bottom-1))
+                        out.append({"type": "line", "part": "stone-chip",
+                                    "points": [[cx, cy], [min(right-1, cx+1), cy]],
+                                    "color": mortar})
+                    if right-left >= 8 and bottom-top >= 4 and rng.random() > 0.9:
+                        cx = rng.randint(left+2, right-3)
+                        cy = rng.randint(top+1, bottom-2)
+                        out.append({"type": "line", "part": "stone-crack",
+                                    "points": [[cx, cy], [cx+1, cy+1],
+                                               [min(right-1, cx+2), min(bottom, cy+1)]],
+                                    "color": shade})
+                xx += ww + 1
+            yy += row_h
+            row += 1
     else:
         count=max(3,int(op.get("clusters",8)))
         for _ in range(count):

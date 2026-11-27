@@ -176,6 +176,267 @@
       ]
     },
     {
+      "name": "near city facades — individually laid masonry and lit windows",
+      "ops": [
+        {
+          "type": "brick_wall",
+          "x": 0,
+          "y": 52,
+          "w": 34,
+          "h": 23,
+          "brick_w": 8,
+          "brick_h": 4,
+          "color": "blue_stone",
+          "shade": "far_blue",
+          "highlight": "stone",
+          "mortar": "night",
+          "seed": 311
+        },
+        {
+          "type": "brick_wall",
+          "x": 126,
+          "y": 49,
+          "w": 34,
+          "h": 26,
+          "brick_w": 9,
+          "brick_h": 4,
+          "color": "blue_stone",
+          "shade": "far_blue",
+          "highlight": "stone",
+          "mortar": "night",
+          "seed": 719
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              0,
+              52
+            ],
+            [
+              33,
+              52
+            ]
+          ],
+          "color": "stone",
+          "width": 2
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              126,
+              49
+            ],
+            [
+              159,
+              49
+            ]
+          ],
+          "color": "stone",
+          "width": 2
+        },
+        {
+          "type": "rect",
+          "x": 5,
+          "y": 57,
+          "w": 4,
+          "h": 6,
+          "color": "dark"
+        },
+        {
+          "type": "rect",
+          "x": 6,
+          "y": 58,
+          "w": 2,
+          "h": 3,
+          "color": "gold_shadow"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              4,
+              56
+            ],
+            [
+              9,
+              56
+            ]
+          ],
+          "color": "sand"
+        },
+        {
+          "type": "rect",
+          "x": 17,
+          "y": 55,
+          "w": 4,
+          "h": 7,
+          "color": "dark"
+        },
+        {
+          "type": "rect",
+          "x": 18,
+          "y": 56,
+          "w": 2,
+          "h": 3,
+          "color": "gold"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              16,
+              54
+            ],
+            [
+              21,
+              54
+            ]
+          ],
+          "color": "stone"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              3,
+              65
+            ],
+            [
+              11,
+              65
+            ]
+          ],
+          "color": "stone"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              15,
+              64
+            ],
+            [
+              23,
+              64
+            ]
+          ],
+          "color": "stone"
+        },
+        {
+          "type": "rect",
+          "x": 131,
+          "y": 55,
+          "w": 4,
+          "h": 7,
+          "color": "dark"
+        },
+        {
+          "type": "rect",
+          "x": 132,
+          "y": 56,
+          "w": 2,
+          "h": 4,
+          "color": "gold_shadow"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              130,
+              54
+            ],
+            [
+              135,
+              54
+            ]
+          ],
+          "color": "stone"
+        },
+        {
+          "type": "rect",
+          "x": 145,
+          "y": 53,
+          "w": 4,
+          "h": 7,
+          "color": "dark"
+        },
+        {
+          "type": "rect",
+          "x": 146,
+          "y": 54,
+          "w": 2,
+          "h": 4,
+          "color": "gold"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              144,
+              52
+            ],
+            [
+              149,
+              52
+            ]
+          ],
+          "color": "sand"
+        },
+        {
+          "type": "rect",
+          "x": 137,
+          "y": 65,
+          "w": 9,
+          "h": 10,
+          "color": "dark"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              136,
+              65
+            ],
+            [
+              147,
+              65
+            ]
+          ],
+          "color": "stone"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              127,
+              64
+            ],
+            [
+              135,
+              64
+            ]
+          ],
+          "color": "stone"
+        },
+        {
+          "type": "line",
+          "points": [
+            [
+              150,
+              63
+            ],
+            [
+              158,
+              63
+            ]
+          ],
+          "color": "stone"
+        }
+      ]
+    },
+    {
       "name": "ziggurat",
       "ops": [
         {
@@ -343,6 +604,20 @@
           "w": 160,
           "h": 14,
           "color": "dark"
+        },
+        {
+          "type": "stone_floor",
+          "x": 0,
+          "y": 76,
+          "w": 160,
+          "h": 14,
+          "block_w": 12,
+          "block_h": 4,
+          "color": "stone",
+          "shade": "blue_stone",
+          "highlight": "sand_shadow",
+          "mortar": "dark",
+          "seed": 20261128
         },
         {
           "type": "archway",

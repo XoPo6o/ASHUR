@@ -19,3 +19,21 @@ def test_column_and_archway_generators_emit_valid_primitives():
     assert any(op["type"]=="rect" for op in column)
     assert any(op["type"]=="line" for op in column)
     assert len([op for op in arch if op["type"]=="rect"])>=5
+
+
+def test_babylon_art_bible_has_distinct_city_facades_and_paved_street():
+    import json
+    from pathlib import Path
+
+    art_bible = json.loads(
+        (Path(__file__).resolve().parents[1] / "examples" / "babylon_art_bible.json")
+        .read_text(encoding="utf-8")
+    )
+    all_ops = [op for layer in art_bible["layers"] for op in layer["ops"]]
+    facades = [op for op in all_ops if op.get("type") == "brick_wall"]
+    streets = [op for op in all_ops if op.get("type") == "stone_floor"]
+    assert len(facades) == 2
+    assert len({op["seed"] for op in facades}) == 2
+    assert len(streets) == 1
+    assert streets[0]["seed"] == 20261128
+    assert art_bible["pixel_scale"] == 2
