@@ -49,26 +49,33 @@ jobs:
               const page=await context.newPage(),errors=[];
               page.on('pageerror',e=>errors.push(String(e)));
               const response=await page.goto('http://127.0.0.1:8765/wall-variants/01-babylon-inventory-v2.html',{waitUntil:'networkidle',timeout:30000});
-              await page.waitForFunction(()=>document.querySelectorAll('#strategy-grid .strategy').length===6 && document.querySelector('#equity')?.textContent!=='—',{timeout:15000}).catch(()=>{});
+              await page.waitForFunction(()=>document.querySelector('#equity')?.textContent!=='—' && /ALL SYSTEMS OK/.test(document.querySelector('#health')?.textContent||''),{timeout:15000}).catch(()=>{});
               await page.screenshot({path:'qa/'+name+'.png',fullPage:true,animations:'disabled'});
-              const diagnostics=await page.evaluate(()=>({
-                title:document.title,
-                equity:document.querySelector('#equity')?.textContent,
-                pnl:document.querySelector('#pnl')?.textContent,
-                strategyCount:document.querySelectorAll('#strategy-grid .strategy').length,
-                tradeRows:document.querySelectorAll('#trade-rows tr').length,
-                chartHasData:document.querySelector('#equity-chart')?.querySelectorAll('polyline').length>0,
-                horizontalOverflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),
-                bodyHeight:document.documentElement.scrollHeight,
-                sceneCanvas:document.querySelector('#babylon')?.getAttribute('width')+'x'+document.querySelector('#babylon')?.getAttribute('height'),
-                health:document.querySelector('#health')?.textContent
-              }));
+              const diagnostics=await page.evaluate(()=>{
+                const scene=document.querySelector('#babylon'),chart=document.querySelector('#chart');
+                const pixels=canvas=>{if(!canvas)return 0;const c=canvas.getContext('2d');if(!c)return 0;const d=c.getImageData(0,0,canvas.width,canvas.height).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i])n++;return n};
+                return {
+                  title:document.title,
+                  equity:document.querySelector('#equity')?.textContent,
+                  pnl:document.querySelector('#pnl')?.textContent,
+                  relicCount:document.querySelectorAll('.relic').length,
+                  tradeRows:document.querySelectorAll('#trade-rows tr').length,
+                  sceneCanvas:scene?.width+'x'+scene?.height,
+                  scenePixels:pixels(scene),
+                  chartCanvas:chart?.width+'x'+chart?.height,
+                  chartPixels:pixels(chart),
+                  horizontalOverflow:Math.max(0,document.documentElement.scrollWidth-innerWidth),
+                  bodyHeight:document.documentElement.scrollHeight,
+                  health:document.querySelector('#health')?.textContent,
+                  footer:document.querySelector('#footer-state')?.textContent
+                };
+              });
               results.push({name,status:response?.status(),errors,...diagnostics});
               await context.close();
             }
             fs.writeFileSync('qa/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if(results.some(r=>r.status!==200||r.errors.length||r.strategyCount!==6||r.horizontalOverflow>2||r.sceneCanvas!=='680x264'||!r.equity||r.equity==='—'||!r.chartHasData||!/ALL SYSTEMS OK/.test(r.health||'')))process.exit(1);
+            if(results.some(r=>r.status!==200||r.errors.length||r.relicCount!==6||r.horizontalOverflow>2||r.sceneCanvas!=='680x264'||r.scenePixels<10000||r.chartCanvas!=='640x190'||r.chartPixels<10000||!r.equity||r.equity==='—'||!/ALL SYSTEMS OK/.test(r.health||'')))process.exit(1);
           })().catch(e=>{console.error(e);process.exit(1)});
           EOF
           node qa/run.cjs
