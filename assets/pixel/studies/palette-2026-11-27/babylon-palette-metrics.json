@@ -2,7 +2,7 @@
   "comparisons": {
     "A-reference__vs__B-desert-dusk": {
       "changed_pixel_ratio": 1.0,
-      "mean_channel_delta": 19.12,
+      "mean_channel_delta": 19.13,
       "dimensions": [
         640,
         360
@@ -18,7 +18,7 @@
     },
     "B-desert-dusk__vs__C-moonlit-cyan": {
       "changed_pixel_ratio": 1.0,
-      "mean_channel_delta": 29.11,
+      "mean_channel_delta": 29.09,
       "dimensions": [
         640,
         360
