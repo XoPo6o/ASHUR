@@ -71,9 +71,11 @@
       "name": "foreground market and Lamassu guardian",
       "ops": [
         { "type": "rect", "x": 0, "y": 76, "w": 160, "h": 14, "color": "dark" },
-        { "type": "archway", "x": 8, "y": 65, "w": 28, "h": 22, "thickness": 5, "arch_h": 8, "color": "sand_shadow", "shade": "dark", "highlight": "gold" },
-        { "type": "water_surface", "x": 0, "y": 82, "w": 42, "h": 7, "color": "water", "shade": "water_shadow", "highlight": "water_light", "seed": 31 },
-        { "type": "boulder", "x": 40, "y": 79, "w": 14, "h": 10, "color": "stone", "shade": "stone_dark", "highlight": "sand_light", "seed": 6 },
+        { "type": "archway", "x": 0, "y": 58, "w": 18, "h": 27, "thickness": 5, "arch_h": 8, "color": "sand_shadow", "shade": "dark", "highlight": "gold" },
+        { "type": "water_surface", "x": 0, "y": 85, "w": 20, "h": 4, "color": "water", "shade": "water_shadow", "highlight": "water_light", "seed": 31 },
+        { "type": "market_stall", "x": 20, "y": 65, "w": 24, "h": 20, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "accent": "teal", "wood": "stone", "detail": "stone_dark", "lantern": "moon" },
+        { "type": "market_stall", "x": 42, "y": 68, "w": 24, "h": 17, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "accent": "teal", "wood": "stone", "detail": "stone_dark", "lantern": "moon" },
+        { "type": "boulder", "x": 61, "y": 83, "w": 7, "h": 6, "color": "stone", "shade": "stone_dark", "highlight": "sand_light", "seed": 6 },
         { "type": "traveler_sprite", "x": 69, "y": 58, "w": 18, "h": 31, "pose": "drag", "color": "sand", "shade": "dark", "highlight": "gold", "skin": "moon", "trim": "gold_shadow", "boots": "dark", "limb_color": "sand_shadow" },
         { "type": "lamassu_sprite", "x": 98, "y": 47, "w": 60, "h": 43, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "detail": "stone" }
       ]
