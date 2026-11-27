@@ -47,6 +47,29 @@ class PixelRenderer:
                 self.draw.polygon(pts, fill=color)
                 if op.get("outline"):
                     self.draw.line(pts+[pts[0]], fill=self._rgba(op["outline"]), width=1)
+        elif kind == "ramp_rect":
+            # Hard-edged palette bands: every transition stays on the logical pixel grid.
+            ramp = self.palette.ramp(op["ramp"])
+            axis = op.get("axis", "vertical")
+            for index in range(max(1, w if axis == "horizontal" else h)):
+                band = min(len(ramp)-1, index*len(ramp)//max(1, w if axis == "horizontal" else h))
+                band_color = self._rgba(ramp[band])
+                if axis == "horizontal":
+                    self.draw.line((x+index,y,x+index,y+h-1), fill=band_color)
+                else:
+                    self.draw.line((x,y+index,x+w-1,y+index), fill=band_color)
+        elif kind == "outline":
+            # Expand the existing alpha mask and place a solid outline underneath it.
+            from PIL import ImageChops, ImageFilter
+            radius = max(1, int(op.get("radius", 1)))
+            alpha = self.image.getchannel("A")
+            size = radius*2+1
+            expanded = alpha.filter(ImageFilter.MaxFilter(size))
+            outline_alpha = ImageChops.subtract(expanded, alpha)
+            layer = Image.new("RGBA", self.image.size, self._rgba(op.get("color", "#FFFFFF")))
+            layer.putalpha(outline_alpha)
+            self.image = Image.alpha_composite(layer, self.image)
+            self.draw = ImageDraw.Draw(self.image)
         elif kind == "pixel":
             self.draw.point((x, y), fill=color)
         elif kind == "text":
