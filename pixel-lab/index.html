@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211d31">
+<title>ASHUR · Pixel Art Lab 01</title>
+<style>
+:root{color-scheme:dark;--ink:#f7e6bd;--gold:#eabd70;--muted:#b99c77;--panel:#18283b;--deep:#101a2b}
+*{box-sizing:border-box}body{margin:0;background:#101827;color:var(--ink);font:14px/1.55 ui-monospace,monospace}
+main{width:min(920px,calc(100% - 28px));margin:0 auto;padding:28px 0 48px}
+.kicker{color:#73d3c8;font-size:11px;letter-spacing:2px}
+h1{font-size:clamp(20px,4vw,32px);line-height:1.3;margin:8px 0;color:#ffe2a0}
+.lead{color:#c7b596;max-width:700px}
+.stage{margin:24px 0 18px;padding:10px;background:#1a2639;border:4px solid #76533b;box-shadow:inset 0 0 0 3px #d4a45e,0 7px 0 #080e17}
+.scene{display:block;width:320px;height:180px;max-width:100%;object-fit:contain;image-rendering:pixelated;margin:auto;background:#28334f}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 24px}
+.tag{padding:5px 8px;border:1px solid #735b45;background:#1c2a3c;color:#e8c98d;font-size:11px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:var(--panel);border:4px solid #6d4b36;box-shadow:inset 0 0 0 2px #d5a45e;padding:14px;min-width:0}
+.panel h2{font-size:13px;color:#ffe0a0;margin:0 0 12px}
+.sample{min-height:92px;display:flex;align-items:center;justify-content:center;gap:18px;background:#111c2d;border:3px solid #3d4650;padding:12px}
+.icon{width:64px;height:64px;image-rendering:pixelated;object-fit:contain}
+.frame-sample{width:110px;height:64px;border:12px solid transparent;border-image-source:url('../assets/frame-tile.png');border-image-slice:8 fill;border-image-width:12px;border-image-repeat:stretch;background:#203247;display:grid;place-items:center;color:#f6d58f;font-size:10px;text-align:center}
+.palette{display:flex;gap:0;height:20px;margin-top:14px;overflow:hidden;border:2px solid #111}
+.palette i{flex:1}
+.note{color:#c4b18e;font-size:12px;margin:12px 0 0}
+.rules{margin-top:18px;padding:14px 16px;background:#172538;border-left:4px solid #d6a45f;color:#d4c09c}
+.rules strong{color:#ffe0a0}
+@media(max-width:620px){main{padding-top:18px}.grid{grid-template-columns:1fr}.stage{padding:6px}.scene{width:320px;height:180px}.panel{padding:11px}}
+</style>
+</head>
+<body><main>
+<div class="kicker">ASHUR / GRAPHICS WORKSHOP / 01</div>
+<h1>Пиксельный стандарт · Вавилон</h1>
+<p class="lead">Первый тест новой технологии: растровая сцена, собранная на низком разрешении из цветовых кластеров. Никаких SVG-контуров, CSS-градиентов или фильтра Pixelate внутри иллюстрации.</p>
+<div class="stage"><img class="scene" src="../assets/pixel/babylon-scene.png" width="320" height="180" alt="Пиксельная сцена Вавилона с зиккуратом и ламассу"></div>
+<div class="meta"><span class="tag">320 × 180 px</span><span class="tag">PNG · RASTER</span><span class="tag">NEAREST-NEIGHBOR</span><span class="tag">ограниченная палитра</span></div>
+<div class="grid">
+<section class="panel"><h2>01 · Рамка интерфейса</h2><div class="sample"><div class="frame-sample">ASHUR<br>WALL</div></div><p class="note">Пиксельная рамка через растровый тайл и border-image. Следующий шаг — набор углов, кромок и центральных сегментов.</p></section>
+<section class="panel"><h2>02 · Иконка стратегии</h2><div class="sample"><img class="icon" src="../assets/pixel/strategy-breakout.png" width="32" height="32" alt="Пиксельная иконка стратегии"></div><p class="note">Иконка нарисована на сетке 32 × 32, затем показана в масштабе 2× без сглаживания.</p></section>
+</div>
+<section class="panel" style="margin-top:14px"><h2>03 · Рабочая палитра</h2><div class="palette"><i style="background:#1b233b"></i><i style="background:#2a3555"></i><i style="background:#51415a"></i><i style="background:#98605f"></i><i style="background:#cf7955"></i><i style="background:#e69a5d"></i><i style="background:#b9774d"></i><i style="background:#efc477"></i><i style="background:#ffe2a0"></i><i style="background:#34534f"></i></div><p class="note">Палитра намеренно ограничена. Точные оттенки и распределение света ещё будут выверяться по утверждённому референсу.</p></section>
+<div class="rules"><strong>Критерии следующей итерации:</strong> читаемый силуэт ламассу, более сложная архитектура, выразительные световые кластеры, единый масштаб пикселя, отсутствие случайного шума и гладких контуров. Это первый технический эталон, не финальная художественная версия.</div>
+</main></body></html>
