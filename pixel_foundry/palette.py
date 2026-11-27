@@ -40,7 +40,7 @@ class Palette:
 
     def ramp(self, name: str) -> list[str]:
         if name not in self.ramps:
-            raise KeyError(f\"Unknown palette ramp: {name}\")
+            raise KeyError(f"Unknown palette ramp: {name}")
         return list(self.ramps[name])
 
     def ordered_hex(self) -> list[str]:
