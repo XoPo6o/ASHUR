@@ -11,7 +11,7 @@ def expand_generator(op: dict) -> list[dict]:
     supported = {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "market_stall", "palm_tree", "cloud_bank", "boulder",
-        "water_surface", "traveler_sprite",
+        "water_surface", "traveler_sprite", "temple_facade",
     }
     if kind not in supported:
         return [op]
@@ -23,7 +23,39 @@ def expand_generator(op: dict) -> list[dict]:
     mortar = op.get("mortar", shade)
     out: list[dict] = []
 
-    if kind == "market_stall":
+    if kind == "temple_facade":
+        # Royal frieze: repeating rosettes, stepped cuneiform wedges and carved borders.
+        if w < 28 or h < 7:
+            raise ValueError("temple_facade requires at least 28x7 logical pixels")
+        band = op.get("band", shade)
+        relief = op.get("relief", highlight)
+        out.append({"type": "rect", "part": "frieze-shadow", "x": x, "y": y,
+                    "w": w, "h": h, "color": shade})
+        out.append({"type": "line", "part": "frieze-upper-border", "points": [
+            [x, y], [x+w-1, y]], "color": highlight, "width": 2})
+        out.append({"type": "line", "part": "frieze-lower-border", "points": [
+            [x+1, y+h-2], [x+w-2, y+h-2]], "color": band})
+        spacing = max(9, int(op.get("rosette_spacing", 12)))
+        for cx in range(x + 5, x + w - 4, spacing):
+            cy = y + h // 2
+            out.append({"type": "pixel", "part": "rosette-core", "x": cx, "y": cy, "color": relief})
+            for dx, dy in ((-2,0),(2,0),(0,-2),(0,2)):
+                out.append({"type": "pixel", "part": "rosette-petal",
+                            "x": cx+dx, "y": cy+dy, "color": highlight})
+            out.append({"type": "pixel", "part": "rosette-shadow",
+                        "x": cx+1, "y": cy+1, "color": band})
+        for index, wx in enumerate(range(x + 2, x + w - 5, 6)):
+            wy = y + 2 + (index % 2)
+            direction = 1 if index % 2 == 0 else -1
+            out.append({"type": "line", "part": "cuneiform-wedge", "points": [
+                [wx, wy], [wx + 2, wy + direction]], "color": relief})
+            out.append({"type": "pixel", "part": "cuneiform-stop",
+                        "x": wx + 3, "y": wy, "color": band})
+        for px in (x + 1, x + w // 3, x + 2*w // 3, x + w - 2):
+            out.append({"type": "line", "part": "frieze-panel-joint",
+                        "points": [[px, y+2], [px, y+h-3]], "color": band})
+
+    elif kind == "market_stall":
         if w < 24 or h < 16:
             raise ValueError("market_stall requires at least 24x16 logical pixels")
         accent = op.get("accent", highlight)
@@ -205,6 +237,32 @@ def expand_generator(op: dict) -> list[dict]:
             foot_x, foot_y = leg[-1]
             out.append({"type": "rect", "x": foot_x - 1, "y": foot_y,
                         "w": 4, "h": 2, "color": op.get("boots", shade)})
+
+        # Fine garment construction: pack straps, stitched hem, folds and travel gear.
+        out.append({"type": "line", "part": "pack-strap", "points": [
+            [x+3, shoulder_y+3], [x+5, waist_y-1]], "color": op.get("trim", highlight)})
+        out.append({"type": "line", "part": "pack-seam", "points": [
+            [x+2, shoulder_y+h//5], [x+w//5, shoulder_y+h//5]], "color": highlight})
+        out.append({"type": "line", "part": "belt-stitch", "points": [
+            [cx-w//5+1, waist_y+2], [cx+w//5-1, waist_y+2]], "color": op.get("trim", highlight)})
+        out.append({"type": "rect", "part": "belt-buckle", "x": cx-1,
+                    "y": waist_y, "w": 2, "h": 2, "color": op.get("trim", highlight)})
+        for fold_index, fold_x in enumerate((cx-w//6, cx+w//8)):
+            out.append({"type": "line", "part": "cloak-fold", "points": [
+                [fold_x, shoulder_y+4], [fold_x-1, waist_y+3],
+                [fold_x + (1 if fold_index else -1), hem_y-2]], "color": highlight})
+        out.append({"type": "line", "part": "cloak-hem-stitch", "points": [
+            [cx-w//5+1, hem_y], [cx+w//5-1, hem_y]], "color": op.get("trim", highlight)})
+        out.append({"type": "rect", "part": "travel-pouch", "x": cx+w//5-1,
+                    "y": waist_y+3, "w": 3, "h": 4, "color": op.get("boots", shade)})
+        out.append({"type": "pixel", "part": "pouch-clasp", "x": cx+w//5,
+                    "y": waist_y+3, "color": highlight})
+        out.append({"type": "line", "part": "hood-seam", "points": [
+            [head_x+1, head_y+3], [cx, head_y+1],
+            [head_x+head_w, head_y+3]], "color": op.get("trim", highlight)})
+        out.append({"type": "pixel", "part": "boot-highlight",
+                    "x": legs[0][-1][0]-1, "y": legs[0][-1][1],
+                    "color": highlight})
 
     elif kind == "palm_tree":
         trunk_w = max(2, int(op.get("trunk_w", max(2, w // 8))))
