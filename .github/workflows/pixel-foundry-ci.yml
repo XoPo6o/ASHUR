@@ -28,6 +28,7 @@ jobs:
       - run: python -m pixel_foundry.cli ui-kit pixel_foundry/palettes/babylon_inventory_v2.json --output /tmp/babylon-ui-kit
       - run: python -m pixel_foundry.cli widgets pixel_foundry/palettes/babylon_inventory_v2.json --output /tmp/babylon-widgets
       - run: python -m pixel_foundry.cli controls pixel_foundry/palettes/babylon_inventory_v2.json --output /tmp/babylon-controls
+      - run: python -m pixel_foundry.cli palette-study pixel_foundry/examples/babylon_art_bible.json --output /tmp/babylon-palette-study --scale 4
       - uses: actions/upload-artifact@v4
         with:
           name: pixel-foundry-babylon-study
@@ -38,3 +39,4 @@ jobs:
             /tmp/babylon-ui-kit/
             /tmp/babylon-widgets/
             /tmp/babylon-controls/
+            /tmp/babylon-palette-study/
