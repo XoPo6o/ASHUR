@@ -9,6 +9,7 @@ from .art_director import build_scene_spec, validate_art_bible
 from .ui_kit import export_panel_set
 from .data_widgets import export_dashboard_components
 from .controls import export_control_set
+from .palette_study import render_palette_study
 
 def main():
     parser = argparse.ArgumentParser(prog="pixel-foundry")
@@ -27,6 +28,10 @@ def main():
     controls = sub.add_parser("controls", help="Export Babylon Inventory pixel buttons and separators")
     controls.add_argument("palette")
     controls.add_argument("-o", "--output", default="out/babylon-controls")
+    palette_study = sub.add_parser("palette-study", help="Render three controlled Babylon palette candidates")
+    palette_study.add_argument("art_bible")
+    palette_study.add_argument("-o", "--output", default="out/babylon-palette-study")
+    palette_study.add_argument("--scale", type=int, default=4)
     args = parser.parse_args()
     if args.command == "render":
         data = load_scene(args.scene)
@@ -48,9 +53,13 @@ def main():
         palette_data = json.loads(open(args.palette, encoding="utf-8").read())
         paths = export_dashboard_components(args.output, Palette.from_data(palette_data))
         print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
-    else:
+    elif args.command == "controls":
         palette_data = json.loads(open(args.palette, encoding="utf-8").read())
         paths = export_control_set(args.output, Palette.from_data(palette_data))
+        print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
+    else:
+        art_bible = json.loads(open(args.art_bible, encoding="utf-8").read())
+        paths = render_palette_study(art_bible, args.output, scale=args.scale)
         print(json.dumps({name: str(path) for name, path in paths.items()}, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
