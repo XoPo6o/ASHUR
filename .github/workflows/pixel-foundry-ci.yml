@@ -22,7 +22,10 @@ jobs:
       - run: python -m pip install Pillow pytest
       - run: python -m pytest pixel_foundry/tests -q
       - run: python -m pixel_foundry.cli render pixel_foundry/examples/babylon_study.json --output /tmp/babylon.png --scale 3
+      - run: python -m pixel_foundry.cli render pixel_foundry/examples/babylon_art_bible.json --output /tmp/babylon-art-bible.png --scale 3
       - uses: actions/upload-artifact@v4
         with:
           name: pixel-foundry-babylon-study
-          path: /tmp/babylon.png
+          path: |
+            /tmp/babylon.png
+            /tmp/babylon-art-bible.png
