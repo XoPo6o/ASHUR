@@ -40,7 +40,8 @@ def expand_lamassu(op: dict) -> list[dict]:
         out.append({"type": "line", "part": "feather", "points": points, "color": color, "width": 2})
 
     # Five legs are drawn first so the torso naturally occludes their upper joints.
-    leg_positions = (8, 18, 29, 39, 49)
+    # Two hind legs plus three clustered forelegs create the classic double-aspect five-leg read.
+    leg_positions = (8, 18, 36, 43, 50)
     for index, offset in enumerate(leg_positions):
         lx = x + offset
         top = y + (28 if index in (0, 4) else 30)
