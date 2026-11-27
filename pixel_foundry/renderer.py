@@ -80,6 +80,8 @@ class PixelRenderer:
             # because alpha-preserving indexed PNG support varies between consumers.
             alpha = result.getchannel("A")
             quantized = self.palette.apply_indexed(result)
+            # Pillow cannot save palette+alpha (mode PA) as PNG; promote to RGBA.
+            quantized = quantized.convert("RGBA")
             quantized.putalpha(alpha)
             result = quantized
         Path(path).parent.mkdir(parents=True, exist_ok=True)
