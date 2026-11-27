@@ -291,7 +291,8 @@
           "highlight": "gold",
           "skin": "moon",
           "trim": "gold_shadow",
-          "boots": "dark"
+          "boots": "dark",
+          "limb_color": "sand_shadow"
         }
       ]
     }
