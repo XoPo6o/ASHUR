@@ -45,6 +45,11 @@ def expand_generator(op: dict) -> list[dict]:
             out.append({"type": "rect", "part": "awning-scallop", "x": sx,
                         "y": y+7, "w": 3, "h": 2,
                         "color": highlight if (sx//3) % 2 else base})
+        # Short crease strokes follow the canopy drape instead of adding random noise.
+        for fold_x in range(x+stripe_w, x+w-3, stripe_w*2):
+            out.append({"type": "line", "part": "canopy-fold", "points": [
+                [fold_x,y+2],[fold_x-1,y+4],[fold_x,y+6]
+            ], "color": highlight})
 
         # Two timber posts, a counter and a shadowed front panel.
         post_y = y+7
@@ -63,6 +68,12 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type": "line", "part": "counter-trim", "points": [
             [x+3,counter_y+4],[x+w-4,counter_y+4]
         ], "color": shade})
+        for grain_y in (counter_y+1, counter_y+5):
+            out.append({"type": "line", "part": "wood-grain", "points": [
+                [x+5,grain_y],[x+w//3,grain_y+1],[x+w//2,grain_y]
+            ], "color": shade})
+        out.append({"type": "pixel", "part": "wood-knot",
+                    "x": x+w//2+2, "y": counter_y+5, "color": highlight})
 
         # A few readable wares: jars, bowls and produce, not random noise.
         goods = (
