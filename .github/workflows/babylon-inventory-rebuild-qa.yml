@@ -7,6 +7,8 @@ on:
       - '.github/workflows/babylon-inventory-rebuild-qa.yml'
       - 'wall-data.json'
       - 'wall-history.json'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
