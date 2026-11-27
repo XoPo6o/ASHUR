@@ -60,6 +60,19 @@
       ]
     },
     {
+      "name": "temple facade and royal reliefs",
+      "ops": [
+        { "type": "rect", "x": 74, "y": 47, "w": 12, "h": 27, "color": "dark" },
+        { "type": "column", "x": 51, "y": 45, "w": 12, "h": 29, "shaft_w": 8, "capital_h": 4, "base_h": 4, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "fluting": true },
+        { "type": "column", "x": 97, "y": 45, "w": 12, "h": 29, "shaft_w": 8, "capital_h": 4, "base_h": 4, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "fluting": true },
+        { "type": "line", "points": [[49,45],[111,45]], "color": "gold", "width": 2 },
+        { "type": "rect", "x": 68, "y": 52, "w": 4, "h": 9, "color": "sand_shadow" },
+        { "type": "rect", "x": 88, "y": 52, "w": 4, "h": 9, "color": "sand_shadow" },
+        { "type": "rect", "x": 77, "y": 51, "w": 6, "h": 2, "color": "gold" },
+        { "type": "pixel", "x": 80, "y": 56, "color": "moon" }
+      ]
+    },
+    {
       "name": "hanging gardens and palms",
       "ops": [
         { "type": "foliage", "x": 10, "y": 48, "w": 18, "h": 10, "color": "leaf", "shade": "leaf_shadow", "highlight": "leaf_light", "seed": 9, "clusters": 6 },
