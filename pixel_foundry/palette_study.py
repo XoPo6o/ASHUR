@@ -28,7 +28,9 @@ def render_palette_study(art_bible: dict, output_dir: str | Path, scale: int = 4
         scene["palette"] = {"colors":colors,"ramps":deepcopy(art_bible["palette"].get("ramps",{}))}
         for key,values in scene["palette"]["ramps"].items():
             scene["palette"]["ramps"][key] = [v for v in values if v in colors]
-        rendered = render_scene(scene,scale=scale)["image"].convert("RGB")
+        rendered = render_scene(scene)["image"].convert("RGB")
+        if scale > 1:
+            rendered = rendered.resize((width, height), Image.Resampling.NEAREST)
         x,y = margin+index*(width+gap),margin
         board.paste(rendered,(x,y))
         draw.text((x,y+height+4),name,fill="#E9E5D6")
