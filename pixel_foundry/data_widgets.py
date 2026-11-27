@@ -57,22 +57,23 @@ def draw_kpi_tile(
     trend: str = "positive",
     values: list[float] | None = None,
 ) -> Image.Image:
-    """Build a compact metric tile with a pixel sparkline and status marker."""
+    """Build a compact metric tile with semantic positive/negative status colors."""
     if trend not in {"positive", "negative", "neutral"}:
         raise ValueError("trend must be positive, negative or neutral")
     panel = create_panel_frame(width, height, palette, variant="standard")
     draw = ImageDraw.Draw(panel)
-    marker = {"positive": "teal", "negative": "gold", "neutral": "muted"}[trend]
+    marker = {"positive": "green", "negative": "red", "neutral": "muted"}[trend]
     draw.rectangle((width - 12, 5, width - 7, 10), fill=_rgba(palette, marker))
     if values is not None:
+        spark_color = {"positive": "green", "negative": "red", "neutral": "muted"}[trend]
         spark = draw_sparkline((width - 16, max(16, height - 24)), values, palette,
-                               color="teal" if trend == "positive" else "gold" if trend == "negative" else "muted")
+                               color=spark_color)
         panel.alpha_composite(spark, (8, 16))
     return panel
 
 
 def export_dashboard_components(output_dir: str | Path, palette: Palette) -> dict[str, Path]:
-    """Export a small raster component set and a composed dashboard study."""
+    """Export a small metric component set and a composed dashboard study."""
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     paths: dict[str, Path] = {}
