@@ -9,7 +9,7 @@ from .generators import expand_generator
 
 _GENERATOR_GEOMETRY = {
     "shaft_w", "capital_h", "base_h", "arch_h", "thickness",
-    "brick_w", "brick_h", "block_w", "block_h", "trunk_w",
+    "brick_w", "brick_h", "block_w", "block_h", "trunk_w", "tier_h", "inset",
 }
 _PRIMITIVE_GEOMETRY = {"x", "y", "w", "h", "width", "stroke", "radius", "step"}
 
