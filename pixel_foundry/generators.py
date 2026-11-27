@@ -33,6 +33,7 @@ def expand_generator(op: dict) -> list[dict]:
         waist_y = y + h * 3 // 5
         hem_y = y + h - 8
         bottom = y + h - 1
+        limb_color = op.get("limb_color", base)
 
         # Hood silhouette, face opening, eye and nose highlight.
         out.append({"type": "polygon", "points": [
@@ -94,8 +95,8 @@ def expand_generator(op: dict) -> list[dict]:
                  [x + w - 4, shoulder_y + h // 4 + 2]],
             ]
             legs = [
-                [[cx - 3, hem_y], [cx - 6, bottom - 4], [cx - 10, bottom - 2], [cx - 10, bottom]],
-                [[cx + 2, hem_y], [cx + 5, bottom - 7], [cx + 9, bottom - 3], [cx + 9, bottom]],
+                [[cx - 3, hem_y], [cx - 7, bottom - 5], [cx - 12, bottom - 3], [cx - 14, bottom]],
+                [[cx + 2, hem_y], [cx + 6, bottom - 8], [cx + 10, bottom - 4], [cx + 11, bottom]],
             ]
         elif pose == "drag":
             arms = [
@@ -105,8 +106,8 @@ def expand_generator(op: dict) -> list[dict]:
                  [cx + w // 3, waist_y + 4]],
             ]
             legs = [
-                [[cx - 3, hem_y], [cx - 6, bottom - 3], [cx - 11, bottom - 2], [cx - 12, bottom]],
-                [[cx + 2, hem_y], [cx + 4, bottom - 6], [cx + 7, bottom - 2], [cx + 7, bottom]],
+                [[cx - 3, hem_y], [cx - 7, bottom - 3], [cx - 13, bottom - 2], [cx - 15, bottom]],
+                [[cx + 2, hem_y], [cx + 5, bottom - 7], [cx + 8, bottom - 3], [cx + 8, bottom]],
             ]
         else:
             arms = [
@@ -116,16 +117,17 @@ def expand_generator(op: dict) -> list[dict]:
                  [cx + w // 4, waist_y + 2]],
             ]
             legs = [
-                [[cx - 3, hem_y], [cx - 4, bottom - 3], [cx - 5, bottom]],
-                [[cx + 2, hem_y], [cx + 3, bottom - 3], [cx + 4, bottom]],
+                [[cx - 3, hem_y], [cx - 5, bottom - 3], [cx - 6, bottom]],
+                [[cx + 2, hem_y], [cx + 5, bottom - 3], [cx + 6, bottom]],
             ]
         for limb in arms:
-            out.append({"type": "polygon", "points": limb, "color": shade})
+            out.append({"type": "polygon", "points": limb, "color": limb_color})
             out.append({"type": "line", "points": limb[:2], "color": highlight})
             hand_x, hand_y = limb[-1]
             out.append({"type": "pixel", "x": hand_x, "y": hand_y, "color": op.get("skin", highlight)})
         for leg in legs:
-            out.append({"type": "polygon", "points": leg, "color": shade})
+            out.append({"type": "polygon", "points": leg, "color": limb_color})
+            out.append({"type": "line", "points": leg[:2], "color": highlight})
             foot_x, foot_y = leg[-1]
             out.append({"type": "rect", "x": foot_x - 1, "y": foot_y,
                         "w": 4, "h": 2, "color": op.get("boots", shade)})
