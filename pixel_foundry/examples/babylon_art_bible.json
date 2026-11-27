@@ -5,36 +5,17 @@
   "canvas": { "width": 160, "height": 90 },
   "pixel_scale": 1,
   "perspective": "three_quarter",
-  "lighting": {
-    "direction": "top_left",
-    "key_color": "gold",
-    "ambient_color": "night"
-  },
+  "lighting": { "direction": "top_left", "key_color": "gold", "ambient_color": "night" },
   "background": "night",
-  "focal_point": {
-    "subject": "stepped ziggurat",
-    "position": "upper_center"
-  },
+  "focal_point": { "subject": "stepped ziggurat", "position": "upper_center" },
   "palette": {
     "colors": {
-      "night": "#0B141D",
-      "far_blue": "#101E2A",
-      "blue_stone": "#142633",
-      "sand_shadow": "#9C7746",
-      "sand": "#D9AD62",
-      "sand_light": "#F0D8A5",
-      "gold_shadow": "#9C7746",
-      "gold": "#D9AD62",
-      "moon": "#E9E5D6",
-      "teal": "#65CFC0",
-      "dark": "#050A0E",
-      "leaf_shadow": "#2D6B70",
-      "leaf": "#83D59B",
-      "leaf_light": "#E9E5D6",
-      "water_shadow": "#2D6B70",
-      "water": "#65CFC0",
-      "water_light": "#9AB0B6",
-      "stone": "#365564",
+      "night": "#0B141D", "far_blue": "#101E2A", "blue_stone": "#142633",
+      "sand_shadow": "#9C7746", "sand": "#D9AD62", "sand_light": "#F0D8A5",
+      "gold_shadow": "#9C7746", "gold": "#D9AD62", "moon": "#E9E5D6",
+      "teal": "#65CFC0", "dark": "#050A0E", "leaf_shadow": "#2D6B70",
+      "leaf": "#83D59B", "leaf_light": "#E9E5D6", "water_shadow": "#2D6B70",
+      "water": "#65CFC0", "water_light": "#9AB0B6", "stone": "#365564",
       "stone_dark": "#050A0E"
     },
     "ramps": {
@@ -87,13 +68,14 @@
       ]
     },
     {
-      "name": "foreground market",
+      "name": "foreground market and Lamassu guardian",
       "ops": [
         { "type": "rect", "x": 0, "y": 76, "w": 160, "h": 14, "color": "dark" },
         { "type": "archway", "x": 8, "y": 65, "w": 28, "h": 22, "thickness": 5, "arch_h": 8, "color": "sand_shadow", "shade": "dark", "highlight": "gold" },
         { "type": "water_surface", "x": 0, "y": 82, "w": 42, "h": 7, "color": "water", "shade": "water_shadow", "highlight": "water_light", "seed": 31 },
         { "type": "boulder", "x": 40, "y": 79, "w": 14, "h": 10, "color": "stone", "shade": "stone_dark", "highlight": "sand_light", "seed": 6 },
-        { "type": "traveler_sprite", "x": 69, "y": 58, "w": 18, "h": 31, "pose": "drag", "color": "sand", "shade": "dark", "highlight": "gold", "skin": "moon", "trim": "gold_shadow", "boots": "dark", "limb_color": "sand_shadow" }
+        { "type": "traveler_sprite", "x": 69, "y": 58, "w": 18, "h": 31, "pose": "drag", "color": "sand", "shade": "dark", "highlight": "gold", "skin": "moon", "trim": "gold_shadow", "boots": "dark", "limb_color": "sand_shadow" },
+        { "type": "lamassu_sprite", "x": 104, "y": 53, "w": 48, "h": 35, "color": "sand", "shade": "sand_shadow", "highlight": "sand_light", "detail": "stone" }
       ]
     }
   ]
