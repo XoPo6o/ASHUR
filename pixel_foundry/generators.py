@@ -10,7 +10,7 @@ def expand_generator(op: dict) -> list[dict]:
         return expand_lamassu(op)
     supported = {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
-        "column", "archway", "palm_tree", "cloud_bank", "boulder",
+        "column", "archway", "market_stall", "palm_tree", "cloud_bank", "boulder",
         "water_surface", "traveler_sprite",
     }
     if kind not in supported:
@@ -23,7 +23,74 @@ def expand_generator(op: dict) -> list[dict]:
     mortar = op.get("mortar", shade)
     out: list[dict] = []
 
-    if kind == "traveler_sprite":
+    if kind == "market_stall":
+        if w < 24 or h < 16:
+            raise ValueError("market_stall requires at least 24x16 logical pixels")
+        accent = op.get("accent", highlight)
+        wood = op.get("wood", shade)
+        lantern = op.get("lantern", highlight)
+        stripe_w = max(3, w // 8)
+
+        # Stepped cloth canopy with alternating dyed panels and a scalloped hem.
+        out.append({"type": "polygon", "part": "awning", "points": [
+            [x,y+5],[x+3,y],[x+w-3,y],[x+w-1,y+5],
+            [x+w-1,y+8],[x,y+8]
+        ], "color": base})
+        for index, sx in enumerate(range(x+3, x+w-2, stripe_w)):
+            stripe_color = accent if index % 2 else shade
+            out.append({"type": "rect", "part": "awning-stripe", "x": sx,
+                        "y": y+1, "w": min(stripe_w-1, x+w-2-sx),
+                        "h": 6, "color": stripe_color})
+        for sx in range(x+1, x+w-2, max(4, w//7)):
+            out.append({"type": "rect", "part": "awning-scallop", "x": sx,
+                        "y": y+7, "w": 3, "h": 2,
+                        "color": highlight if (sx//3) % 2 else base})
+
+        # Two timber posts, a counter and a shadowed front panel.
+        post_y = y+7
+        post_h = max(5, h-14)
+        for px in (x+2, x+w-4):
+            out.append({"type": "rect", "part": "post", "x": px,
+                        "y": post_y, "w": 2, "h": post_h, "color": wood})
+            out.append({"type": "line", "part": "post-highlight", "points": [
+                [px,post_y+1],[px,post_y+post_h-1]
+            ], "color": highlight})
+        counter_y = y+h-7
+        out.append({"type": "rect", "part": "counter", "x": x+1,
+                    "y": counter_y, "w": w-2, "h": 3, "color": highlight})
+        out.append({"type": "rect", "part": "counter-front", "x": x+2,
+                    "y": counter_y+3, "w": w-4, "h": 4, "color": wood})
+        out.append({"type": "line", "part": "counter-trim", "points": [
+            [x+3,counter_y+4],[x+w-4,counter_y+4]
+        ], "color": shade})
+
+        # A few readable wares: jars, bowls and produce, not random noise.
+        goods = (
+            (x+7, counter_y-4, 4, 4, accent),
+            (x+15, counter_y-5, 5, 5, highlight),
+            (x+25, counter_y-4, 4, 4, shade),
+        )
+        for gx, gy, gw, gh, goods_color in goods:
+            out.append({"type": "rect", "part": "market-goods", "x": gx,
+                        "y": gy, "w": gw, "h": gh, "color": goods_color})
+            out.append({"type": "line", "part": "goods-rim", "points": [
+                [gx,gy],[gx+gw-1,gy]
+            ], "color": highlight})
+
+        # Hanging oil lantern on the right post.
+        lantern_x = x+w-7
+        out.append({"type": "line", "part": "lantern-chain", "points": [
+            [lantern_x+1,y+5],[lantern_x+1,y+9]
+        ], "color": detail if "detail" in op else wood})
+        out.append({"type": "rect", "part": "lantern-frame", "x": lantern_x,
+                    "y": y+9, "w": 4, "h": 5, "color": wood})
+        out.append({"type": "rect", "part": "lantern-light", "x": lantern_x+1,
+                    "y": y+10, "w": 2, "h": 3, "color": lantern})
+        out.append({"type": "line", "part": "lantern-cap", "points": [
+            [lantern_x,y+9],[lantern_x+3,y+9]
+        ], "color": highlight})
+
+    elif kind == "traveler_sprite":
         # A readable market wanderer: hood, face, pack, cloak, sash and separated limbs.
         # Pose variants change the actual silhouette, not just a decorative pixel.
         pose = op.get("pose", "walk")
