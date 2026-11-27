@@ -75,7 +75,7 @@ jobs:
             }
             fs.writeFileSync('qa/results.json',JSON.stringify(results,null,2));
             await browser.close();
-            if(results.some(r=>r.status!==200||r.errors.length||r.relicCount!==6||r.horizontalOverflow>2||r.sceneCanvas!=='680x264'||r.scenePixels<10000||r.chartCanvas!=='640x190'||r.chartPixels<10000||!r.equity||r.equity==='—'||!/ALL SYSTEMS OK/.test(r.health||'')))process.exit(1);
+            if(results.some(r=>r.status!==200||r.errors.length||r.relicCount!==6||r.horizontalOverflow>2||r.sceneCanvas!=='768x554'||r.scenePixels<10000||r.chartCanvas!=='640x190'||r.chartPixels<10000||!r.equity||r.equity==='—'||!/ALL SYSTEMS OK/.test(r.health||'')))process.exit(1);
           })().catch(e=>{console.error(e);process.exit(1)});
           EOF
           node qa/run.cjs
