@@ -96,6 +96,54 @@ for(let i=0;i<15;i++){let a=i*13;R(a,548,7,6,i%2?'#6e9a57':'#47744e');R(a+4,543,
 R(0,552,768,2,'#e0a65e');
 }
 scene();
+// Fine-detail pass: architectural masonry, terraces, feather carving and Assyrian relief.
+function detailPass(){
+ // Dense illuminated facades and crenellated rooflines.
+ const facades=[[205,168,55,145],[272,131,62,183],[349,181,44,133],[405,203,49,111],[475,170,57,144],[551,206,42,108],[618,184,58,130]];
+ facades.forEach(([a,b,w,h],n)=>{
+   for(let row=0;row<Math.floor(h/13);row++){
+     let yy=b+10+row*13;
+     for(let col=0;col<Math.floor(w/11);col++){
+       let xx=a+5+col*11+(row%2)*3;
+       R(xx,yy,5,7,(row+col+n)%4===0?'#ffd17b':'#e6ad68');
+       R(xx+1,yy+1,2,4,'#48364a');
+       R(xx-2,yy+7,9,2,'#9d634f');
+     }
+   }
+   for(let q=0;q<Math.floor(w/8);q++){R(a+q*8,b-5,4,5,'#f4c477');R(a+q*8+4,b-3,3,3,'#8e594c')}
+   R(a-6,b+h-8,w+12,5,'#d18c59');
+ });
+ // Rooftop temples, stepped cornices and hanging garden terraces.
+ for(let i=0;i<9;i++){let a=215+i*57,b=282+(i%3)*15;R(a,b,31,5,'#e8b56c');R(a+4,b-9,23,9,'#765064');R(a+8,b-14,15,5,'#d99a5d');R(a+2,b+5,27,3,'#453849');}
+ for(let i=0;i<24;i++){let a=(i*67+19)%768,b=320+(i*31)%100;R(a,b,9,4,'#d99760');R(a+2,b-4,4,4,'#f1c276');R(a+1,b+4,7,3,'#61414a')}
+ // Ziggurat stair flights and horizontal courses.
+ for(let i=0;i<7;i++){let yy=264+i*9,xx=284-i*11;R(xx,yy,64+i*22,3,'#f4c27a');R(xx+5,yy+3,54+i*20,3,'#8d574d');}
+ for(let i=0;i<18;i++){let xx=292+(i%6)*17,yy=271+Math.floor(i/6)*17;R(xx,yy,5,8,'#48364a');R(xx-1,yy-2,7,2,'#f0bd70')}
+ // Lamassu wing: overlapping rows of carved feathers rather than a flat fan.
+ for(let row=0;row<8;row++)for(let col=0;col<5;col++){
+   let xx=22+col*12+row*3,yy=218+row*17-col*3;
+   R(xx,yy,9,17,(row+col)%2?'#f0c77b':'#d99b59');
+   R(xx+2,yy+3,3,10,'#9b624b');R(xx+5,yy+2,2,11,'#f8d995');
+ }
+ for(let i=0;i<9;i++){let yy=233+i*14;R(30+i*3,yy,72-i*3,4,'#f3ce87');R(38+i*3,yy+5,52-i*3,3,'#855448')}
+ // Sculpted curls, brow, muzzle and engraved beard.
+ R(72,174,48,5,'#f8d995');R(75,169,7,4,'#fff0b6');R(108,169,7,4,'#fff0b6');
+ R(70,185,12,4,'#9a6048');R(110,185,12,4,'#9a6048');
+ for(let i=0;i<6;i++){R(83+i*5,222+i*4,3,4,'#f4d08a');R(85+i*5,228+i*4,3,4,'#70464a')}
+ for(let i=0;i<6;i++){R(84+i*7,147,4,4,'#f7d88e');R(86+i*7,151,2,3,'#8b5548')}
+ // Harness, rosettes, cuneiform-like marks and ceremonial bands.
+ for(let i=0;i<8;i++){let xx=53+i*11;R(xx,328,6,6,'#f5d58e');R(xx+2,330,2,2,'#70464a');}
+ for(let i=0;i<10;i++){let yy=354+i*8;R(47,yy,7,3,'#f3cf88');R(138,yy,7,3,'#f3cf88')}
+ for(let i=0;i<12;i++){let xx=9+i*14;R(xx,499,5,4,'#f0c47a');R(xx+3,505,3,4,'#b77b50')}
+ // Ground-level carved brick courses, market awnings and lit doorways.
+ for(let row=0;row<5;row++)for(let col=0;col<42;col++){
+   let xx=col*19+(row%2)*9,yy=416+row*25;
+   R(xx,yy,15,3,row%2?'#a96d50':'#d18c58');
+   if((row+col)%5===0)R(xx+5,yy+6,5,10,'#f0b96e');
+ }
+ for(let i=0;i<12;i++){let xx=200+i*47;R(xx,390,26,5,'#d99b60');R(xx+4,382,18,8,'#80505a');R(xx+8,385,10,13,'#f2bb70')}
+}
+detailPass();
 const grids={head:["....22222222....","...2233333322...","..223333333322..",".22334444443322.","2233444444443322","2233404400443322","2233444444443322","..223344443322..","...222444422....","....2444442.....","...2244444422...","..224422224422..","..2222....2222..","..22........22..","................","................"],ankh:[".......22.......","......2332......","......2332......",".......22.......",".......22.......","..222222222222..",".22333333333322.","..222222222222..",".......22.......",".......22.......","......2332......","......2332......","......2332......","......2332......",".....222222.....","................"],beard:["....22222222....","...2233333322...","..223333333322..",".22333333333322.","2233444444443322","2233404400443322","2233444444443322","..223344443322..","...222444422....","....2444442.....","...2244444422...","..224444444422..","..224444444422..","...2244444422...","....22222222....","................"],scarab:["....22222222....","..222333333322..",".22333333333322.","2233333333333322","2233443333443322","2233334444333322","2233333333333322",".22333333333322.","..223333333322..","...2233333322...","..22.222222.22..",".22..........22.","22............22","................","................","................"],bull:["......2222......",".....233332.....","....23333332....","...2233333322...","..223344443322..",".22334444443322.","2233404400443322","2233444444443322","..223344443322..","...222444422....","....2444442.....","...2244444422...","..224422224422..","..22........22..","................","................"],wing:["22............22","2222........2222",".22222....22222..","..222222222222...","...2222332222....","....22333322.....",".....233332......","....22333322.....","...2222332222....","..222222222222...",".22222....22222..","2222........2222","22............22","................","................","................"]},pal={head:['#18243a','#d49a59','#f0c77c','#8e4f45','#f8dfa0'],ankh:['#17253b','#c38b4d','#f3ce7c','#75d8c8'],beard:['#18243a','#e1b66e','#f6d48e','#4c3940','#b77b49'],scarab:['#17253a','#e6b35e','#53b8ad','#f6d68b'],bull:['#17253a','#d99d55','#f2cc7d','#75454a'],wing:['#18243a','#f1c36e','#d88f54','#6bc9c2']};document.querySelectorAll('[data-s]').forEach(el=>{let z=el.getContext('2d');grids[el.dataset.s].forEach((row,j)=>[...row].forEach((v,i)=>{if(v!=='.'){z.fillStyle=pal[el.dataset.s][+v-1];z.fillRect(i,j,1,1)}}))});
 function plot(points){let c=$('chart'),z=c.getContext('2d');z.imageSmoothingEnabled=false;z.fillStyle='#10223a';z.fillRect(0,0,640,190);for(let j=0;j<5;j++){let yy=14+j*39;z.fillStyle='#405563';z.fillRect(34,yy,590,1)}if(!points.length){z.fillStyle='#d5c29a';z.font='11px monospace';z.fillText('COLLECTING HISTORY',250,96);return}let a=points.map(p=>N(p.total_equity)),lo=Math.min(...a),span=Math.max(...a)-lo||1;z.strokeStyle='#65ded0';z.lineWidth=3;z.beginPath();a.forEach((v,i)=>{let px=35+i*588/Math.max(1,a.length-1),py=175-(v-lo)/span*145;i?z.lineTo(px,py):z.moveTo(px,py)});z.stroke();a.forEach((v,i)=>{z.fillStyle='#c1fff1';z.fillRect(Math.round(35+i*588/Math.max(1,a.length-1))-2,Math.round(175-(v-lo)/span*145)-2,4,4)})}
 function render(d,h){let a=d.accounts||[],w=d.worker_health||{},eq=a.reduce((s,v)=>s+N(v.equity),0),p=a.reduce((s,v)=>s+N(v.net_pnl),0),fees=a.reduce((s,v)=>s+N(v.fees),0),peak=0,dd=0;(h.points||[]).forEach(q=>{peak=Math.max(peak,N(q.total_equity));if(peak)dd=Math.min(dd,(N(q.total_equity)/peak-1)*100)});$('equity').textContent=F(eq)+' USDT';$('pnl').textContent=S(p)+' USDT';$('pnl').className=p>=0?'pos':'neg';$('pnl-note').textContent=S(p/Math.max(1,N(d.experiment?.starting_equity_per_strategy)*6)*100)+'% SINCE BASELINE';$('drawdown').textContent=Math.abs(dd).toFixed(3)+'%';$('workers').textContent=(w.successful_strategies??0)+'/6';$('worker-note').textContent=(w.error_count??0)+' ERRORS';$('health').textContent=w.all_strategies_ok?'● PAPER · ALL SYSTEMS OK':'● PAPER · CHECK REQUIRED';$('updated').textContent='ОБНОВЛЕНО · '+stamp(d.generated_at);plot(h.points||[]);$('history-count').textContent=(h.points||[]).length+' SNAPSHOTS';let t=(d.closed_trades||[]).slice().reverse().slice(0,5);$('trade-rows').innerHTML=t.length?t.map(q=>'<tr><td>'+E(q.strategy_id)+'</td><td>'+E(q.symbol)+'</td><td class="'+(N(q.pnl)>=0?'pos':'neg')+'">'+S(q.pnl)+'</td></tr>').join(''):'<tr><td colspan="3" class="empty">NO CLOSED TRADES</td></tr>';$('trade-count').textContent=(d.ledger?.total_closed_trades??t.length)+' TRADES';$('positions').textContent=(d.open_positions||[]).length;$('closed').textContent=d.ledger?.total_closed_trades??t.length;$('fees').textContent=F(fees)+' USDT';$('worker-time').textContent=stamp(d.source_updated_at);$('errors').textContent=w.error_count??'—';$('protection').textContent=w.protection_degraded_positions??0;$('baseline').textContent=stamp(d.experiment?.baseline_at);$('snapshot').textContent=stamp(d.generated_at);$('footer-state').textContent='PAPER SNAPSHOT · '+stamp(d.generated_at)}
