@@ -9,8 +9,8 @@ from __future__ import annotations
 def expand_lamassu(op: dict) -> list[dict]:
     x, y = int(op.get("x", 0)), int(op.get("y", 0))
     w, h = int(op.get("w", 0)), int(op.get("h", 0))
-    if w < 58 or h < 42:
-        raise ValueError("lamassu_sprite requires a canvas of at least 58x42 logical pixels")
+    if w < 60 or h < 43:
+        raise ValueError("lamassu_sprite requires a canvas of at least 60x43 logical pixels")
 
     base = op.get("color", "#D9AD62")
     shade = op.get("shade", "#9C7746")
