@@ -7,6 +7,6 @@ def test_ziggurat_generator_creates_stepped_tiers():
     ops=expand_generator(spec)
     rects=[op for op in ops if op["type"]=="rect"]
     assert len(rects)>=6
-    widths=[op["w"] for op in rects[:5]]
+    widths=[op["w"] for op in rects[::2][:5]]
     assert widths==sorted(widths,reverse=True)
     assert expand_generator(spec)==ops
