@@ -8,6 +8,8 @@ A deterministic, spec-driven pixel-art raster toolkit. The AI describes the art 
 - Palette validation and exact-palette quantization.
 - Layered JSON scene specification.
 - Pixel primitives: rectangles, ellipses, lines, polygons, single pixels, bitmap text and controlled dithering.
+- Seeded procedural materials: brick walls, stone floors and clustered foliage.
+- Sprite atlas packing with JSON frame metadata and animation-strip export.
 - QA report: dimensions, visible/transparent pixels, unique colors, out-of-palette pixels and isolated-pixel warnings.
 - CLI for rendering and inspecting PNG assets.
 
@@ -53,7 +55,7 @@ A scene has `canvas`, `palette`, and ordered `layers`. Layers are composited bac
 1. **Core renderer** — implemented in MVP.
 2. **Palette and cluster tools** — ramps, ramps-aware shading, outline and cluster diagnostics.
 3. **Scene grammar** — reusable architecture, terrain, vegetation, props and material generators.
-4. **Sprite studio** — sprite sheets, pivots, animation timelines and atlas metadata.
+4. **Sprite studio** — expand the current atlas/strip helpers into pivots, animation timelines, tags and per-frame events.
 5. **UI kit mode** — nine-slice frames, panels, icon families, typography and responsive layout export.
 6. **AI art director** — natural-language brief to editable scene spec, with constrained revisions.
 7. **Browser preview and GitHub publishing** — reviewable previews without modifying the production Wall.
