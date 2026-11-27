@@ -21,6 +21,7 @@ def expand_generator(op: dict) -> list[dict]:
     shade = op.get("shade", base)
     highlight = op.get("highlight", base)
     mortar = op.get("mortar", shade)
+    detail = op.get("detail", shade)
     out: list[dict] = []
 
     if kind == "temple_facade":
