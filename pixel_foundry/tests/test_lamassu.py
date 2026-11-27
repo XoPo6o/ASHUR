@@ -22,5 +22,5 @@ def test_lamassu_sprite_is_deterministic_and_uses_raster_primitives():
 
 
 def test_lamassu_sprite_rejects_too_small_canvas():
-    with pytest.raises(ValueError, match="at least 44x30"):
+    with pytest.raises(ValueError, match="at least 44x34"):
         expand_generator({"type": "lamassu_sprite", "w": 32, "h": 24})
