@@ -252,3 +252,24 @@ def test_traveler_rejects_unknown_lantern_light_direction():
     }
     with pytest.raises(ValueError, match="light side"):
         expand_generator(spec)
+
+
+
+def test_traveler_face_uses_two_eye_clusters_and_separate_skin_planes():
+    spec = {
+        "type": "traveler_sprite", "x": 30, "y": 8, "w": 22, "h": 36,
+        "pose": "drag", "color": "#D9AD62", "shade": "#050A0E",
+        "highlight": "#F0D8A5", "skin": "#E9E5D6",
+        "skin_shadow": "#9C7746", "skin_light": "#F0D8A5",
+    }
+    ops = expand_generator(spec)
+    parts = {op.get("part") for op in ops}
+    assert {
+        "face-shadow-cheek-plane", "face-light-cheek-plane",
+        "face-eyelid-left", "face-eyelid-right",
+        "face-eye-left", "face-eye-right",
+        "face-eye-left-glint", "face-eye-right-glint",
+    } <= parts
+    eyes = [op for op in ops if op.get("part") in {"face-eye-left", "face-eye-right"}]
+    assert len(eyes) == 2
+    assert eyes[0]["x"] != eyes[1]["x"]
