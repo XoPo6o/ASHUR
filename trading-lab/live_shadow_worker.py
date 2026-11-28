@@ -684,6 +684,15 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
     news_last_completed = conn.execute(
         "SELECT MAX(finished_at) FROM news_collection_runs"
     ).fetchone()[0]
+    news_age_seconds = None
+    if news_last_completed:
+        try:
+            news_stamp = datetime.fromisoformat(str(news_last_completed).replace("Z", "+00:00"))
+            if news_stamp.tzinfo is None:
+                news_stamp = news_stamp.replace(tzinfo=timezone.utc)
+            news_age_seconds = max(0.0, (datetime.now(timezone.utc) - news_stamp).total_seconds())
+        except (TypeError, ValueError):
+            pass
     max_check_gap_seconds = {}
     for strategy in STRATEGIES:
         check_rows = conn.execute(
@@ -718,7 +727,8 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
                                     "veto_outcomes": news.veto_outcome_stats(conn),
-                                    "last_completed_at": news_last_completed},
+                                    "last_completed_at": news_last_completed,
+                                    "age_seconds": round(news_age_seconds, 1) if news_age_seconds is not None else None},
               "sqlite": {"integrity": sqlite_integrity},
               "protection_audit": {
                   "events_24h": protection_events_24h,
