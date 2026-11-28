@@ -137,3 +137,13 @@ def test_lamassu_sprite_scale_reduces_footprint_without_losing_detail():
     assert compact_w < full_w
     assert compact_h < full_h
     assert len(compact) == len(full)
+
+
+def test_babylon_art_bible_uses_supported_lamassu_sprite_scale_key():
+    import json
+    from pathlib import Path
+    bible=json.loads(Path("pixel_foundry/examples/babylon_art_bible.json").read_text())
+    op=next(op for layer in bible["layers"] for op in layer["ops"]
+            if op["type"]=="lamassu_sprite")
+    assert op["sprite_scale"]==0.78
+    assert "scale" not in op
