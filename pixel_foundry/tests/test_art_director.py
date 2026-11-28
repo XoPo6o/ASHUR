@@ -42,3 +42,12 @@ def test_planning_contract_rejects_invalid_detail_tier_and_contrast():
     errors=validate_art_bible(bible)
     assert any("detail_tier" in error for error in errors)
     assert any("focal_contrast" in error for error in errors)
+
+def test_depth_planes_and_focus_roles_are_preserved_in_scene_spec():
+    bible=sample()
+    bible["planning"]={"depth_tier":"hero","depth_planes":["background","foreground"]}
+    bible["layers"]=[{"name":"sky","depth_plane":"background","focus_role":"background","ops":[]},
+                     {"name":"hero","depth_plane":"foreground","focus_role":"primary","ops":[]}]
+    spec=build_scene_spec(bible)
+    assert spec["layers"][1]["depth_plane"]=="foreground"
+    assert spec["layers"][1]["focus_role"]=="primary"
