@@ -116,3 +116,24 @@ def test_lamassu_uses_midtones_to_separate_body_and_face_planes():
                for part in ("body-midplane","flank-midplane","human-face-midplane"))
     plates=[op for op in ops if op.get("part")=="wing-feather-plate"]
     assert any(op["color"]=="bronze_mid" for op in plates)
+
+
+def test_lamassu_sprite_scale_reduces_footprint_without_losing_detail():
+    from pixel_foundry.lamassu import expand_lamassu
+
+    full = expand_lamassu({"type":"lamassu_sprite","x":10,"y":10,"w":60,"h":43})
+    compact = expand_lamassu({"type":"lamassu_sprite","x":10,"y":10,"w":60,"h":43,
+                              "sprite_scale":0.75})
+    def bounds(ops):
+        xs=[]; ys=[]
+        for op in ops:
+            if "points" in op:
+                xs.extend(p[0] for p in op["points"]); ys.extend(p[1] for p in op["points"])
+            elif "x" in op and "y" in op:
+                xs.append(op["x"]); ys.append(op["y"])
+        return max(xs)-min(xs), max(ys)-min(ys)
+    full_w,full_h=bounds(full)
+    compact_w,compact_h=bounds(compact)
+    assert compact_w < full_w
+    assert compact_h < full_h
+    assert len(compact) == len(full)
