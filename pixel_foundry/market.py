@@ -95,4 +95,6 @@ def expand_market_props(op: dict) -> list[dict]:
     line("market-lantern-base",[(54,12),(58,12)],gold)
     out.append({"type":"pixel","part":"market-lantern-flame",
                 "x":x+56*unit,"y":y+6*unit,"color":light})
+    out.append({"type":"pixel","part":"market-lantern-glow-spill",
+                "x":x+56*unit,"y":y+13*unit,"color":gold})
     return out
