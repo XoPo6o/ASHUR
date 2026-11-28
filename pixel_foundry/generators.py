@@ -454,6 +454,42 @@ def expand_generator(op: dict) -> list[dict]:
             out.append({"type": "pixel", "part": "boot-heel-shadow",
                         "x": foot_x-1, "y": foot_y+1, "color": cloth_shadow})
 
+        # Warm lantern-side bounce light: a restrained rim on hood, cheek,
+        # shoulder and cloak folds. Keep it as a final overlay so it reads as light.
+        glow = op.get("lantern_glow", "#E9B86B")
+        glow_soft = op.get("lantern_glow_soft", "#B9784E")
+        light_side = op.get("light_side", "right")
+        if light_side not in {"left", "right"}:
+            raise ValueError(f"Unsupported traveler light side: {light_side!r}")
+        if light_side == "right":
+            hood_edge_x = head_x + head_w + 1
+            cheek_x = face_x + face_w
+            shoulder_edge = cx + w // 3
+            cloak_edge = cx + w // 5 + 1
+            fold_x = cx + w // 8 + 1
+        else:
+            hood_edge_x = head_x - 1
+            cheek_x = face_x - 1
+            shoulder_edge = cx - w // 3
+            cloak_edge = cx - w // 5 - 1
+            fold_x = cx - w // 6
+        out.append({"type": "line", "part": "hood-lantern-rim", "points": [
+            [hood_edge_x, head_y+3], [hood_edge_x+(-1 if light_side=="left" else 1), head_y+head_h-1]
+        ], "color": glow})
+        out.append({"type": "pixel", "part": "face-lantern-bounce",
+                    "x": cheek_x, "y": eye_y+1, "color": glow})
+        out.append({"type": "pixel", "part": "face-lantern-soft",
+                    "x": cheek_x, "y": eye_y+2, "color": glow_soft})
+        out.append({"type": "line", "part": "shoulder-lantern-rim", "points": [
+            [shoulder_edge, shoulder_y+3], [shoulder_edge, waist_y-2]
+        ], "color": glow_soft})
+        out.append({"type": "line", "part": "cloak-lantern-fold", "points": [
+            [fold_x, shoulder_y+6], [fold_x+(-1 if light_side=="left" else 1), waist_y+3],
+            [cloak_edge, hem_y-2]
+        ], "color": glow_soft})
+        out.append({"type": "pixel", "part": "cloak-lantern-glint",
+                    "x": cloak_edge, "y": hem_y-3, "color": glow})
+
     elif kind == "palm_tree":
         trunk_w = max(2, int(op.get("trunk_w", max(2, w // 8))))
         crown_y = y + max(3, h // 3)
