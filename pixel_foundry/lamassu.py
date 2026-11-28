@@ -39,6 +39,24 @@ def expand_lamassu(op: dict) -> list[dict]:
     for points, color in feather_rows:
         out.append({"type": "line", "part": "feather", "points": points, "color": color, "width": 2})
 
+    # Break the wing into overlapping feather plates. Each plate follows the
+    # fan direction and carries its own light edge and dark separation.
+    feather_plates = [
+        ([[x+10,y+22],[x+13,y+16],[x+18,y+11],[x+21,y+11],[x+17,y+17],[x+14,y+23]], base),
+        ([[x+14,y+25],[x+18,y+19],[x+24,y+14],[x+27,y+14],[x+22,y+20],[x+18,y+26]], highlight),
+        ([[x+19,y+27],[x+24,y+21],[x+30,y+17],[x+33,y+17],[x+28,y+23],[x+23,y+28]], base),
+        ([[x+25,y+27],[x+30,y+23],[x+36,y+20],[x+39,y+20],[x+34,y+25],[x+29,y+28]], shade),
+    ]
+    for index, (points, color) in enumerate(feather_plates):
+        out.append({"type": "polygon", "part": "wing-feather-plate",
+                    "feather_index": index, "points": points, "color": color})
+        out.append({"type": "line", "part": "wing-feather-edge", "points": [
+            points[0], points[2], points[4]
+        ], "color": highlight if index % 2 == 0 else detail})
+        out.append({"type": "line", "part": "wing-feather-separation", "points": [
+            points[1], points[3], points[5]
+        ], "color": shade})
+
     # Five legs are drawn first so the torso naturally occludes their upper joints.
     # Two hind legs plus three clustered forelegs create the classic double-aspect five-leg read.
     leg_positions = (8, 19, 37, 44, 51)
