@@ -713,10 +713,8 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                   "starting_equity_per_strategy": START_CASH,
                   "strategy_count": len(STRATEGIES),
               },
-              "market_data": {
-                  "description": "Public spot market data; Bybit primary, Binance fallback",
-                  "marks": {},
-              },
+              "market_data": "Public spot market data; Bybit primary, Binance fallback",
+              "market_marks": {},
               "news_intelligence": {**news.collection_stats(conn, 24),
                                     "news_vetoes_24h": int(news_vetoes_24h),
                                     "veto_outcomes": news.veto_outcome_stats(conn),
@@ -833,7 +831,7 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                 mark_age = max(0.0, (datetime.now(timezone.utc) - mark_stamp).total_seconds())
             except (TypeError, ValueError):
                 pass
-        output["market_data"]["marks"][a["strategy_id"]] = {
+        output["market_marks"][a["strategy_id"]] = {
             "updated_at": mark["updated_at"] if mark else None,
             "age_seconds": round(mark_age, 1) if mark_age is not None else None,
         }
