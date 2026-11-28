@@ -480,12 +480,100 @@
           "rosette_spacing": 12
         },
         {
-          "type": "rect",
-          "x": 74,
+          "type": "archway",
+          "x": 73,
           "y": 47,
-          "w": 12,
+          "w": 14,
           "h": 27,
+          "thickness": 3,
+          "arch_h": 8,
+          "arch_steps": 5,
+          "color": "sand",
+          "shade": "sand_shadow",
+          "highlight": "sand_light"
+        },
+        {
+          "type": "rect",
+          "part": "temple-recessed-door",
+          "x": 77,
+          "y": 53,
+          "w": 6,
+          "h": 21,
           "color": "dark"
+        },
+        {
+          "type": "line",
+          "part": "door-left-panel",
+          "points": [
+            [
+              78,
+              55
+            ],
+            [
+              78,
+              71
+            ]
+          ],
+          "color": "sand_shadow"
+        },
+        {
+          "type": "line",
+          "part": "door-right-panel",
+          "points": [
+            [
+              82,
+              55
+            ],
+            [
+              82,
+              71
+            ]
+          ],
+          "color": "sand_shadow"
+        },
+        {
+          "type": "line",
+          "part": "door-gold-lintel",
+          "points": [
+            [
+              78,
+              54
+            ],
+            [
+              82,
+              54
+            ]
+          ],
+          "color": "gold"
+        },
+        {
+          "type": "pixel",
+          "part": "door-stud-upper",
+          "x": 78,
+          "y": 61,
+          "color": "gold"
+        },
+        {
+          "type": "pixel",
+          "part": "door-stud-lower",
+          "x": 82,
+          "y": 66,
+          "color": "gold"
+        },
+        {
+          "type": "line",
+          "part": "door-threshold",
+          "points": [
+            [
+              77,
+              74
+            ],
+            [
+              83,
+              74
+            ]
+          ],
+          "color": "sand_light"
         },
         {
           "type": "column",

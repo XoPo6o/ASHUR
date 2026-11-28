@@ -41,3 +41,15 @@ def test_babylon_art_bible_uses_hand_authored_traveler_and_valid_skin_ramp():
     assert traveler[0]["w"] == 40 and traveler[0]["h"] == 56
     scene = build_scene_spec(bible)
     assert scene["metadata"]["pixel_scale"] == 2
+
+
+def test_temple_entrance_is_framed_and_recessed_not_a_flat_black_rectangle():
+    path = Path("pixel_foundry/examples/babylon_art_bible.json")
+    bible = json.loads(path.read_text(encoding="utf-8"))
+    temple = next(layer for layer in bible["layers"]
+                  if layer["name"] == "temple facade and royal reliefs")
+    assert any(op["type"] == "archway" and op["x"] == 73 and op["w"] == 14
+               for op in temple["ops"])
+    door = next(op for op in temple["ops"] if op.get("part") == "temple-recessed-door")
+    assert door["type"] == "rect" and door["w"] == 6 and door["h"] == 21
+    assert sum(op.get("part") == "door-stud-upper" for op in temple["ops"]) == 1
