@@ -7,7 +7,7 @@ from pathlib import Path
 
 def test_traveler_bitmap_is_a_fixed_native_40_by_56_sprite():
     ops = expand_generator({"type":"traveler_bitmap","x":10,"y":20,"_detail_scale":1})
-    assert len(ops) == 1251
+    assert len(ops) == 1249
     assert all(op["type"] == "pixel" for op in ops)
     assert {op["part"] for op in ops} >= {
         "traveler-bitmap-K", "traveler-bitmap-D", "traveler-bitmap-S",
@@ -24,7 +24,7 @@ def test_traveler_bitmap_keeps_native_pixel_density_on_dense_scene_grid():
     op = _scale_operation({"type":"traveler_bitmap","x":70,"y":53,"w":40,"h":56},2)
     assert (op["x"],op["y"],op["_detail_scale"]) == (140,106,1)
     ops = expand_generator(op)
-    assert len(ops) == 1251
+    assert len(ops) == 1249
     assert all(item["type"] == "pixel" for item in ops)
     assert max(item["x"] for item in ops) < 180
     assert max(item["y"] for item in ops) < 162

@@ -22,6 +22,7 @@ PALETTE_VARIANTS = {
         "leaf": "#83D59B", "leaf_light": "#E9E5D6", "water_shadow": "#2D6B70",
         "water": "#65CFC0", "water_light": "#9AB0B6", "stone": "#365564",
         "stone_dark": "#050A0E",
+        "skin_mid": "#C58A5A", "skin_shadow": "#8F5F43",
     },
     "B-desert-dusk": {
         "night": "#201710", "far_blue": "#34251C", "blue_stone": "#49372A",
@@ -30,7 +31,7 @@ PALETTE_VARIANTS = {
         "teal": "#8F9B70", "dark": "#100C09", "leaf_shadow": "#53613A",
         "leaf": "#A5A65A", "leaf_light": "#E6D69A", "water_shadow": "#536B62",
         "water": "#8FAD91", "water_light": "#C6D0A4", "stone": "#806044",
-        "stone_dark": "#100C09",
+        "stone_dark": "#100C09", "skin_mid": "#B87543", "skin_shadow": "#70432D",
     },
     "C-moonlit-cyan": {
         "night": "#071A27", "far_blue": "#0B2B3A", "blue_stone": "#16485A",
@@ -39,7 +40,7 @@ PALETTE_VARIANTS = {
         "teal": "#53C9B5", "dark": "#030D15", "leaf_shadow": "#285D5B",
         "leaf": "#5B9B78", "leaf_light": "#B6D8B0", "water_shadow": "#285D72",
         "water": "#4D9DAA", "water_light": "#B2D7D8", "stone": "#427080",
-        "stone_dark": "#030D15",
+        "stone_dark": "#030D15", "skin_mid": "#A6C2B3", "skin_shadow": "#607D7D",
     },
 }
 
