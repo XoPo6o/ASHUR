@@ -87,6 +87,13 @@ def validate_art_bible(bible: dict) -> list[str]:
         planes=planning.get("depth_planes")
         if planes is not None and (not isinstance(planes,list) or not planes or any(not isinstance(p,str) or not p for p in planes)):
             errors.append("planning.depth_planes must be a non-empty ordered list of names")
+        elif isinstance(planes,list):
+            for layer in bible["layers"] if isinstance(bible.get("layers"),list) else []:
+                if isinstance(layer,dict) and layer.get("depth_plane") and layer["depth_plane"] not in planes:
+                    errors.append(f"layer {layer.get('name')!r} uses undeclared depth_plane: {layer['depth_plane']!r}")
+        for layer in bible["layers"] if isinstance(bible.get("layers"),list) else []:
+            if isinstance(layer,dict) and layer.get("focus_role") not in (None,"primary","secondary","supporting","background"):
+                errors.append(f"layer {layer.get('name')!r} has invalid focus_role")
     return errors
 
 
@@ -133,6 +140,9 @@ def build_scene_spec(bible: dict) -> dict:
         "background":bible.get("background","transparent"),
         "palette":deepcopy(bible["palette"]),
         "layers":[{"name":layer["name"],"visible":layer.get("visible",True),
+                   "depth_plane":layer.get("depth_plane"),
+                   "focus_role":layer.get("focus_role","supporting"),
+                   "contrast_weight":layer.get("contrast_weight"),
                    "ops":deepcopy(layer.get("ops",[]))} for layer in layers],
         "metadata":{
             "art_bible":bible["name"],"style":bible["style"],
