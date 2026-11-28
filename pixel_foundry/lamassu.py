@@ -42,10 +42,10 @@ def expand_lamassu(op: dict) -> list[dict]:
     # Break the wing into overlapping feather plates. Each plate follows the
     # fan direction and carries its own light edge and dark separation.
     feather_plates = [
-        ([[x+10,y+22],[x+13,y+16],[x+18,y+11],[x+21,y+11],[x+17,y+17],[x+14,y+23]], base),
-        ([[x+14,y+25],[x+18,y+19],[x+24,y+14],[x+27,y+14],[x+22,y+20],[x+18,y+26]], highlight),
-        ([[x+19,y+27],[x+24,y+21],[x+30,y+17],[x+33,y+17],[x+28,y+23],[x+23,y+28]], base),
-        ([[x+25,y+27],[x+30,y+23],[x+36,y+20],[x+39,y+20],[x+34,y+25],[x+29,y+28]], shade),
+        ([[x+8,y+21],[x+11,y+13],[x+17,y+6],[x+20,y+7],[x+16,y+15],[x+12,y+22]], highlight),
+        ([[x+13,y+23],[x+17,y+14],[x+23,y+8],[x+26,y+9],[x+21,y+17],[x+17,y+24]], base),
+        ([[x+19,y+24],[x+23,y+16],[x+29,y+11],[x+32,y+12],[x+27,y+20],[x+23,y+25]], highlight),
+        ([[x+25,y+26],[x+29,y+19],[x+35,y+15],[x+38,y+16],[x+33,y+23],[x+29,y+27]], base),
     ]
     for index, (points, color) in enumerate(feather_plates):
         out.append({"type": "polygon", "part": "wing-feather-plate",
@@ -97,6 +97,20 @@ def expand_lamassu(op: dict) -> list[dict]:
     out.append({"type": "line", "part": "shoulder-highlight", "points": [
         [x+34,y+22],[x+40,y+24],[x+43,y+27]
     ], "color": highlight, "width": 2})
+    out.append({"type": "polygon", "part": "haunch-shadow-plane", "points": [
+        [x+8,y+26],[x+15,y+25],[x+21,y+28],
+        [x+20,y+33],[x+13,y+35],[x+8,y+32]
+    ], "color": shade})
+    out.append({"type": "line", "part": "haunch-light-ridge", "points": [
+        [x+10,y+27],[x+15,y+28],[x+18,y+31]
+    ], "color": highlight})
+    out.append({"type": "polygon", "part": "shoulder-muscle-plane", "points": [
+        [x+31,y+22],[x+37,y+22],[x+42,y+25],
+        [x+41,y+29],[x+36,y+31],[x+32,y+28]
+    ], "color": base})
+    out.append({"type": "line", "part": "shoulder-muscle-cut", "points": [
+        [x+34,y+24],[x+38,y+26],[x+39,y+29]
+    ], "color": shade})
     out.append({"type": "line", "part": "back-highlight", "points": [
         [x+11,y+21],[x+23,y+19],[x+34,y+20],[x+41,y+23]
     ], "color": highlight, "width": 2})
@@ -114,6 +128,16 @@ def expand_lamassu(op: dict) -> list[dict]:
     out.append({"type": "polygon", "part": "tail-tuft", "points": [
         [x+1,y+31],[x+4,y+32],[x+5,y+36],[x+2,y+35]
     ], "color": detail})
+
+    # Layered neck mane separates the human head from the bull shoulder.
+    mane_locks = [
+        ([[x+40,y+22],[x+43,y+24],[x+42,y+27]], highlight),
+        ([[x+41,y+25],[x+44,y+27],[x+43,y+30]], shade),
+        ([[x+39,y+28],[x+42,y+30],[x+41,y+33]], highlight),
+        ([[x+42,y+30],[x+45,y+32],[x+44,y+34]], detail),
+    ]
+    for points, color in mane_locks:
+        out.append({"type": "line", "part": "mane-lock", "points": points, "color": color, "width": 2})
 
     # Assyrian harness, chest collar and rosette.
     out.append({"type": "line", "part": "harness", "points": [
