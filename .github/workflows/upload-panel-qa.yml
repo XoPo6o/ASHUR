@@ -106,14 +106,18 @@ jobs:
             await page.getByRole('button',{name:'ПОДКЛЮЧИТЬ'}).click();
             await page.locator('#manager').waitFor({state:'visible'});
             await page.getByText('@qa-user · подключён').waitFor();
+            await page.getByText('В архиве: 1 изображений.').waitFor();
             assert.equal(await page.evaluate(()=>localStorage.getItem('ashur_pixel_lab_token')),'valid-test-token','token persisted');
             assert.equal(await page.locator('#items .item').count(),1,'archive renders initial image');
 
             await page.reload();
             await page.locator('#manager').waitFor({state:'visible'});
             await page.getByText('@qa-user · подключён').waitFor();
+            await page.getByText('В архиве: 1 изображений.').waitFor();
             assert.equal(await page.locator('#items .item').count(),1,'automatic reconnect and archive load after reload');
 
+            await page.getByRole('button',{name:'ОБНОВИТЬ СПИСОК'}).click();
+            await page.getByText('В архиве: 1 изображений.').waitFor();
             await page.locator('#search').fill('does-not-exist');
             assert.equal(await page.locator('#items .item').count(),0,'search filters archive');
             await page.locator('#search').fill('sample');
@@ -123,6 +127,9 @@ jobs:
             assert.equal(await page.locator('#editmodal').evaluate(e=>e.classList.contains('open')),true,'edit dialog opens');
             await page.locator('#editname').fill('sample-renamed');
             await page.locator('#editcat').selectOption('babylon');
+            await page.getByRole('button',{name:'ОТМЕНА'}).click();
+            assert.equal(await page.locator('#editmodal').evaluate(e=>e.classList.contains('open')),false,'cancel closes dialog');
+            await page.locator('.item .btn').filter({hasText:'ИЗМЕНИТЬ'}).click();
             await page.keyboard.press('Escape');
             assert.equal(await page.locator('#editmodal').evaluate(e=>e.classList.contains('open')),false,'Escape closes dialog');
             await page.locator('.item .btn').filter({hasText:'ИЗМЕНИТЬ'}).click();
@@ -133,6 +140,11 @@ jobs:
             assert.equal(files.has(pathOf('lamassu/sample.png')),false,'rename/move removes old path');
             assert.equal(files.has(pathOf('babylon/sample-renamed.png')),true,'rename/move creates destination');
 
+            await page.getByRole('button',{name:'ЗАГРУЗИТЬ ФАЙЛЫ'}).click();
+            await page.getByText('Сначала выбери изображения.').waitFor();
+            await page.locator('#files').setInputFiles({name:'not-an-image.pdf',mimeType:'application/pdf',buffer:Buffer.from('not image')});
+            await page.getByRole('button',{name:'ЗАГРУЗИТЬ ФАЙЛЫ'}).click();
+            await page.getByText(/формат не поддерживается/).waitFor();
             await page.locator('#newcat').selectOption('sprites');
             await page.locator('#files').setInputFiles({name:'qa-upload.png',mimeType:'image/png',buffer:png});
             await page.getByRole('button',{name:'ЗАГРУЗИТЬ ФАЙЛЫ'}).click();
@@ -163,7 +175,7 @@ jobs:
             assert.deepEqual(browserErrors,[],'no JavaScript errors or console errors');
             await page.screenshot({path:'qa-artifacts/upload-panel-mobile.png',fullPage:true});
             fs.writeFileSync('qa-artifacts/results.json',JSON.stringify({
-              passed:['empty token validation','valid token authentication','token persistence','automatic reconnect after reload','archive listing','search filtering','edit dialog open','Escape closes edit dialog','rename and category move','image upload','duplicate upload protection','cancel delete','confirm delete','logout and token clearing','invalid token rejection','no browser console/page errors'],
+              passed:['empty token validation','valid token authentication','token persistence','automatic reconnect after reload','archive listing','manual refresh','search filtering','edit dialog open','cancel edit','Escape closes edit dialog','rename and category move','empty upload validation','unsupported file validation','image upload','duplicate upload protection','cancel delete','confirm delete','logout and token clearing','invalid token rejection','no browser console/page errors'],
               failures:[],browserErrors
             },null,2));
             console.log('PASS: 16 browser regression checks');
