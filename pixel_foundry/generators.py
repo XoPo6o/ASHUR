@@ -199,7 +199,7 @@ def expand_generator(op: dict) -> list[dict]:
         # mouth and beard. Features occupy distinct clusters at native scale.
         face_w = max(6, head_w // 2)
         face_h = max(5, head_h - 2)
-        eye_y = head_y + max(4, head_h // 2)
+        eye_y = head_y + max(5, head_h // 2 + 1)
         eye_left_x = face_x + 1
         eye_right_x = face_x + face_w - 2
         face_shadow = op.get("skin_shadow", shade)
