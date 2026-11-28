@@ -169,7 +169,7 @@ def expand_generator(op: dict) -> list[dict]:
         pose = op.get("pose", "walk")
         if pose not in {"walk", "idle", "drag"}:
             raise ValueError(f"Unsupported traveler pose: {pose!r}")
-        head_w, head_h = max(13, w // 2 + 2), max(9, h // 4)
+        head_w, head_h = max(13, w // 2 + 2), max(10, h // 4 + 1)
         head_x, head_y = x + (w - head_w) // 2, y
         cx = x + w // 2
         shoulder_y = head_y + head_h
@@ -232,23 +232,34 @@ def expand_generator(op: dict) -> list[dict]:
                     "y": eye_y, "color": op.get("eye", "#171827")})
         out.append({"type": "pixel", "part": "face-eye-right-glint", "x": eye_right_x,
                     "y": eye_y+1, "color": face_light})
-        out.append({"type": "line", "part": "face-nose", "points": [
-            [face_x+2, eye_y], [face_x+2, eye_y+2]],
-            "color": face_light})
-        out.append({"type": "pixel", "part": "face-nose-tip", "x": face_x+2,
+        nose_shadow = op.get("nose_shadow", face_shadow)
+        out.append({"type": "polygon", "part": "face-nose", "points": [
+            [face_x+2, eye_y+1], [face_x+3, eye_y+1],
+            [face_x+4, eye_y+2], [face_x+3, eye_y+3],
+            [face_x+2, eye_y+3]
+        ], "color": nose_shadow})
+        out.append({"type": "pixel", "part": "face-nose-tip", "x": face_x+4,
                     "y": eye_y+2, "color": face_light})
+        out.append({"type": "pixel", "part": "face-nostril", "x": face_x+3,
+                    "y": eye_y+3, "color": op.get("eye", "#171827")})
         out.append({"type": "pixel", "part": "face-cheek", "x": face_x+face_w-1,
                     "y": eye_y+2, "color": face_light})
         out.append({"type": "line", "part": "face-mouth", "points": [
-            [face_x+1, eye_y+3], [face_x+2, eye_y+3], [face_x+3, eye_y+3]],
-            "color": face_shadow})
-        out.append({"type": "line", "part": "face-beard", "points": [
-            [face_x+1, head_y+head_h-2], [face_x+2, head_y+head_h-1],
-            [face_x+3, head_y+head_h-2]],
+            [face_x+2, eye_y+4], [face_x+3, eye_y+4], [face_x+4, eye_y+4]],
+            "color": op.get("mouth", op.get("beard", shade))})
+        out.append({"type": "polygon", "part": "face-beard", "points": [
+            [face_x+1, head_y+head_h-3], [face_x+4, head_y+head_h-3],
+            [face_x+face_w-1, head_y+head_h-2],
+            [face_x+face_w-2, head_y+head_h-1],
+            [face_x+2, head_y+head_h-1]
+        ], "color": op.get("beard", shade)})
+        out.append({"type": "line", "part": "face-moustache", "points": [
+            [face_x+2, eye_y+3], [face_x+3, eye_y+3], [face_x+4, eye_y+3]],
             "color": op.get("beard", shade)})
-        out.append({"type": "pixel", "part": "face-beard-highlight",
-                    "x": face_x+3, "y": head_y+head_h-2,
-                    "color": face_light})
+        out.append({"type": "line", "part": "face-beard-highlight", "points": [
+            [face_x+2, head_y+head_h-2], [face_x+3, head_y+head_h-1],
+            [face_x+4, head_y+head_h-2]],
+            "color": face_light})
         out.append({"type": "line", "part": "hood-inner-rim", "points": [
             [head_x + 1, head_y + 4], [head_x + 2, head_y + head_h + 1]],
             "color": op.get("hood_inner", highlight)})
