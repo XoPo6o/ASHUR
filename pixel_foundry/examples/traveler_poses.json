@@ -2,7 +2,7 @@
   "name": "Babylon traveler — walk and idle sprite proof",
   "canvas": {
     "width": 108,
-    "height": 42
+    "height": 44
   },
   "background": "#101426",
   "palette": {
@@ -22,10 +22,10 @@
       "ops": [
         {
           "type": "traveler_sprite",
-          "x": 8,
-          "y": 4,
-          "w": 20,
-          "h": 34,
+          "x": 4,
+          "y": 2,
+          "w": 24,
+          "h": 38,
           "pose": "walk",
           "color": "cloth",
           "shade": "dark",
@@ -33,14 +33,24 @@
           "skin": "skin",
           "trim": "gold",
           "boots": "dark",
-          "limb_color": "cloth"
+          "limb_color": "cloth",
+          "cloth_shadow": "#75533F",
+          "cloth_light": "#D8B17A",
+          "skin_shadow": "#B9784E",
+          "skin_light": "#FFE0A0",
+          "lantern_glow": "#F0C878",
+          "lantern_glow_soft": "#C98552",
+          "light_side": "right",
+          "ground_shadow": "#080D16",
+          "contact_shadow": "#080D16",
+          "ground_grit": "#687080"
         },
         {
           "type": "traveler_sprite",
-          "x": 44,
-          "y": 4,
-          "w": 20,
-          "h": 34,
+          "x": 42,
+          "y": 2,
+          "w": 24,
+          "h": 38,
           "pose": "idle",
           "color": "cloth",
           "shade": "dark",
@@ -48,14 +58,24 @@
           "skin": "skin",
           "trim": "gold",
           "boots": "dark",
-          "limb_color": "cloth"
+          "limb_color": "cloth",
+          "cloth_shadow": "#75533F",
+          "cloth_light": "#D8B17A",
+          "skin_shadow": "#B9784E",
+          "skin_light": "#FFE0A0",
+          "lantern_glow": "#F0C878",
+          "lantern_glow_soft": "#C98552",
+          "light_side": "left",
+          "ground_shadow": "#080D16",
+          "contact_shadow": "#080D16",
+          "ground_grit": "#687080"
         },
         {
           "type": "traveler_sprite",
           "x": 80,
-          "y": 4,
-          "w": 20,
-          "h": 34,
+          "y": 2,
+          "w": 24,
+          "h": 38,
           "pose": "drag",
           "color": "cloth",
           "shade": "dark",
@@ -63,7 +83,17 @@
           "skin": "skin",
           "trim": "gold",
           "boots": "dark",
-          "limb_color": "cloth"
+          "limb_color": "cloth",
+          "cloth_shadow": "#75533F",
+          "cloth_light": "#D8B17A",
+          "skin_shadow": "#B9784E",
+          "skin_light": "#FFE0A0",
+          "lantern_glow": "#F0C878",
+          "lantern_glow_soft": "#C98552",
+          "light_side": "right",
+          "ground_shadow": "#080D16",
+          "contact_shadow": "#080D16",
+          "ground_grit": "#687080"
         }
       ]
     }
