@@ -222,3 +222,33 @@ def test_traveler_is_grounded_with_separate_boot_contact_shadows():
     assert ops.index(shadow) < next(
         i for i, op in enumerate(ops) if op.get("part") == "boot-lace"
     )
+
+
+
+def test_traveler_receives_directional_warm_lantern_bounce_light():
+    spec = {
+        "type": "traveler_sprite", "x": 67, "y": 53, "w": 22, "h": 36,
+        "pose": "drag", "color": "#D9AD62", "shade": "#050A0E",
+        "highlight": "#F0D8A5", "skin": "#E9E5D6",
+        "lantern_glow": "#E9B86B", "lantern_glow_soft": "#B9784E",
+    }
+    right = expand_generator({**spec, "light_side": "right"})
+    left = expand_generator({**spec, "light_side": "left"})
+    right_parts = {op.get("part") for op in right}
+    assert {
+        "hood-lantern-rim", "face-lantern-bounce", "face-lantern-soft",
+        "shoulder-lantern-rim", "cloak-lantern-fold", "cloak-lantern-glint",
+    } <= right_parts
+    assert right != left
+    glow = next(op for op in right if op.get("part") == "face-lantern-bounce")
+    assert glow["color"] == "#E9B86B"
+
+
+def test_traveler_rejects_unknown_lantern_light_direction():
+    import pytest
+    spec = {
+        "type": "traveler_sprite", "x": 10, "y": 5, "w": 20, "h": 34,
+        "light_side": "front",
+    }
+    with pytest.raises(ValueError, match="light side"):
+        expand_generator(spec)
