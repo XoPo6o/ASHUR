@@ -224,12 +224,12 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type": "line", "part": "face-eyelid-right", "points": [
             [eye_right_x-1, eye_y-1], [eye_right_x+1, eye_y-1]
         ], "color": op.get("brow", shade)})
-        out.append({"type": "pixel", "part": "face-eye", "x": eye_left_x,
-                    "y": eye_y, "color": op.get("eye", "#171827")})
-        out.append({"type": "pixel", "part": "face-eye-glint", "x": eye_left_x,
+        out.append({"type": "rect", "part": "face-eye", "x": eye_left_x,
+                    "y": eye_y, "w": 2, "h": 2, "color": op.get("eye", "#171827")})
+        out.append({"type": "pixel", "part": "face-eye-glint", "x": eye_left_x+1,
                     "y": eye_y+1, "color": face_light})
-        out.append({"type": "pixel", "part": "face-eye-right", "x": eye_right_x,
-                    "y": eye_y, "color": op.get("eye", "#171827")})
+        out.append({"type": "rect", "part": "face-eye-right", "x": eye_right_x,
+                    "y": eye_y, "w": 2, "h": 2, "color": op.get("eye", "#171827")})
         out.append({"type": "pixel", "part": "face-eye-right-glint", "x": eye_right_x,
                     "y": eye_y+1, "color": face_light})
         nose_shadow = op.get("nose_shadow", face_shadow)
