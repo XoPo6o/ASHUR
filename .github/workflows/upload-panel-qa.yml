@@ -140,6 +140,7 @@ jobs:
             assert.equal(files.has(pathOf('lamassu/sample.png')),false,'rename/move removes old path');
             assert.equal(files.has(pathOf('babylon/sample-renamed.png')),true,'rename/move creates destination');
 
+            await page.locator('#search').fill('');
             await page.getByRole('button',{name:'ЗАГРУЗИТЬ ФАЙЛЫ'}).click();
             await page.getByText('Сначала выбери изображения.').waitFor();
             await page.locator('#files').setInputFiles({name:'not-an-image.pdf',mimeType:'application/pdf',buffer:Buffer.from('not image')});
