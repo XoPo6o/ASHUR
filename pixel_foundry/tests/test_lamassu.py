@@ -66,3 +66,23 @@ def test_lamassu_expands_anatomy_on_high_density_grid():
             "harness-engraving", "eye-glint", "beard-engraving",
             "hoof-seam", "wing-quill-glint", "rib-highlight",
             "neck-engraving", "crown-engraving"} <= micro_parts
+
+
+
+def test_lamassu_wing_uses_separate_overlapping_feather_plates():
+    spec = {
+        "type": "lamassu_sprite", "x": 10, "y": 8, "w": 60, "h": 43,
+        "color": "#D9AD62", "shade": "#9C7746",
+        "highlight": "#F0D8A5", "detail": "#365564",
+    }
+    ops = expand_lamassu(spec)
+    plates = [op for op in ops if op.get("part") == "wing-feather-plate"]
+    assert len(plates) == 4
+    assert [op["feather_index"] for op in plates] == [0, 1, 2, 3]
+    assert all(op["type"] == "polygon" and len(op["points"]) >= 6 for op in plates)
+    assert sum(op.get("part") == "wing-feather-edge" for op in ops) == 4
+    assert sum(op.get("part") == "wing-feather-separation" for op in ops) == 4
+    for op in plates:
+        for px, py in op["points"]:
+            assert spec["x"] <= px < spec["x"] + spec["w"]
+            assert spec["y"] <= py < spec["y"] + spec["h"]
