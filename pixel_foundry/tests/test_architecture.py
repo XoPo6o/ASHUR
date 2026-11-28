@@ -32,7 +32,7 @@ def test_babylon_art_bible_has_distinct_city_facades_and_paved_street():
     all_ops = [op for layer in art_bible["layers"] for op in layer["ops"]]
     facades = [op for op in all_ops if op.get("type") == "brick_wall"]
     streets = [op for op in all_ops if op.get("type") == "stone_floor"]
-    assert len(facades) == 2
+    assert len(facades) >= 4
     assert len({op["seed"] for op in facades}) == 2
     assert len(streets) == 1
     assert streets[0]["seed"] == 20261128
