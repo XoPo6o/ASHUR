@@ -32,14 +32,15 @@ def _scale_operation(op: dict, factor: int) -> dict:
     generator = op.get("type") in {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "market_stall", "palm_tree", "cloud_bank",
-        "boulder", "water_surface", "traveler_sprite", "lamassu_sprite",
+        "boulder", "water_surface", "traveler_sprite", "traveler_bitmap", "lamassu_sprite",
         "temple_facade",
     }
-    if op.get("type") == "lamassu_sprite":
-        # Keep the authored 60x43 anatomy grid; expand it inside the sprite generator.
+    if op.get("type") in {"lamassu_sprite", "traveler_bitmap"}:
+        # Lamassu expands its anatomy; the hand-authored traveler bitmap instead
+        # stays at one native pixel per cell on the dense scene grid.
         scaled["x"] = int(scaled.get("x", 0) * factor)
         scaled["y"] = int(scaled.get("y", 0) * factor)
-        scaled["_detail_scale"] = factor
+        scaled["_detail_scale"] = factor if op.get("type") == "lamassu_sprite" else 1
     else:
         keys = _GENERATOR_GEOMETRY if generator else _PRIMITIVE_GEOMETRY
         for key in keys:

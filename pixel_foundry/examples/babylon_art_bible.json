@@ -38,7 +38,9 @@
       "water": "#65CFC0",
       "water_light": "#9AB0B6",
       "stone": "#365564",
-      "stone_dark": "#050A0E"
+      "stone_dark": "#050A0E",
+      "skin_mid": "#C58A5A",
+      "skin_shadow": "#8F5F43"
     },
     "ramps": {
       "sky": [
@@ -65,6 +67,11 @@
         "water_shadow",
         "water",
         "water_light"
+      ],
+      "skin": [
+        "skin_shadow",
+        "skin_mid",
+        "sand_light"
       ]
     }
   },
@@ -684,28 +691,11 @@
           "seed": 6
         },
         {
-          "type": "traveler_sprite",
-          "x": 67,
+          "type": "traveler_bitmap",
+          "x": 70,
           "y": 53,
-          "w": 22,
-          "h": 36,
-          "pose": "drag",
-          "color": "sand",
-          "shade": "dark",
-          "highlight": "gold",
-          "skin": "moon",
-          "trim": "gold_shadow",
-          "boots": "dark",
-          "limb_color": "sand_shadow",
-          "skin_shadow": "sand_shadow",
-          "skin_light": "sand_light",
-          "eye": "dark",
-          "brow": "dark",
-          "beard": "sand_shadow",
-          "cloth_shadow": "sand_shadow",
-          "cloth_light": "sand_light",
-          "seam": "gold_shadow",
-          "hood_inner": "sand_light"
+          "w": 40,
+          "h": 56
         },
         {
           "type": "lamassu_sprite",

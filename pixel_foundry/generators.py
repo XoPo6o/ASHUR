@@ -8,10 +8,13 @@ def expand_generator(op: dict) -> list[dict]:
     if kind == "lamassu_sprite":
         from .lamassu import expand_lamassu
         return expand_lamassu(op)
+    if kind == "traveler_bitmap":
+        from .sprites import expand_traveler_bitmap
+        return expand_traveler_bitmap(op)
     supported = {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "market_stall", "palm_tree", "cloud_bank", "boulder",
-        "water_surface", "traveler_sprite", "temple_facade",
+        "water_surface", "traveler_sprite", "traveler_bitmap", "temple_facade",
     }
     if kind not in supported:
         return [op]
