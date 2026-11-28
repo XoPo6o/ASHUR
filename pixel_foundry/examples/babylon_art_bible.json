@@ -36,7 +36,7 @@
       "leaf_light": "#E9E5D6",
       "water_shadow": "#2D6B70",
       "water": "#65CFC0",
-      "water_light": "#9AB0B6",
+      "water_light": "#B9D6D1",
       "stone": "#365564",
       "stone_dark": "#050A0E",
       "skin_mid": "#C58A5A",
@@ -120,7 +120,9 @@
           "y": 17,
           "color": "sand_light"
         }
-      ]
+      ],
+      "depth_plane": "night_sky",
+      "focus_role": "background"
     },
     {
       "name": "cloud banks",
@@ -149,7 +151,9 @@
           "seed": 5,
           "lumps": 4
         }
-      ]
+      ],
+      "depth_plane": "night_sky",
+      "focus_role": "background"
     },
     {
       "name": "distant city",
@@ -186,7 +190,9 @@
           "h": 12,
           "color": "far_blue"
         }
-      ]
+      ],
+      "depth_plane": "distant_city",
+      "focus_role": "background"
     },
     {
       "name": "near city facades — individually laid masonry and lit windows",
@@ -447,7 +453,9 @@
           ],
           "color": "stone"
         }
-      ]
+      ],
+      "depth_plane": "middle_city",
+      "focus_role": "supporting"
     },
     {
       "name": "far city towers and rooftop balconies",
@@ -864,7 +872,9 @@
           "y": 32,
           "color": "gold"
         }
-      ]
+      ],
+      "depth_plane": "middle_city",
+      "focus_role": "supporting"
     },
     {
       "name": "ziggurat",
@@ -882,7 +892,9 @@
           "top_color": "gold",
           "material": "sandstone"
         }
-      ]
+      ],
+      "depth_plane": "temple_and_market",
+      "focus_role": "primary"
     },
     {
       "name": "temple facade and royal reliefs",
@@ -1069,7 +1081,9 @@
           "y": 56,
           "color": "moon"
         }
-      ]
+      ],
+      "depth_plane": "temple_and_market",
+      "focus_role": "supporting"
     },
     {
       "name": "temple reliefs and processional carvings",
@@ -1267,7 +1281,9 @@
           "y": 61,
           "color": "gold"
         }
-      ]
+      ],
+      "depth_plane": "temple_and_market",
+      "focus_role": "supporting"
     },
     {
       "name": "hanging gardens and palms",
@@ -1300,7 +1316,9 @@
           "seed": 23,
           "material": "foliage"
         }
-      ]
+      ],
+      "depth_plane": "middle_city",
+      "focus_role": "supporting"
     },
     {
       "name": "foreground market and Lamassu guardian",
@@ -1498,7 +1516,9 @@
           "mid": "bronze_mid",
           "material": "bronze"
         }
-      ]
+      ],
+      "depth_plane": "foreground_guardians",
+      "focus_role": "secondary"
     }
   ],
   "planning": {
