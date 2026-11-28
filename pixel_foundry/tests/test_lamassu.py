@@ -60,11 +60,12 @@ def test_lamassu_expands_anatomy_on_high_density_grid():
     body = next(item for item in parts if item.get("part") == "body")
     assert min(point[0] for point in face["points"]) == 20 + 44 * 2
     assert max(point[0] for point in body["points"]) == 20 + 49 * 2
+    assert not any(item.get("part") in {"micro-feather", "wing-quill-glint"} for item in parts)
     assert spec["x"] == 20 and spec["y"] == 10
     micro_parts = {item.get("part") for item in parts}
-    assert {"micro-feather", "coat-grain", "muscle-crease",
+    assert {"coat-grain", "muscle-crease",
             "harness-engraving", "eye-glint", "beard-engraving",
-            "hoof-seam", "wing-quill-glint", "rib-highlight",
+            "hoof-seam", "rib-highlight",
             "neck-engraving", "crown-engraving"} <= micro_parts
 
 
