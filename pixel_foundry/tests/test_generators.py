@@ -180,3 +180,24 @@ def test_traveler_face_and_cloth_have_readable_pixel_features():
         "sleeve-cuff-stitch", "boot-sole", "boot-toe-wear",
     } <= parts
     assert sum(op.get("part") == "cloth-fold-shadow" for op in first) == 3
+
+def test_traveler_has_layered_collar_hands_and_hand_finished_gear():
+    spec = {
+        "type": "traveler_sprite", "x": 67, "y": 53, "w": 22, "h": 36,
+        "pose": "drag", "color": "#D9AD62", "shade": "#050A0E",
+        "highlight": "#F0D8A5", "skin": "#E9E5D6",
+        "trim": "#9C7746", "cloth_shadow": "#9C7746",
+        "cloth_light": "#F0D8A5",
+    }
+    first = expand_generator(spec)
+    assert first == expand_generator(spec)
+    parts = {op.get("part") for op in first}
+    assert {
+        "layered-collar-shadow", "collar-gold-piping", "collar-clasp",
+        "shoulder-seam-left", "shoulder-seam-right", "cloak-woven-stitch",
+        "cloak-woven-shadow", "tunic-embroidered-mark", "sleeve-fold-left",
+        "sleeve-fold-right", "hand-palm-light", "hand-thumb", "hand-shadow",
+        "boot-vamp-seam", "boot-lace", "boot-heel-shadow",
+    } <= parts
+    assert sum(op.get("part") == "hand-thumb" for op in first) == 2
+    assert sum(op.get("part") == "boot-lace" for op in first) == 2
