@@ -79,3 +79,21 @@ def test_market_props_have_distinct_handcrafted_wares_and_stay_in_bounds():
     assert max(px for px,py in coordinates) < op["x"]+op["w"]
     assert min(py for px,py in coordinates) >= op["y"]
     assert max(py for px,py in coordinates) < op["y"]+op["h"]
+
+
+def test_market_rug_has_readable_width_and_temple_has_carved_reliefs_and_steps():
+    from pixel_foundry.generators import expand_generator
+    from pixel_foundry.scene import _scale_operation
+    market_op=_scale_operation({"type":"market_props","x":8,"y":66,"w":58,"h":20},2)
+    market_parts={op.get("part") for op in expand_generator(market_op)}
+    assert {"hanging-rug-cloth","rug-medallion-core","market-lantern-glass"} <= market_parts
+    market_file=Path("pixel_foundry/examples/babylon_art_bible.json")
+    bible=json.loads(market_file.read_text(encoding="utf-8"))
+    relief=next(layer for layer in bible["layers"]
+                if layer["name"]=="temple reliefs and processional carvings")
+    relief_parts={op.get("part") for op in relief["ops"]}
+    assert {"left-winged-sun","left-cuneiform","right-relief-lamassu"} <= relief_parts
+    foreground=next(layer for layer in bible["layers"]
+                    if layer["name"]=="foreground market and Lamassu guardian")
+    stair_parts={op.get("part") for op in foreground["ops"]}
+    assert {"temple-stair-shadow","temple-step-upper","temple-step-lower"} <= stair_parts

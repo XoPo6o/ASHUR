@@ -76,25 +76,27 @@ def expand_market_props(op: dict) -> list[dict]:
     line("crate-cross-brace-shadow",[(47,7),(39,17)],deep)
     line("crate-bottom",[(40,18),(46,18)],light)
 
-    # Hanging dyed rug: border, stepped medallion and short fringe.
-    rect("hanging-rug-outline",49,2,5,18,dark)
-    rect("hanging-rug-cloth",50,3,3,15,teal)
-    line("rug-border-top",[(50,4),(52,4)],gold)
-    line("rug-border-bottom",[(50,16),(52,16)],gold)
-    line("rug-medallion",[(51,6),(52,8),(51,10),(50,8),(51,6)],light)
-    line("rug-fringe",[(50,18),(50,19)],gold)
-    line("rug-fringe",[(52,18),(52,19)],gold)
+    # Hanging dyed rug: wider cloth, stitched border, stepped medallion and fringe.
+    rect("hanging-rug-outline",45,2,9,15,dark)
+    rect("hanging-rug-cloth",46,3,7,13,teal)
+    line("rug-border-top",[(46,4),(52,4)],gold)
+    line("rug-border-bottom",[(46,15),(52,15)],gold)
+    line("rug-border-left",[(46,5),(46,14)],light)
+    line("rug-border-right",[(52,5),(52,14)],gold)
+    line("rug-medallion",[(49,6),(51,8),(49,10),(47,8),(49,6)],light)
+    line("rug-medallion-core",[(49,7),(50,8),(49,9),(48,8),(49,7)],gold)
+    for fringe_x in (47,49,51,53):
+        line("rug-fringe",[(fringe_x,17),(fringe_x,18)],gold)
 
     # Small oil lantern with metal cage and a bright glass core.
     line("market-lantern-chain",[(56,1),(56,3)],gold)
-    rect("market-lantern-frame",53,3,5,9,dark)
-    rect("market-lantern-glass",54,4,3,7,"moon")
-    line("market-lantern-cage",[(54,4),(54,10)],gold)
+    rect("market-lantern-frame",55,3,3,9,dark)
+    rect("market-lantern-glass",56,4,1,7,"moon")
     line("market-lantern-cage",[(56,4),(56,10)],gold)
-    line("market-lantern-cap",[(53,3),(57,3)],light)
-    line("market-lantern-base",[(53,12),(57,12)],gold)
+    line("market-lantern-cap",[(55,3),(57,3)],light)
+    line("market-lantern-base",[(55,12),(57,12)],gold)
     out.append({"type":"pixel","part":"market-lantern-flame",
-                "x":x+55*unit,"y":y+6*unit,"color":light})
+                "x":x+56*unit,"y":y+6*unit,"color":light})
     out.append({"type":"pixel","part":"market-lantern-glow-spill",
-                "x":x+55*unit,"y":y+13*unit,"color":gold})
+                "x":x+56*unit,"y":y+13*unit,"color":gold})
     return out
