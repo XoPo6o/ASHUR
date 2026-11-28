@@ -53,3 +53,21 @@ def test_temple_entrance_is_framed_and_recessed_not_a_flat_black_rectangle():
     door = next(op for op in temple["ops"] if op.get("part") == "temple-recessed-door")
     assert door["type"] == "rect" and door["w"] == 6 and door["h"] == 21
     assert sum(op.get("part") == "door-stud-upper" for op in temple["ops"]) == 1
+
+
+def test_market_props_have_distinct_handcrafted_wares_and_stay_in_bounds():
+    from pixel_foundry.generators import expand_generator
+    from pixel_foundry.scene import _scale_operation
+    op = _scale_operation({"type":"market_props","x":8,"y":66,"w":58,"h":20},2)
+    ops = expand_generator(op)
+    parts = {item.get("part") for item in ops}
+    assert {
+        "amphora-outline","amphora-glaze","market-bowl-body",
+        "basket-weave","crate-cross-brace","hanging-rug-cloth",
+        "market-lantern-glass","market-lantern-flame",
+    } <= parts
+    assert len(ops) >= 50
+    assert min(item["x"] for item in ops) >= op["x"]
+    assert max(item["x"] for item in ops) < op["x"]+op["w"]
+    assert min(item["y"] for item in ops) >= op["y"]
+    assert max(item["y"] for item in ops) < op["y"]+op["h"]

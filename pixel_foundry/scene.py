@@ -32,7 +32,7 @@ def _scale_operation(op: dict, factor: int) -> dict:
     generator = op.get("type") in {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "market_stall", "palm_tree", "cloud_bank",
-        "boulder", "water_surface", "traveler_sprite", "traveler_bitmap", "lamassu_sprite",
+        "boulder", "water_surface", "traveler_sprite", "traveler_bitmap", "market_props", "lamassu_sprite",
         "temple_facade",
     }
     if op.get("type") in {"lamassu_sprite", "traveler_bitmap"}:

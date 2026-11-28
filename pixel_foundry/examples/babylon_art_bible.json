@@ -779,6 +779,13 @@
           "seed": 6
         },
         {
+          "type": "market_props",
+          "x": 8,
+          "y": 66,
+          "w": 58,
+          "h": 20
+        },
+        {
           "type": "traveler_bitmap",
           "x": 70,
           "y": 53,

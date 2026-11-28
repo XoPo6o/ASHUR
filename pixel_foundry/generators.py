@@ -11,10 +11,13 @@ def expand_generator(op: dict) -> list[dict]:
     if kind == "traveler_bitmap":
         from .sprites import expand_traveler_bitmap
         return expand_traveler_bitmap(op)
+    if kind == "market_props":
+        from .market import expand_market_props
+        return expand_market_props(op)
     supported = {
         "brick_wall", "stone_floor", "foliage", "stepped_ziggurat",
         "column", "archway", "market_stall", "palm_tree", "cloud_bank", "boulder",
-        "water_surface", "traveler_sprite", "traveler_bitmap", "temple_facade",
+        "water_surface", "traveler_sprite", "traveler_bitmap", "market_props", "temple_facade",
     }
     if kind not in supported:
         return [op]
