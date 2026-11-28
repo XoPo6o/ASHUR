@@ -106,18 +106,18 @@ jobs:
             await page.getByRole('button',{name:'ПОДКЛЮЧИТЬ'}).click();
             await page.locator('#manager').waitFor({state:'visible'});
             await page.getByText('@qa-user · подключён').waitFor();
-            await page.getByText('В архиве: 1 изображений.').waitFor();
+            await page.getByText('Архив синхронизирован: 1 изображений.').waitFor();
             assert.equal(await page.evaluate(()=>localStorage.getItem('ashur_pixel_lab_token')),'valid-test-token','token persisted');
             assert.equal(await page.locator('#items .item').count(),1,'archive renders initial image');
 
             await page.reload();
             await page.locator('#manager').waitFor({state:'visible'});
             await page.getByText('@qa-user · подключён').waitFor();
-            await page.getByText('В архиве: 1 изображений.').waitFor();
+            await page.getByText('Архив синхронизирован: 1 изображений.').waitFor();
             assert.equal(await page.locator('#items .item').count(),1,'automatic reconnect and archive load after reload');
 
             await page.getByRole('button',{name:'ОБНОВИТЬ СПИСОК'}).click();
-            await page.getByText('В архиве: 1 изображений.').waitFor();
+            await page.getByText('Архив синхронизирован: 1 изображений.').waitFor();
             await page.locator('#search').fill('does-not-exist');
             assert.equal(await page.locator('#items .item').count(),0,'search filters archive');
             await page.locator('#search').fill('sample');
@@ -139,6 +139,7 @@ jobs:
             await page.getByText('Изменено: sample-renamed.png').waitFor();
             assert.equal(files.has(pathOf('lamassu/sample.png')),false,'rename/move removes old path');
             assert.equal(files.has(pathOf('babylon/sample-renamed.png')),true,'rename/move creates destination');
+            assert.deepEqual(await page.locator('#items .item h3').allTextContents(),['sample-renamed.png'],'renamed filename is rendered immediately');
 
             await page.locator('#search').fill('');
             await page.getByRole('button',{name:'ЗАГРУЗИТЬ ФАЙЛЫ'}).click();
@@ -164,6 +165,7 @@ jobs:
             await page.locator('.item').filter({hasText:'qa-upload.png'}).getByRole('button',{name:'УДАЛИТЬ'}).click();
             await page.getByText('Удалено: qa-upload.png').waitFor();
             assert.equal(files.has(pathOf('sprites/qa-upload.png')),false,'confirm delete removes file');
+            assert.equal(await page.locator('#items .item').filter({hasText:'qa-upload.png'}).count(),0,'deleted image disappears from visible archive');
 
             await page.getByRole('button',{name:'ОТКЛЮЧИТЬСЯ'}).click();
             assert.equal(await page.evaluate(()=>localStorage.getItem('ashur_pixel_lab_token')),null,'logout clears persisted token');
