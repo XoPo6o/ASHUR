@@ -267,9 +267,9 @@ def test_traveler_face_uses_two_eye_clusters_and_separate_skin_planes():
     assert {
         "face-shadow-cheek-plane", "face-light-cheek-plane",
         "face-eyelid-left", "face-eyelid-right",
-        "face-eye-left", "face-eye-right",
-        "face-eye-left-glint", "face-eye-right-glint",
+        "face-eye", "face-eye-right",
+        "face-eye-glint", "face-eye-right-glint",
     } <= parts
-    eyes = [op for op in ops if op.get("part") in {"face-eye-left", "face-eye-right"}]
+    eyes = [op for op in ops if op.get("part") in {"face-eye", "face-eye-right"}]
     assert len(eyes) == 2
     assert eyes[0]["x"] != eyes[1]["x"]
