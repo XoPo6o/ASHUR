@@ -169,7 +169,7 @@ def expand_generator(op: dict) -> list[dict]:
         pose = op.get("pose", "walk")
         if pose not in {"walk", "idle", "drag"}:
             raise ValueError(f"Unsupported traveler pose: {pose!r}")
-        head_w, head_h = max(8, w // 3 + 1), max(8, h // 4)
+        head_w, head_h = max(10, w // 2), max(9, h // 4)
         head_x, head_y = x + (w - head_w) // 2, y
         cx = x + w // 2
         shoulder_y = head_y + head_h
@@ -195,12 +195,13 @@ def expand_generator(op: dict) -> list[dict]:
         out.append({"type": "pixel", "x": face_x + max(2, head_w // 2),
                     "y": head_y + max(4, head_h // 2 + 1), "color": highlight})
 
-        # Face planes: hood shadow, brow, eye, nose bridge, cheek light and beard edge.
-        # Keep features grouped into readable clusters at the authored logical scale.
-        face_w = max(3, head_w // 2)
-        face_h = max(4, head_h - 2)
-        eye_y = head_y + max(3, head_h // 2)
-        eye_x = face_x + max(1, face_w // 2)
+        # Face planes: two separated eyes, a central nose bridge, cheek light,
+        # mouth and beard. Features occupy distinct clusters at native scale.
+        face_w = max(5, head_w // 2)
+        face_h = max(5, head_h - 2)
+        eye_y = head_y + max(4, head_h // 2)
+        eye_left_x = face_x + 1
+        eye_right_x = face_x + face_w - 2
         face_shadow = op.get("skin_shadow", shade)
         face_light = op.get("skin_light", highlight)
         out.append({"type": "line", "part": "face-shadow-plane", "points": [
@@ -208,51 +209,45 @@ def expand_generator(op: dict) -> list[dict]:
             "color": face_shadow})
         out.append({"type": "polygon", "part": "face-shadow-cheek-plane", "points": [
             [face_x, head_y+4], [face_x+1, head_y+3],
-            [face_x+face_w-1, eye_y+1], [face_x+face_w-1, eye_y+3],
+            [face_x+2, eye_y+1], [face_x+2, eye_y+3],
             [face_x+1, head_y+head_h-1]
         ], "color": face_shadow})
         out.append({"type": "line", "part": "face-light-cheek-plane", "points": [
-            [face_x+face_w-1, eye_y+2], [face_x+face_w, eye_y+3]
+            [face_x+face_w-2, eye_y+2], [face_x+face_w-1, eye_y+3]
         ], "color": face_light})
         out.append({"type": "line", "part": "face-brow", "points": [
-            [face_x, eye_y - 1], [face_x + face_w - 1, eye_y - 1]],
+            [eye_left_x-1, eye_y-1], [eye_right_x+1, eye_y-1]],
             "color": op.get("brow", shade)})
-        out.append({"type": "pixel", "part": "face-eye", "x": eye_x,
-                    "y": eye_y, "color": op.get("eye", "#171827")})
-        # Two clearly separated eyes and a stronger nose/mouth cluster keep
-        # the face readable at phone scale instead of becoming a pale mask.
-        eye_left_x = face_x + 1
-        eye_right_x = face_x + max(2, face_w - 2)
         out.append({"type": "line", "part": "face-eyelid-left", "points": [
             [eye_left_x-1, eye_y-1], [eye_left_x+1, eye_y-1]
         ], "color": op.get("brow", shade)})
         out.append({"type": "line", "part": "face-eyelid-right", "points": [
             [eye_right_x-1, eye_y-1], [eye_right_x+1, eye_y-1]
         ], "color": op.get("brow", shade)})
-        out.append({"type": "pixel", "part": "face-eye-left", "x": eye_left_x,
+        out.append({"type": "pixel", "part": "face-eye", "x": eye_left_x,
                     "y": eye_y, "color": op.get("eye", "#171827")})
+        out.append({"type": "pixel", "part": "face-eye-glint", "x": eye_left_x+1,
+                    "y": eye_y, "color": face_light})
         out.append({"type": "pixel", "part": "face-eye-right", "x": eye_right_x,
                     "y": eye_y, "color": op.get("eye", "#171827")})
-        out.append({"type": "pixel", "part": "face-eye-left-glint", "x": eye_left_x+1,
-                    "y": eye_y, "color": face_light})
         out.append({"type": "pixel", "part": "face-eye-right-glint", "x": eye_right_x+1,
                     "y": eye_y, "color": face_light})
-        out.append({"type": "pixel", "part": "face-eye-glint", "x": eye_x + 1,
-                    "y": eye_y, "color": face_light})
         out.append({"type": "line", "part": "face-nose", "points": [
-            [eye_x + 1, eye_y], [eye_x + 2, eye_y + 1]],
+            [face_x+2, eye_y], [face_x+2, eye_y+2]],
             "color": face_light})
-        out.append({"type": "pixel", "part": "face-cheek", "x": face_x + face_w - 1,
-                    "y": eye_y + 1, "color": face_light})
+        out.append({"type": "pixel", "part": "face-nose-tip", "x": face_x+2,
+                    "y": eye_y+2, "color": face_light})
+        out.append({"type": "pixel", "part": "face-cheek", "x": face_x+face_w-1,
+                    "y": eye_y+2, "color": face_light})
         out.append({"type": "line", "part": "face-mouth", "points": [
-            [face_x + 1, eye_y + 2], [face_x + max(2, face_w - 1), eye_y + 2]],
+            [face_x+1, eye_y+3], [face_x+2, eye_y+3], [face_x+3, eye_y+3]],
             "color": face_shadow})
         out.append({"type": "line", "part": "face-beard", "points": [
-            [face_x, head_y + head_h - 1], [face_x + 1, head_y + head_h],
-            [face_x + face_w - 1, head_y + head_h - 1]],
+            [face_x+1, head_y+head_h-2], [face_x+2, head_y+head_h-1],
+            [face_x+3, head_y+head_h-2]],
             "color": op.get("beard", shade)})
         out.append({"type": "pixel", "part": "face-beard-highlight",
-                    "x": face_x + max(1, face_w - 1), "y": head_y + head_h - 1,
+                    "x": face_x+3, "y": head_y+head_h-2,
                     "color": face_light})
         out.append({"type": "line", "part": "hood-inner-rim", "points": [
             [head_x + 1, head_y + 4], [head_x + 2, head_y + head_h + 1]],
