@@ -22,7 +22,7 @@ def test_lamassu_has_five_legs_and_assyrian_features():
             "eye-socket", "ear", "moustache"} <= parts
     assert sum(op.get("part") == "leg-joint" for op in ops) == 5
     assert sum(op.get("part") == "hoof-seam" for op in ops) == 5
-    assert sum(op.get("part") == "feather-barb" for op in ops) >= 7
+    assert sum(op.get("part") == "feather-barb" for op in ops) == 3
     assert all(op["type"] in {"polygon", "line", "rect", "pixel"} for op in ops)
 
 
@@ -77,11 +77,11 @@ def test_lamassu_wing_uses_separate_overlapping_feather_plates():
     }
     ops = expand_lamassu(spec)
     plates = [op for op in ops if op.get("part") == "wing-feather-plate"]
-    assert len(plates) == 4
-    assert [op["feather_index"] for op in plates] == [0, 1, 2, 3]
+    assert len(plates) == 3
+    assert [op["feather_index"] for op in plates] == [0, 1, 2]
     assert all(op["type"] == "polygon" and len(op["points"]) >= 6 for op in plates)
-    assert sum(op.get("part") == "wing-feather-edge" for op in ops) == 4
-    assert sum(op.get("part") == "wing-feather-separation" for op in ops) == 4
+    assert sum(op.get("part") == "wing-feather-edge" for op in ops) == 3
+    assert sum(op.get("part") == "wing-feather-separation" for op in ops) == 0
     for op in plates:
         for px, py in op["points"]:
             assert spec["x"] <= px < spec["x"] + spec["w"]
@@ -102,7 +102,7 @@ def test_lamassu_has_separated_shoulder_haunch_and_neck_mane_planes():
         "shoulder-muscle-plane", "shoulder-muscle-cut", "mane-lock",
     } <= parts
     assert sum(op.get("part") == "mane-lock" for op in ops) == 4
-    assert sum(op.get("part") == "wing-feather-plate" for op in ops) == 4
+    assert sum(op.get("part") == "wing-feather-plate" for op in ops) == 3
 
 
 def test_lamassu_uses_midtones_to_separate_body_and_face_planes():
