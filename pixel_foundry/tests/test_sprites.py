@@ -67,7 +67,15 @@ def test_market_props_have_distinct_handcrafted_wares_and_stay_in_bounds():
         "market-lantern-glass","market-lantern-flame",
     } <= parts
     assert len(ops) >= 50
-    assert min(item["x"] for item in ops) >= op["x"]
-    assert max(item["x"] for item in ops) < op["x"]+op["w"]
-    assert min(item["y"] for item in ops) >= op["y"]
-    assert max(item["y"] for item in ops) < op["y"]+op["h"]
+    coordinates = []
+    for item in ops:
+        if "x" in item and "y" in item:
+            coordinates.append((item["x"],item["y"]))
+            if item["type"] == "rect":
+                assert item["x"]+item["w"] <= op["x"]+op["w"]
+                assert item["y"]+item["h"] <= op["y"]+op["h"]
+        coordinates.extend(item.get("points", []))
+    assert min(px for px,py in coordinates) >= op["x"]
+    assert max(px for px,py in coordinates) < op["x"]+op["w"]
+    assert min(py for px,py in coordinates) >= op["y"]
+    assert max(py for px,py in coordinates) < op["y"]+op["h"]

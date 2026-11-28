@@ -57,7 +57,7 @@ def expand_market_props(op: dict) -> list[dict]:
 
     # Woven basket with alternating reed rows and a dark mouth.
     polygon("basket-outline",[(26,10),(28,8),(33,8),(35,10),
-             (34,18),(32,20),(28,20),(26,18)],dark)
+             (34,18),(32,19),(28,19),(26,18)],dark)
     polygon("basket-body",[(27,11),(29,9),(32,9),(34,11),
              (33,17),(31,19),(29,19),(27,17)],shade)
     line("basket-rim",[(26,10),(28,8),(33,8),(35,10)],light)
@@ -91,8 +91,8 @@ def expand_market_props(op: dict) -> list[dict]:
     rect("market-lantern-glass",55,4,3,7,"moon")
     line("market-lantern-cage",[(55,4),(55,10)],gold)
     line("market-lantern-cage",[(57,4),(57,10)],gold)
-    line("market-lantern-cap",[(54,3),(58,3)],light)
-    line("market-lantern-base",[(54,12),(58,12)],gold)
+    line("market-lantern-cap",[(54,3),(57,3)],light)
+    line("market-lantern-base",[(54,12),(57,12)],gold)
     out.append({"type":"pixel","part":"market-lantern-flame",
                 "x":x+56*unit,"y":y+6*unit,"color":light})
     out.append({"type":"pixel","part":"market-lantern-glow-spill",
