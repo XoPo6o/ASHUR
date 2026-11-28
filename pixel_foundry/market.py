@@ -87,14 +87,14 @@ def expand_market_props(op: dict) -> list[dict]:
 
     # Small oil lantern with metal cage and a bright glass core.
     line("market-lantern-chain",[(56,1),(56,3)],gold)
-    rect("market-lantern-frame",54,3,5,9,dark)
-    rect("market-lantern-glass",55,4,3,7,"moon")
-    line("market-lantern-cage",[(55,4),(55,10)],gold)
-    line("market-lantern-cage",[(57,4),(57,10)],gold)
-    line("market-lantern-cap",[(54,3),(57,3)],light)
-    line("market-lantern-base",[(54,12),(57,12)],gold)
+    rect("market-lantern-frame",53,3,5,9,dark)
+    rect("market-lantern-glass",54,4,3,7,"moon")
+    line("market-lantern-cage",[(54,4),(54,10)],gold)
+    line("market-lantern-cage",[(56,4),(56,10)],gold)
+    line("market-lantern-cap",[(53,3),(57,3)],light)
+    line("market-lantern-base",[(53,12),(57,12)],gold)
     out.append({"type":"pixel","part":"market-lantern-flame",
-                "x":x+56*unit,"y":y+6*unit,"color":light})
+                "x":x+55*unit,"y":y+6*unit,"color":light})
     out.append({"type":"pixel","part":"market-lantern-glow-spill",
-                "x":x+56*unit,"y":y+13*unit,"color":gold})
+                "x":x+55*unit,"y":y+13*unit,"color":gold})
     return out
