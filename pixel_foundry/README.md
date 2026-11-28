@@ -39,7 +39,11 @@ A renderer scene has `canvas`, `palette`, and ordered `layers`. An **art bible**
 }
 ```
 
-## AI Art Director contract\n\nThe model authors an art bible as structured JSON; `pixel_foundry.art_director` validates it and converts it to a deterministic scene spec. This keeps creative intent explicit and lets the raster renderer remain reproducible. Example: `examples/babylon_art_bible.json`. The current module validates structured decisions; it does not itself host or call a language model.\n\n## Design rules
+## AI Art Director contract\n\nThe model authors an art bible as structured JSON; `pixel_foundry.art_director` validates it and converts it to a deterministic scene spec. This keeps creative intent explicit and lets the raster renderer remain reproducible. Example: `examples/babylon_art_bible.json`. The current module validates structured decisions; it does not itself host or call a language model.\n\n## Art direction standard
+
+The complete production standard is [`PIXEL_ART_FIELD_MANUAL.md`](PIXEL_ART_FIELD_MANUAL.md). It defines planning, pixel craft, materials, lighting, perspective, character construction, generator contracts, visual QA, the three-reviewer gate and the implementation roadmap. Treat it as the source of truth; the short rules below are only a summary.
+
+## Design rules
 
 - Silhouette and composition before surface detail.
 - A small, intentional palette with hue/value ramps.
