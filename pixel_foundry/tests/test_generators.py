@@ -201,3 +201,24 @@ def test_traveler_has_layered_collar_hands_and_hand_finished_gear():
     } <= parts
     assert sum(op.get("part") == "hand-thumb" for op in first) == 2
     assert sum(op.get("part") == "boot-lace" for op in first) == 2
+
+def test_traveler_is_grounded_with_separate_boot_contact_shadows():
+    spec = {
+        "type": "traveler_sprite", "x": 67, "y": 53, "w": 22, "h": 36,
+        "pose": "drag", "color": "#D9AD62", "shade": "#050A0E",
+        "highlight": "#F0D8A5", "skin": "#E9E5D6",
+        "ground_shadow": "#050A0E", "contact_shadow": "#050A0E",
+        "ground_grit": "#365564",
+    }
+    ops = expand_generator(spec)
+    parts = {op.get("part") for op in ops}
+    assert {
+        "traveler-ground-shadow", "boot-contact-shadow-left",
+        "boot-contact-shadow-right", "ground-grit-left", "ground-grit-right",
+    } <= parts
+    shadow = next(op for op in ops if op.get("part") == "traveler-ground-shadow")
+    assert shadow["type"] == "polygon"
+    assert len(shadow["points"]) >= 6
+    assert ops.index(shadow) < next(
+        i for i, op in enumerate(ops) if op.get("part") == "boot-lace"
+    )
