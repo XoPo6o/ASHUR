@@ -19,44 +19,35 @@ def expand_lamassu(op: dict) -> list[dict]:
     detail = op.get("detail", "#365564")
     out: list[dict] = []
 
-    # Tall, layered wing: one clear outer silhouette plus stepped feather rows.
+    # Wing built as three broad, readable feather masses. The silhouette does
+    # the heavy lifting; sparse engraved seams describe direction without tangling.
     out.append({"type": "polygon", "part": "wing", "points": [
         [x+7,y+27],[x+4,y+20],[x+6,y+13],[x+11,y+7],
-        [x+18,y+2],[x+27,y],[x+34,y+3],[x+31,y+7],
-        [x+39,y+6],[x+43,y+11],[x+37,y+14],
-        [x+43,y+17],[x+38,y+22],[x+28,y+27],[x+17,y+30]
+        [x+18,y+2],[x+27,y],[x+34,y+3],[x+39,y+8],
+        [x+42,y+14],[x+39,y+20],[x+31,y+25],[x+20,y+29],[x+11,y+29]
     ], "color": shade})
     out.append({"type": "polygon", "part": "wing", "points": [
-        [x+10,y+24],[x+9,y+18],[x+14,y+11],[x+21,y+6],
-        [x+28,y+5],[x+24,y+10],[x+33,y+9],[x+29,y+14],
-        [x+36,y+15],[x+31,y+20],[x+23,y+25],[x+15,y+27]
+        [x+9,y+24],[x+9,y+18],[x+14,y+11],[x+21,y+6],
+        [x+28,y+5],[x+35,y+10],[x+37,y+15],[x+31,y+21],
+        [x+22,y+26],[x+14,y+27]
     ], "color": base})
-    feather_rows = [
-        ([[x+12,y+22],[x+17,y+14],[x+22,y+9]], highlight),
-        ([[x+16,y+25],[x+23,y+17],[x+29,y+12]], detail),
-        ([[x+21,y+26],[x+29,y+20],[x+35,y+17]], highlight),
-        ([[x+25,y+26],[x+33,y+23],[x+37,y+21]], detail),
-    ]
-    for points, color in feather_rows:
-        out.append({"type": "line", "part": "feather", "points": points, "color": color, "width": 2})
-
-    # Break the wing into overlapping feather plates. Each plate follows the
-    # fan direction and carries its own light edge and dark separation.
     feather_plates = [
-        ([[x+8,y+21],[x+11,y+13],[x+17,y+6],[x+20,y+7],[x+16,y+15],[x+12,y+22]], highlight),
-        ([[x+13,y+23],[x+17,y+14],[x+23,y+8],[x+26,y+9],[x+21,y+17],[x+17,y+24]], mid),
-        ([[x+19,y+24],[x+23,y+16],[x+29,y+11],[x+32,y+12],[x+27,y+20],[x+23,y+25]], highlight),
-        ([[x+25,y+26],[x+29,y+19],[x+35,y+15],[x+38,y+16],[x+33,y+23],[x+29,y+27]], mid),
+        ([[x+10,y+22],[x+14,y+13],[x+21,y+7],[x+24,y+8],[x+19,y+17],[x+14,y+24]], highlight),
+        ([[x+17,y+25],[x+22,y+16],[x+29,y+10],[x+32,y+12],[x+27,y+20],[x+21,y+26]], mid),
+        ([[x+25,y+25],[x+30,y+19],[x+36,y+15],[x+39,y+16],[x+34,y+23],[x+29,y+27]], highlight),
     ]
     for index, (points, color) in enumerate(feather_plates):
         out.append({"type": "polygon", "part": "wing-feather-plate",
                     "feather_index": index, "points": points, "color": color})
-        out.append({"type": "line", "part": "wing-feather-edge", "points": [
-            points[0], points[2], points[4]
-        ], "color": highlight if index % 2 == 0 else detail})
-        out.append({"type": "line", "part": "wing-feather-separation", "points": [
-            points[1], points[3], points[5]
-        ], "color": shade})
+        out.append({"type": "line", "part": "wing-feather-edge",
+                    "points": [points[0], points[2], points[4]],
+                    "color": highlight})
+    out.append({"type": "line", "part": "wing-quill", "points": [
+        [x+9,y+24],[x+18,y+17],[x+27,y+12],[x+36,y+10]
+    ], "color": detail, "width": 2})
+    out.append({"type": "line", "part": "wing-rim-light", "points": [
+        [x+7,y+14],[x+12,y+8],[x+19,y+3],[x+26,y+1]
+    ], "color": highlight})
 
     # Five legs are drawn first so the torso naturally occludes their upper joints.
     # Two hind legs plus three clustered forelegs create the classic double-aspect five-leg read.
@@ -211,25 +202,15 @@ def expand_lamassu(op: dict) -> list[dict]:
         [x+45,y+9],[x+52,y+8]
     ], "color": highlight})
 
-    # Individual feather barbs follow the wing's fan instead of repeating a single stripe.
+    # Three short engraved feather cuts reinforce the fan direction.
     wing_details = [
-        ([[x+12,y+21],[x+14,y+18],[x+17,y+16]], highlight),
-        ([[x+16,y+23],[x+19,y+20],[x+22,y+18]], detail),
-        ([[x+20,y+25],[x+23,y+22],[x+27,y+19]], highlight),
-        ([[x+25,y+25],[x+28,y+23],[x+32,y+20]], detail),
-        ([[x+29,y+23],[x+32,y+21],[x+35,y+19]], highlight),
-        ([[x+15,y+15],[x+18,y+12],[x+21,y+10]], detail),
-        ([[x+22,y+13],[x+25,y+11],[x+28,y+9]], highlight),
+        ([[x+14,y+18],[x+18,y+14],[x+21,y+11]], detail),
+        ([[x+22,y+21],[x+26,y+17],[x+30,y+14]], highlight),
+        ([[x+29,y+23],[x+33,y+20],[x+36,y+18]], detail),
     ]
     for points, color in wing_details:
         out.append({"type": "line", "part": "feather-barb",
                     "points": points, "color": color})
-    out.append({"type": "line", "part": "wing-quill", "points": [
-        [x+10,y+24],[x+18,y+17],[x+27,y+12],[x+36,y+10]
-    ], "color": detail, "width": 2})
-    out.append({"type": "line", "part": "wing-rim-light", "points": [
-        [x+7,y+14],[x+12,y+8],[x+19,y+3],[x+26,y+1]
-    ], "color": highlight})
 
     # Rib cage, shoulder mass and flank folds are separated into short anatomical clusters.
     anatomy_lines = [
