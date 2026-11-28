@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from .palette import Palette
 from .renderer import PixelRenderer
-from .qa import inspect_image
+from .qa import inspect_image, inspect_scene_art_direction
 from .generators import expand_generator
 
 _GENERATOR_GEOMETRY = {
@@ -79,6 +79,7 @@ def render_scene(scene: dict, output: str | Path | None = None, scale: int = 1) 
     report = inspect_image(image, palette)
     report["authored_canvas"] = {"width": width, "height": height}
     report["pixel_scale"] = detail_scale
+    report["art_direction"] = inspect_scene_art_direction(scene)
     if output:
         renderer.export(output, scale=scale, indexed=scene.get("export", {}).get("indexed", True))
     return {"image": image, "qa": report, "palette": palette}
