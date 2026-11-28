@@ -269,7 +269,13 @@ def test_traveler_face_uses_two_eye_clusters_and_separate_skin_planes():
         "face-eyelid-left", "face-eyelid-right",
         "face-eye", "face-eye-right",
         "face-eye-glint", "face-eye-right-glint",
+        "face-nose-tip", "face-nostril", "face-moustache",
+        "face-beard-highlight",
     } <= parts
     eyes = [op for op in ops if op.get("part") in {"face-eye", "face-eye-right"}]
     assert len(eyes) == 2
     assert eyes[0]["x"] != eyes[1]["x"]
+    nose = next(op for op in ops if op.get("part") == "face-nose")
+    beard = next(op for op in ops if op.get("part") == "face-beard")
+    assert nose["type"] == "polygon" and len(nose["points"]) >= 5
+    assert beard["type"] == "polygon" and len(beard["points"]) >= 5
