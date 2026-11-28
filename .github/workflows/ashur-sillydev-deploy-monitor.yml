@@ -144,19 +144,35 @@ jobs:
           if not h.get("all_strategies_ok") or h.get("error_count")!=0 or h.get("successful_strategies")!=6:
               raise SystemExit(1)
           if h.get("all_protections_ok") is not True or h.get("protection_degraded_positions")!=0 or h.get("protection_degraded_strategies")!=0:
-              raise SystemExit(1)
+              raise SystemExit("CRITICAL: aggregate minute protection is not healthy")
+          if d.get("sqlite",{}).get("integrity") != "ok":
+              raise SystemExit("CRITICAL: SQLite integrity check is missing or failed")
+          protection_events=d.get("protection_audit",{}).get("events_24h",{})
+          for name in ("INTRABAR_DATA_WARNING","PROTECTION_GAP_FAILSAFE","PROTECTION_RECOVERY_BLOCKED"):
+              if int(protection_events.get(name,0)) != 0:
+                  raise SystemExit("CRITICAL: protection event detected: "+name)
           for account in d.get("accounts",[]):
+              if account.get("protection_status")!="OK":
+                  raise SystemExit("CRITICAL: strategy protection is not fresh: "+str(account.get("strategy_id")))
               position=account.get("position")
-              if account.get("protection_status")=="DEGRADED":
-                  raise SystemExit(1)
-              if position and position.get("protection_status")!="OK":
-                  raise SystemExit(1)
+              if position:
+                  if position.get("protection_status")!="OK" or position.get("last_intrabar_error"):
+                      raise SystemExit("CRITICAL: open position protection error")
+                  protection_age=position.get("last_intrabar_age_seconds")
+                  if protection_age is None or protection_age>240:
+                      raise SystemExit("CRITICAL: open position minute check is older than 240 seconds")
+          marks=d.get("market_marks",{})
+          if len(marks)!=6 or any(v.get("age_seconds") is None or v.get("age_seconds")>900 for v in marks.values()):
+              raise SystemExit("CRITICAL: one or more market marks are stale")
+          news_age=d.get("news_intelligence",{}).get("age_seconds")
+          if news_age is None or news_age>900:
+              raise SystemExit("CRITICAL: news collector heartbeat is stale")
           if not stamp:
               raise SystemExit(1)
           age=(datetime.now(timezone.utc)-datetime.fromisoformat(stamp.replace("Z","+00:00"))).total_seconds()
           if age>900 or age<0:
               raise SystemExit(1)
-          print("MODE=PAPER_ONLY STRATEGIES=6 WORKER_ERRORS=0 PROTECTION=OK HEARTBEAT_AGE_SECONDS="+str(int(age)))
+          print("MODE=PAPER_ONLY STRATEGIES=6 WORKER_ERRORS=0 SQLITE=OK PROTECTION=OK MARKET_MARKS=FRESH NEWS_AGE_SECONDS="+str(int(news_age))+" HEARTBEAT_AGE_SECONDS="+str(int(age)))
           PY
               then
                 HEALTHY=true
