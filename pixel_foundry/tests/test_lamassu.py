@@ -86,3 +86,20 @@ def test_lamassu_wing_uses_separate_overlapping_feather_plates():
         for px, py in op["points"]:
             assert spec["x"] <= px < spec["x"] + spec["w"]
             assert spec["y"] <= py < spec["y"] + spec["h"]
+
+
+
+def test_lamassu_has_separated_shoulder_haunch_and_neck_mane_planes():
+    spec = {
+        "type": "lamassu_sprite", "x": 10, "y": 8, "w": 60, "h": 43,
+        "color": "#D9AD62", "shade": "#9C7746",
+        "highlight": "#F0D8A5", "detail": "#365564",
+    }
+    ops = expand_lamassu(spec)
+    parts = {op.get("part") for op in ops}
+    assert {
+        "haunch-shadow-plane", "haunch-light-ridge",
+        "shoulder-muscle-plane", "shoulder-muscle-cut", "mane-lock",
+    } <= parts
+    assert sum(op.get("part") == "mane-lock" for op in ops) == 4
+    assert sum(op.get("part") == "wing-feather-plate" for op in ops) == 4
