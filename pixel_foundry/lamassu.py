@@ -306,6 +306,26 @@ def expand_lamassu(op: dict) -> list[dict]:
         out.append({"type": "line", "part": "beard-curl",
                     "points": points, "color": color})
 
+    # A controlled silhouette scale lets the guardian sit in the composition
+    # without sacrificing the authored pixel detail when the scene is dense.
+    sprite_scale = float(op.get("sprite_scale", 1.0))
+    if not 0.5 <= sprite_scale <= 1.0:
+        raise ValueError("lamassu_sprite sprite_scale must be between 0.5 and 1.0")
+    if sprite_scale < 1.0:
+        for primitive in out:
+            for key, anchor in (("x", x), ("y", y)):
+                if key in primitive:
+                    primitive[key] = anchor + round((primitive[key] - anchor) * sprite_scale)
+            for key in ("w", "h", "width", "stroke"):
+                if key in primitive:
+                    primitive[key] = max(1, round(primitive[key] * sprite_scale))
+            if "points" in primitive:
+                primitive["points"] = [
+                    [x + round((px - x) * sprite_scale),
+                     y + round((py - y) * sprite_scale)]
+                    for px, py in primitive["points"]
+                ]
+
     detail_scale = int(op.get("_detail_scale", 1))
     if detail_scale > 1:
         for primitive in out:
