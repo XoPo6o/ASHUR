@@ -698,5 +698,85 @@ class TestAshurRuntime(unittest.TestCase):
                 worker.ROOT, worker.DATA_DIR, worker.DB, worker.STATUS_FILE = original
 
 
+    def test_status_export_fails_closed_on_stale_intrabar_health_and_exposes_audit(self):
+        import json
+        import tempfile
+        from datetime import datetime, timedelta, timezone
+
+        with tempfile.TemporaryDirectory() as temporary:
+            original = (worker.DATA_DIR, worker.STATUS_FILE)
+            try:
+                worker.DATA_DIR = Path(temporary)
+                worker.STATUS_FILE = Path(temporary) / "status.json"
+                conn = sqlite3.connect(":memory:")
+                conn.row_factory = sqlite3.Row
+                worker.init_db(conn)
+                now = datetime.now(timezone.utc)
+                for index, strategy in enumerate(worker.STRATEGIES):
+                    stamp = now - timedelta(minutes=5 if index == 0 else 1)
+                    conn.execute(
+                        """INSERT INTO shadow_intrabar_health
+                           (strategy_id,last_success_at,last_error,last_error_at)
+                           VALUES(?,?,NULL,NULL)""",
+                        (strategy["id"], stamp.isoformat()),
+                    )
+                stale_strategy = worker.STRATEGIES[0]
+                conn.execute(
+                    """INSERT INTO shadow_positions
+                       (strategy_id,symbol,qty,entry,entry_fee,stop,target,opened_at)
+                       VALUES(?,?,?,?,?,?,?,?)""",
+                    (stale_strategy["id"], stale_strategy["symbol"], 1.0,
+                     100.0, 0.1, 95.0, 120.0, now.isoformat()),
+                )
+                conn.execute(
+                    """INSERT INTO shadow_events(created_at,strategy_id,event,details)
+                       VALUES(?,?,?,?)""",
+                    (now.isoformat(), stale_strategy["id"], "INTRABAR_DATA_WARNING",
+                     "simulated missing minute"),
+                )
+                conn.execute(
+                    """INSERT INTO shadow_events(created_at,strategy_id,event,details)
+                       VALUES(?,?,?,?)""",
+                    (now.isoformat(), stale_strategy["id"], "PROTECTION_GAP_FAILSAFE",
+                     "paper close at validated live mark"),
+                )
+                conn.execute(
+                    """INSERT INTO shadow_events(created_at,strategy_id,event,details)
+                       VALUES(?,?,?,?)""",
+                    ((now - timedelta(minutes=2)).isoformat(), stale_strategy["id"],
+                     "CHECK", "first"),
+                )
+                conn.execute(
+                    """INSERT INTO shadow_events(created_at,strategy_id,event,details)
+                       VALUES(?,?,?,?)""",
+                    (now.isoformat(), stale_strategy["id"], "CHECK", "second"),
+                )
+                conn.commit()
+
+                worker.export_status(conn)
+                status = json.loads(worker.STATUS_FILE.read_text(encoding="utf-8"))
+                self.assertFalse(status["worker_health"]["all_protections_ok"])
+                self.assertEqual(status["worker_health"]["protection_degraded_strategies"], 1)
+                self.assertEqual(status["worker_health"]["protection_degraded_positions"], 1)
+                account = next(a for a in status["accounts"]
+                               if a["strategy_id"] == stale_strategy["id"])
+                self.assertEqual(account["position"]["protection_status"], "STALE_OR_UNKNOWN")
+                self.assertGreater(account["position"]["last_intrabar_age_seconds"], 240)
+                self.assertEqual(status["sqlite"]["integrity"], "ok")
+                self.assertEqual(
+                    status["protection_audit"]["events_24h"]["INTRABAR_DATA_WARNING"], 1
+                )
+                self.assertEqual(
+                    status["protection_audit"]["events_24h"]["PROTECTION_GAP_FAILSAFE"], 1
+                )
+                self.assertGreaterEqual(
+                    status["protection_audit"]["max_check_gap_seconds"][stale_strategy["id"]],
+                    119,
+                )
+                conn.close()
+            finally:
+                worker.DATA_DIR, worker.STATUS_FILE = original
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
