@@ -878,9 +878,6 @@
           "tiers": 5,
           "tier_h": 7,
           "inset": 6,
-          "color": "sand",
-          "shade": "sand_shadow",
-          "highlight": "sand_light",
           "side_color": "sand_shadow",
           "top_color": "gold",
           "material": "sandstone"
@@ -1281,9 +1278,6 @@
           "y": 48,
           "w": 18,
           "h": 10,
-          "color": "leaf",
-          "shade": "leaf_shadow",
-          "highlight": "leaf_light",
           "seed": 9,
           "clusters": 6,
           "material": "foliage"
@@ -1294,9 +1288,6 @@
           "y": 49,
           "w": 18,
           "h": 32,
-          "color": "leaf",
-          "shade": "leaf_shadow",
-          "highlight": "leaf_light",
           "seed": 17,
           "material": "foliage"
         },
@@ -1306,9 +1297,6 @@
           "y": 52,
           "w": 18,
           "h": 29,
-          "color": "leaf",
-          "shade": "leaf_shadow",
-          "highlight": "leaf_light",
           "seed": 23,
           "material": "foliage"
         }
@@ -1333,9 +1321,6 @@
           "h": 14,
           "block_w": 12,
           "block_h": 4,
-          "color": "stone",
-          "shade": "blue_stone",
-          "highlight": "sand_shadow",
           "mortar": "dark",
           "seed": 20261128,
           "material": "stone"
@@ -1447,9 +1432,6 @@
           "y": 85,
           "w": 20,
           "h": 4,
-          "color": "water",
-          "shade": "water_shadow",
-          "highlight": "water_light",
           "seed": 31,
           "material": "water"
         },
@@ -1489,9 +1471,6 @@
           "y": 83,
           "w": 7,
           "h": 6,
-          "color": "stone",
-          "shade": "stone_dark",
-          "highlight": "sand_light",
           "seed": 6,
           "material": "stone"
         },
@@ -1515,9 +1494,6 @@
           "y": 47,
           "w": 60,
           "h": 43,
-          "color": "sand",
-          "shade": "sand_shadow",
-          "highlight": "sand_light",
           "detail": "stone",
           "mid": "bronze_mid",
           "material": "bronze"
