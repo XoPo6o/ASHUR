@@ -85,13 +85,13 @@ async function loadUploadedReferences(){
    if(!response.ok)continue;
    const files=await response.json();
    for(const file of files){
-    if(file.type!=='file'||!/\\.(png|jpe?g|webp|gif)$/i.test(file.name))continue;
+    if(file.type!=='file'||!/\.(png|jpe?g|webp|gif)$/i.test(file.name))continue;
     const card=document.createElement('article');card.className='card item';card.dataset.category=cat;card.dataset.search=(file.name+' '+cat).toLowerCase();
     const visual=document.createElement('div');visual.className='visual';
     const img=document.createElement('img');img.src=file.download_url;img.dataset.full=file.download_url;img.alt=file.name;img.loading='lazy';visual.append(img);
     const meta=document.createElement('div');meta.className='meta';
     const kind=document.createElement('div');kind.className='kind';kind.textContent='UPLOADED / '+categoryNames[cat];
-    const title=document.createElement('h3');title.textContent=file.name.replace(/\\.[^.]+$/,'').replace(/[-_]+/g,' ');
+    const title=document.createElement('h3');title.textContent=file.name.replace(/\.[^.]+$/,'').replace(/[-_]+/g,' ');
     const desc=document.createElement('p');desc.textContent='Оригинал из архива ASHUR. Использовать как визуальный ориентир.';
     const actions=document.createElement('div');actions.className='actions';
     const link=document.createElement('a');link.className='link';link.href=file.download_url;link.target='_blank';link.rel='noopener';link.textContent='Открыть оригинал ↗';actions.append(link);
