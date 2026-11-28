@@ -97,3 +97,19 @@ def test_market_rug_has_readable_width_and_temple_has_carved_reliefs_and_steps()
                     if layer["name"]=="foreground market and Lamassu guardian")
     stair_parts={op.get("part") for op in foreground["ops"]}
     assert {"temple-stair-shadow","temple-step-upper","temple-step-lower"} <= stair_parts
+
+
+def test_far_city_has_layered_towers_rooflines_balconies_and_lit_arches():
+    path=Path("pixel_foundry/examples/babylon_art_bible.json")
+    bible=json.loads(path.read_text(encoding="utf-8"))
+    city=next(layer for layer in bible["layers"]
+              if layer["name"]=="far city towers and rooftop balconies")
+    parts={op.get("part") for op in city["ops"]}
+    types={op["type"] for op in city["ops"]}
+    assert {"left-roof-moon-rim","right-roof-moon-rim",
+            "left-balcony-rail","right-balcony-rail",
+            "left-hanging-banner","right-hanging-banner",
+            "left-tower-window-glow","right-tower-window-glow"} <= parts
+    assert {"brick_wall","archway","polygon","line"} <= types
+    assert bible["layers"].index(city) < next(
+        i for i,layer in enumerate(bible["layers"]) if layer["name"]=="ziggurat")
