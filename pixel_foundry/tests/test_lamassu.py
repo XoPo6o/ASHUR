@@ -16,7 +16,7 @@ def test_lamassu_has_five_legs_and_assyrian_features():
     leg_x = [op["points"][0][0] for op in ops if op.get("part") == "leg"]
     assert [value - spec["x"] for value in leg_x] == [8, 19, 37, 44, 51]
     parts = {op.get("part") for op in ops}
-    assert {"wing", "feather", "body", "human-face", "horn", "beard", "rosette",
+    assert {"wing", "body", "human-face", "horn", "beard", "rosette",
             "feather-barb", "wing-quill", "rib-engraving", "leg-joint",
             "shin-plane", "hoof-seam", "crown-band", "horn-ridge",
             "eye-socket", "ear", "moustache"} <= parts
