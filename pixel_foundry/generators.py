@@ -169,7 +169,7 @@ def expand_generator(op: dict) -> list[dict]:
         pose = op.get("pose", "walk")
         if pose not in {"walk", "idle", "drag"}:
             raise ValueError(f"Unsupported traveler pose: {pose!r}")
-        head_w, head_h = max(10, w // 2), max(9, h // 4)
+        head_w, head_h = max(13, w // 2 + 2), max(9, h // 4)
         head_x, head_y = x + (w - head_w) // 2, y
         cx = x + w // 2
         shoulder_y = head_y + head_h
@@ -197,7 +197,7 @@ def expand_generator(op: dict) -> list[dict]:
 
         # Face planes: two separated eyes, a central nose bridge, cheek light,
         # mouth and beard. Features occupy distinct clusters at native scale.
-        face_w = max(5, head_w // 2)
+        face_w = max(6, head_w // 2)
         face_h = max(5, head_h - 2)
         eye_y = head_y + max(4, head_h // 2)
         eye_left_x = face_x + 1
@@ -226,12 +226,12 @@ def expand_generator(op: dict) -> list[dict]:
         ], "color": op.get("brow", shade)})
         out.append({"type": "pixel", "part": "face-eye", "x": eye_left_x,
                     "y": eye_y, "color": op.get("eye", "#171827")})
-        out.append({"type": "pixel", "part": "face-eye-glint", "x": eye_left_x+1,
-                    "y": eye_y, "color": face_light})
+        out.append({"type": "pixel", "part": "face-eye-glint", "x": eye_left_x,
+                    "y": eye_y+1, "color": face_light})
         out.append({"type": "pixel", "part": "face-eye-right", "x": eye_right_x,
                     "y": eye_y, "color": op.get("eye", "#171827")})
-        out.append({"type": "pixel", "part": "face-eye-right-glint", "x": eye_right_x+1,
-                    "y": eye_y, "color": face_light})
+        out.append({"type": "pixel", "part": "face-eye-right-glint", "x": eye_right_x,
+                    "y": eye_y+1, "color": face_light})
         out.append({"type": "line", "part": "face-nose", "points": [
             [face_x+2, eye_y], [face_x+2, eye_y+2]],
             "color": face_light})
