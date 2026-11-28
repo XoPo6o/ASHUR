@@ -15,6 +15,7 @@ def expand_lamassu(op: dict) -> list[dict]:
     base = op.get("color", "#D9AD62")
     shade = op.get("shade", "#9C7746")
     highlight = op.get("highlight", "#F0D8A5")
+    mid = op.get("mid", "bronze_mid")
     detail = op.get("detail", "#365564")
     out: list[dict] = []
 
@@ -43,9 +44,9 @@ def expand_lamassu(op: dict) -> list[dict]:
     # fan direction and carries its own light edge and dark separation.
     feather_plates = [
         ([[x+8,y+21],[x+11,y+13],[x+17,y+6],[x+20,y+7],[x+16,y+15],[x+12,y+22]], highlight),
-        ([[x+13,y+23],[x+17,y+14],[x+23,y+8],[x+26,y+9],[x+21,y+17],[x+17,y+24]], base),
+        ([[x+13,y+23],[x+17,y+14],[x+23,y+8],[x+26,y+9],[x+21,y+17],[x+17,y+24]], mid),
         ([[x+19,y+24],[x+23,y+16],[x+29,y+11],[x+32,y+12],[x+27,y+20],[x+23,y+25]], highlight),
-        ([[x+25,y+26],[x+29,y+19],[x+35,y+15],[x+38,y+16],[x+33,y+23],[x+29,y+27]], base),
+        ([[x+25,y+26],[x+29,y+19],[x+35,y+15],[x+38,y+16],[x+33,y+23],[x+29,y+27]], mid),
     ]
     for index, (points, color) in enumerate(feather_plates):
         out.append({"type": "polygon", "part": "wing-feather-plate",
@@ -90,6 +91,14 @@ def expand_lamassu(op: dict) -> list[dict]:
         [x+43,y+29],[x+45,y+33],[x+38,y+36],
         [x+18,y+35],[x+11,y+33]
     ], "color": shade})
+    out.append({"type": "polygon", "part": "body-midplane", "points": [
+        [x+10,y+24],[x+17,y+21],[x+29,y+21],[x+38,y+24],
+        [x+42,y+28],[x+36,y+31],[x+24,y+30],[x+14,y+29]
+    ], "color": mid})
+    out.append({"type": "polygon", "part": "flank-midplane", "points": [
+        [x+10,y+30],[x+17,y+29],[x+24,y+31],[x+31,y+31],
+        [x+36,y+33],[x+31,y+35],[x+18,y+34],[x+12,y+33]
+    ], "color": mid})
     out.append({"type": "polygon", "part": "shoulder-shadow", "points": [
         [x+31,y+21],[x+39,y+22],[x+44,y+26],
         [x+43,y+31],[x+37,y+32],[x+33,y+28]
@@ -157,6 +166,10 @@ def expand_lamassu(op: dict) -> list[dict]:
         [x+57,y+16],[x+55,y+20],[x+53,y+22],
         [x+48,y+22],[x+46,y+19],[x+44,y+15]
     ], "color": highlight})
+    out.append({"type": "polygon", "part": "human-face-midplane", "points": [
+        [x+45,y+12],[x+48,y+11],[x+49,y+17],
+        [x+47,y+20],[x+45,y+17]
+    ], "color": mid})
     out.append({"type": "polygon", "part": "hair", "points": [
         [x+43,y+12],[x+44,y+7],[x+48,y+5],
         [x+53,y+5],[x+56,y+9],[x+55,y+12],

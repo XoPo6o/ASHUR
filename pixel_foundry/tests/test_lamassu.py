@@ -103,3 +103,16 @@ def test_lamassu_has_separated_shoulder_haunch_and_neck_mane_planes():
     } <= parts
     assert sum(op.get("part") == "mane-lock" for op in ops) == 4
     assert sum(op.get("part") == "wing-feather-plate" for op in ops) == 4
+
+
+def test_lamassu_uses_midtones_to_separate_body_and_face_planes():
+    spec={"type":"lamassu_sprite","x":10,"y":8,"w":60,"h":43,
+          "color":"sand","shade":"sand_shadow","highlight":"sand_light",
+          "mid":"bronze_mid","detail":"blue_stone"}
+    ops=expand_lamassu(spec)
+    parts={op.get("part") for op in ops}
+    assert {"body-midplane","flank-midplane","human-face-midplane"} <= parts
+    assert all(next(op for op in ops if op.get("part")==part)["color"]=="bronze_mid"
+               for part in ("body-midplane","flank-midplane","human-face-midplane"))
+    plates=[op for op in ops if op.get("part")=="wing-feather-plate"]
+    assert any(op["color"]=="bronze_mid" for op in plates)

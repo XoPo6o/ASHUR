@@ -40,7 +40,8 @@
       "stone": "#365564",
       "stone_dark": "#050A0E",
       "skin_mid": "#C58A5A",
-      "skin_shadow": "#8F5F43"
+      "skin_shadow": "#8F5F43",
+      "bronze_mid": "#B88A4F"
     },
     "ramps": {
       "sky": [
@@ -1088,7 +1089,8 @@
           "color": "sand",
           "shade": "sand_shadow",
           "highlight": "sand_light",
-          "detail": "stone"
+          "detail": "stone",
+          "mid": "bronze_mid"
         }
       ]
     }
