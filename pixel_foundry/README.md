@@ -6,6 +6,8 @@ A deterministic, spec-driven pixel-art raster toolkit. The AI describes the art 
 
 - Logical-resolution raster canvas; integer nearest-neighbour scaling only.
 - Palette validation and exact-palette quantization.
+- SPECC+ art-direction contract: composition, depth planes, detail tier and contrast budget.
+- Named material profiles resolved from palette ramps into deterministic generator roles.
 - Layered JSON scene specification.
 - Pixel primitives: rectangles, ellipses, lines, polygons, single pixels, bitmap text, hard palette ramps, silhouette outlines and controlled dithering.
 - Seeded procedural materials: brick walls, stone floors, clustered foliage, stepped ziggurats, columns and stone archways.
