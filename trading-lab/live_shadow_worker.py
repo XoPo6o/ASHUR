@@ -662,6 +662,48 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
            WHERE event='INTRABAR_DATA_WARNING' AND created_at>=?""",
         (cutoff_24h,),
     ).fetchone()[0]
+    protection_event_names = (
+        "INTRABAR_DATA_WARNING", "PROTECTION_GAP_FAILSAFE",
+        "PROTECTION_RECOVERY_BLOCKED", "PROTECTION_RECOVERED",
+        "PROTECTION_INITIALIZED",
+    )
+    protection_events_24h = {}
+    for event_name in protection_event_names:
+        protection_events_24h[event_name] = int(conn.execute(
+            "SELECT COUNT(*) FROM shadow_events WHERE event=? AND created_at>=?",
+            (event_name, cutoff_24h),
+        ).fetchone()[0])
+    recent_protection_events = [
+        dict(row) for row in conn.execute(
+            """SELECT created_at,strategy_id,event,details FROM shadow_events
+               WHERE event IN (?,?,?,?,?) ORDER BY id DESC LIMIT 100""",
+            protection_event_names,
+        ).fetchall()
+    ]
+    sqlite_integrity = str(conn.execute("PRAGMA integrity_check").fetchone()[0])
+    news_last_completed = conn.execute(
+        "SELECT MAX(finished_at) FROM news_collection_runs"
+    ).fetchone()[0]
+    max_check_gap_seconds = {}
+    for strategy in STRATEGIES:
+        check_rows = conn.execute(
+            """SELECT created_at FROM shadow_events
+               WHERE strategy_id=? AND event='CHECK' ORDER BY id""",
+            (strategy["id"],),
+        ).fetchall()
+        stamps = []
+        for check_row in check_rows:
+            try:
+                parsed = datetime.fromisoformat(str(check_row["created_at"]).replace("Z", "+00:00"))
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=timezone.utc)
+                stamps.append(parsed.timestamp())
+            except (TypeError, ValueError):
+                continue
+        max_check_gap_seconds[strategy["id"]] = (
+            round(max(b - a for a, b in zip(stamps, stamps[1:])), 1)
+            if len(stamps) > 1 else None
+        )
     baseline_id = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_id'").fetchone()
     baseline_at = conn.execute("SELECT value FROM ashur_meta WHERE key='paper_baseline_at'").fetchone()
     output = {"updated_at": now(), "mode": "PAPER_ONLY",
@@ -671,7 +713,20 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                   "starting_equity_per_strategy": START_CASH,
                   "strategy_count": len(STRATEGIES),
               },
-              "market_data": "Public spot market data; Bybit primary, Binance fallback",
+              "market_data": {
+                  "description": "Public spot market data; Bybit primary, Binance fallback",
+                  "marks": {},
+              },
+              "news_intelligence": {**news.collection_stats(conn, 24),
+                                    "news_vetoes_24h": int(news_vetoes_24h),
+                                    "veto_outcomes": news.veto_outcome_stats(conn),
+                                    "last_completed_at": news_last_completed},
+              "sqlite": {"integrity": sqlite_integrity},
+              "protection_audit": {
+                  "events_24h": protection_events_24h,
+                  "recent_events": recent_protection_events,
+                  "max_check_gap_seconds": max_check_gap_seconds,
+              },
               "worker_health": {"strategy_count": len(STRATEGIES),
                                 "successful_strategies": successful_strategies,
                                 "error_count": int(worker_errors),
@@ -680,9 +735,6 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                                 "protection_degraded_positions": 0,
                                 "protection_degraded_strategies": 0,
                                 "all_protections_ok": True},
-              "news_intelligence": {**news.collection_stats(conn, 24),
-                                    "news_vetoes_24h": int(news_vetoes_24h),
-                                    "veto_outcomes": news.veto_outcome_stats(conn)},
               "accounts": []}
     for a in accounts:
         pos = conn.execute("SELECT * FROM shadow_positions WHERE strategy_id=?", (a["strategy_id"],)).fetchone()
@@ -707,14 +759,34 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             "SELECT last_success_at,last_error,last_error_at FROM shadow_intrabar_health WHERE strategy_id=?",
             (a["strategy_id"],),
         ).fetchone()
-        protection_status = "DEGRADED" if protection and protection["last_error"] else "NOT_REQUIRED"
+        protection_age_seconds = None
+        if protection and protection["last_success_at"]:
+            try:
+                protection_stamp = datetime.fromisoformat(
+                    str(protection["last_success_at"]).replace("Z", "+00:00")
+                )
+                if protection_stamp.tzinfo is None:
+                    protection_stamp = protection_stamp.replace(tzinfo=timezone.utc)
+                protection_age_seconds = max(
+                    0.0, (datetime.now(timezone.utc) - protection_stamp).total_seconds()
+                )
+            except (TypeError, ValueError):
+                protection_age_seconds = None
+        protection_ok = bool(
+            protection and protection["last_success_at"] and not protection["last_error"]
+            and protection_age_seconds is not None
+            and protection_age_seconds <= MAX_INTRABAR_HEALTH_AGE_SECONDS
+        )
+        protection_status = "OK" if protection_ok else (
+            "DEGRADED" if protection and protection["last_error"] else "STALE_OR_UNKNOWN"
+        )
+        if not protection_ok:
+            output["worker_health"]["protection_degraded_strategies"] += 1
+            output["worker_health"]["all_protections_ok"] = False
         if pos:
-            protection_status = "UNKNOWN"
-            if protection and protection["last_success_at"] and not protection["last_error"]:
-                protection_status = "OK"
-            if protection_status != "OK":
+            if not protection_ok:
                 output["worker_health"]["protection_degraded_positions"] += 1
-                output["worker_health"]["all_protections_ok"] = False
+            
             mark_price = price if price is not None else float(pos["entry"])
             # Mark open positions at estimated net liquidation value, not gross market value.
             liquidation_value = (
@@ -727,10 +799,8 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
                         "unrealized_pnl":round(unrealized,4),"opened_at":pos["opened_at"],
                         "protection_status":protection_status,
                         "last_intrabar_success_at":protection["last_success_at"] if protection else None,
-                        "last_intrabar_error":protection["last_error"] if protection else None}
-        if protection and protection["last_error"]:
-            output["worker_health"]["protection_degraded_strategies"] += 1
-            output["worker_health"]["all_protections_ok"] = False
+                        "last_intrabar_error":protection["last_error"] if protection else None,
+                        "last_intrabar_age_seconds":round(protection_age_seconds, 1) if protection_age_seconds is not None else None}
         cash = float(a["cash"])
         equity = cash + liquidation_value
         output["accounts"].append({
@@ -754,6 +824,19 @@ def export_status(conn, worker_errors=0, successful_strategies=None):
             "last_price":price,"last_price_at":mark["updated_at"] if mark else None,
             "position":position
         })
+        mark_age = None
+        if mark:
+            try:
+                mark_stamp = datetime.fromisoformat(str(mark["updated_at"]).replace("Z", "+00:00"))
+                if mark_stamp.tzinfo is None:
+                    mark_stamp = mark_stamp.replace(tzinfo=timezone.utc)
+                mark_age = max(0.0, (datetime.now(timezone.utc) - mark_stamp).total_seconds())
+            except (TypeError, ValueError):
+                pass
+        output["market_data"]["marks"][a["strategy_id"]] = {
+            "updated_at": mark["updated_at"] if mark else None,
+            "age_seconds": round(mark_age, 1) if mark_age is not None else None,
+        }
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     STATUS_FILE.write_text(json.dumps(output, indent=2), encoding="utf-8")
 
