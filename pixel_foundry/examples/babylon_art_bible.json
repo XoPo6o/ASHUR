@@ -73,6 +73,11 @@
         "skin_shadow",
         "skin_mid",
         "sand_light"
+      ],
+      "bronze": [
+        "sand_shadow",
+        "bronze_mid",
+        "sand_light"
       ]
     }
   },
@@ -877,7 +882,8 @@
           "shade": "sand_shadow",
           "highlight": "sand_light",
           "side_color": "sand_shadow",
-          "top_color": "gold"
+          "top_color": "gold",
+          "material": "sandstone"
         }
       ]
     },
@@ -1279,7 +1285,8 @@
           "shade": "leaf_shadow",
           "highlight": "leaf_light",
           "seed": 9,
-          "clusters": 6
+          "clusters": 6,
+          "material": "foliage"
         },
         {
           "type": "palm_tree",
@@ -1290,7 +1297,8 @@
           "color": "leaf",
           "shade": "leaf_shadow",
           "highlight": "leaf_light",
-          "seed": 17
+          "seed": 17,
+          "material": "foliage"
         },
         {
           "type": "palm_tree",
@@ -1301,7 +1309,8 @@
           "color": "leaf",
           "shade": "leaf_shadow",
           "highlight": "leaf_light",
-          "seed": 23
+          "seed": 23,
+          "material": "foliage"
         }
       ]
     },
@@ -1328,7 +1337,8 @@
           "shade": "blue_stone",
           "highlight": "sand_shadow",
           "mortar": "dark",
-          "seed": 20261128
+          "seed": 20261128,
+          "material": "stone"
         },
         {
           "type": "polygon",
@@ -1440,7 +1450,8 @@
           "color": "water",
           "shade": "water_shadow",
           "highlight": "water_light",
-          "seed": 31
+          "seed": 31,
+          "material": "water"
         },
         {
           "type": "market_stall",
@@ -1481,7 +1492,8 @@
           "color": "stone",
           "shade": "stone_dark",
           "highlight": "sand_light",
-          "seed": 6
+          "seed": 6,
+          "material": "stone"
         },
         {
           "type": "market_props",
@@ -1507,9 +1519,46 @@
           "shade": "sand_shadow",
           "highlight": "sand_light",
           "detail": "stone",
-          "mid": "bronze_mid"
+          "mid": "bronze_mid",
+          "material": "bronze"
         }
       ]
     }
-  ]
+  ],
+  "planning": {
+    "composition": "single dominant ziggurat, traveler as secondary story focal point, Lamassu as foreground guardian",
+    "detail_tier": "hero",
+    "focal_contrast": 0.92,
+    "background_contrast": 0.38,
+    "depth_planes": [
+      "night_sky",
+      "distant_city",
+      "middle_city",
+      "temple_and_market",
+      "foreground_guardians"
+    ]
+  },
+  "materials": {
+    "sandstone": {
+      "ramp": "sandstone"
+    },
+    "gold": {
+      "ramp": "gold"
+    },
+    "stone": {
+      "ramp": "sky"
+    },
+    "bronze": {
+      "ramp": "bronze"
+    },
+    "foliage": {
+      "ramp": "foliage"
+    },
+    "water": {
+      "ramp": "water"
+    },
+    "skin": {
+      "ramp": "skin"
+    }
+  }
 }
