@@ -326,13 +326,6 @@ def expand_lamassu(op: dict) -> list[dict]:
         # not a blurred upscale or a blanket of random noise.
         if detail_scale >= 2:
             out.extend([
-                {"type": "line", "part": "micro-feather", "points": [[x+25*detail_scale+1,y+9*detail_scale+1],[x+21*detail_scale+1,y+14*detail_scale+1]], "color": highlight},
-                {"type": "line", "part": "micro-feather", "points": [[x+31*detail_scale+1,y+13*detail_scale+1],[x+27*detail_scale+1,y+18*detail_scale+1]], "color": detail},
-                {"type": "line", "part": "micro-feather", "points": [[x+36*detail_scale+1,y+17*detail_scale+1],[x+32*detail_scale+1,y+21*detail_scale+1]], "color": highlight},
-                {"type": "line", "part": "micro-feather", "points": [[x+15*detail_scale+1,y+18*detail_scale+1],[x+18*detail_scale+1,y+15*detail_scale+1]], "color": detail},
-                {"type": "line", "part": "micro-feather", "points": [[x+23*detail_scale+1,y+22*detail_scale+1],[x+26*detail_scale+1,y+19*detail_scale+1]], "color": highlight},
-                {"type": "line", "part": "micro-feather", "points": [[x+29*detail_scale+1,y+23*detail_scale+1],[x+33*detail_scale+1,y+20*detail_scale+1]], "color": detail},
-                {"type": "pixel", "part": "wing-quill-glint", "x": x+18*detail_scale+1, "y": y+17*detail_scale+1, "color": highlight},
                 {"type": "line", "part": "rib-highlight", "points": [[x+17*detail_scale+1,y+30*detail_scale+1],[x+20*detail_scale+1,y+31*detail_scale+1]], "color": highlight},
                 {"type": "line", "part": "rib-highlight", "points": [[x+26*detail_scale+1,y+31*detail_scale+1],[x+29*detail_scale+1,y+32*detail_scale+1]], "color": detail},
                 {"type": "line", "part": "neck-engraving", "points": [[x+40*detail_scale+1,y+24*detail_scale+1],[x+42*detail_scale+1,y+27*detail_scale+1]], "color": detail},
