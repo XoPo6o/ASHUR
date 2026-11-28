@@ -365,6 +365,71 @@ def expand_generator(op: dict) -> list[dict]:
                     "x": legs[0][-1][0]-1, "y": legs[0][-1][1],
                     "color": highlight})
 
+        # Final character pass: layered collar, shoulder construction, hand anatomy,
+        # and individually placed woven motifs. These are designed clusters, not noise.
+        collar_y = shoulder_y + 2
+        out.append({"type": "polygon", "part": "layered-collar-shadow", "points": [
+            [cx-w//5, collar_y], [cx, collar_y+3], [cx+w//5, collar_y],
+            [cx+w//7, collar_y+4], [cx, collar_y+5], [cx-w//7, collar_y+4]
+        ], "color": cloth_shadow})
+        out.append({"type": "line", "part": "collar-gold-piping", "points": [
+            [cx-w//6, collar_y+1], [cx, collar_y+4], [cx+w//6, collar_y+1]
+        ], "color": op.get("trim", highlight)})
+        out.append({"type": "pixel", "part": "collar-clasp", "x": cx,
+                    "y": collar_y+3, "color": op.get("clasp", highlight)})
+        out.append({"type": "line", "part": "shoulder-seam-left", "points": [
+            [cx-w//4, shoulder_y+2], [cx-w//3, shoulder_y+5],
+            [cx-w//3+1, waist_y-2]], "color": op.get("seam", cloth_shadow)})
+        out.append({"type": "line", "part": "shoulder-seam-right", "points": [
+            [cx+w//4, shoulder_y+2], [cx+w//3, shoulder_y+5],
+            [cx+w//3-1, waist_y-2]], "color": op.get("seam", cloth_shadow)})
+        # A narrow woven border follows the cloak edge, with deliberate broken stitches.
+        for stitch_index, stitch_y in enumerate(range(shoulder_y+7, hem_y-2, 4)):
+            stitch_x = cx+w//5 + (1 if stitch_index % 2 else 0)
+            out.append({"type": "pixel", "part": "cloak-woven-stitch",
+                        "x": stitch_x, "y": stitch_y,
+                        "color": op.get("trim", highlight)})
+            if stitch_index % 2 == 0:
+                out.append({"type": "pixel", "part": "cloak-woven-shadow",
+                            "x": stitch_x-1, "y": stitch_y+1,
+                            "color": cloth_shadow})
+        # Small asymmetric embroidery marks make the garment feel hand-finished.
+        for emblem_x, emblem_y, emblem_color in (
+            (cx-w//7, waist_y-3, op.get("trim", highlight)),
+            (cx+w//10, waist_y+5, cloth_light),
+            (cx-w//8, hem_y-4, cloth_shadow),
+        ):
+            out.append({"type": "pixel", "part": "tunic-embroidered-mark",
+                        "x": emblem_x, "y": emblem_y, "color": emblem_color})
+        out.append({"type": "line", "part": "sleeve-fold-left", "points": [
+            [x+2, shoulder_y+h//5], [x+4, shoulder_y+h//5+2],
+            [x+3, shoulder_y+h//4+1]], "color": cloth_shadow})
+        out.append({"type": "line", "part": "sleeve-fold-right", "points": [
+            [x+w-4, shoulder_y+h//5], [x+w-3, shoulder_y+h//5+2],
+            [x+w-5, shoulder_y+h//4+1]], "color": cloth_light})
+        # Hands receive a palm highlight and a separated thumb pixel at each wrist.
+        for hand_index, limb in enumerate(arms):
+            hand_x, hand_y = limb[-1]
+            hand_side = -1 if hand_index == 0 else 1
+            out.append({"type": "pixel", "part": "hand-palm-light",
+                        "x": hand_x, "y": hand_y-1, "color": face_light})
+            out.append({"type": "pixel", "part": "hand-thumb",
+                        "x": hand_x+hand_side, "y": hand_y,
+                        "color": op.get("skin", highlight)})
+            out.append({"type": "pixel", "part": "hand-shadow",
+                        "x": hand_x, "y": hand_y+1, "color": face_shadow})
+        # Individual boot lacing and leather panels clarify the feet at native scale.
+        for foot_index, leg in enumerate(legs):
+            foot_x, foot_y = leg[-1]
+            out.append({"type": "line", "part": "boot-vamp-seam", "points": [
+                [foot_x-1, foot_y], [foot_x+1, foot_y]
+            ], "color": cloth_light})
+            out.append({"type": "pixel", "part": "boot-lace",
+                        "x": foot_x, "y": foot_y-1,
+                        "color": op.get("trim", highlight)})
+            out.append({"type": "pixel", "part": "boot-heel-shadow",
+                        "x": foot_x-1, "y": foot_y+1, "color": cloth_shadow})
+
     elif kind == "palm_tree":
         trunk_w = max(2, int(op.get("trunk_w", max(2, w // 8))))
         crown_y = y + max(3, h // 3)
