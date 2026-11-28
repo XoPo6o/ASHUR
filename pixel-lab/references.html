@@ -103,8 +103,8 @@ async function loadUploadedReferences(){
  if(status){status.textContent=count?('В архиве найдено новых изображений: '+count):'Пока нет загруженных изображений. Нажми «Загрузить» выше, чтобы добавить первые референсы.';}
 }
 loadUploadedReferences();
-const buttons=[...document.querySelectorAll('.filter')],items=[...document.querySelectorAll('.item')],search=document.getElementById('search'),empty=document.getElementById('empty');let category='all';
-function apply(){const q=search.value.trim().toLowerCase();let visible=0;items.forEach(item=>{const cats=item.dataset.category.split(' '),okCat=category==='all'||cats.includes(category),okText=!q||(item.dataset.search+' '+item.innerText).toLowerCase().includes(q),show=okCat&&okText;item.style.display=show?'':'none';if(show)visible++});empty.style.display=visible?'none':'block'}
+const buttons=[...document.querySelectorAll('.filter')],search=document.getElementById('search'),empty=document.getElementById('empty');let category='all';
+function apply(){const q=search.value.trim().toLowerCase();let visible=0;document.querySelectorAll('.item').forEach(item=>{const cats=item.dataset.category.split(' '),okCat=category==='all'||cats.includes(category),okText=!q||(item.dataset.search+' '+item.innerText).toLowerCase().includes(q),show=okCat&&okText;item.style.display=show?'':'none';if(show)visible++});empty.style.display=visible?'none':'block'}
 buttons.forEach(b=>b.addEventListener('click',()=>{category=b.dataset.filter;buttons.forEach(x=>x.classList.toggle('active',x===b));apply()}));search.addEventListener('input',apply);
 const dialog=document.getElementById('lightbox'),lightboxImage=document.getElementById('lightbox-image'),caption=document.getElementById('lightbox-caption');
 document.querySelectorAll('.visual img').forEach(img=>img.addEventListener('click',()=>{lightboxImage.src=img.dataset.full||img.src;lightboxImage.alt=img.alt;caption.textContent=img.alt;dialog.showModal()}));
