@@ -293,6 +293,30 @@ def expand_generator(op: dict) -> list[dict]:
                 [[cx - 3, hem_y], [cx - 5, bottom - 3], [cx - 6, bottom]],
                 [[cx + 2, hem_y], [cx + 5, bottom - 3], [cx + 6, bottom]],
             ]
+        # Grounding pass: a broken-edged contact shadow sits beneath the boots,
+        # with a softer cast edge and tiny displaced grit on the stone.
+        left_foot = legs[0][-1]
+        right_foot = legs[1][-1]
+        shadow_y = max(left_foot[1], right_foot[1]) + 1
+        out.append({"type": "polygon", "part": "traveler-ground-shadow", "points": [
+            [left_foot[0]-3, shadow_y], [left_foot[0]-1, shadow_y-1],
+            [cx-2, shadow_y-2], [cx+4, shadow_y-1],
+            [right_foot[0]+3, shadow_y], [right_foot[0]+1, shadow_y+1],
+            [cx, shadow_y+1]
+        ], "color": op.get("ground_shadow", "#050A0E")})
+        out.append({"type": "line", "part": "boot-contact-shadow-left", "points": [
+            [left_foot[0]-2, left_foot[1]+2], [left_foot[0]+3, left_foot[1]+2]
+        ], "color": op.get("contact_shadow", "#050A0E")})
+        out.append({"type": "line", "part": "boot-contact-shadow-right", "points": [
+            [right_foot[0]-2, right_foot[1]+2], [right_foot[0]+3, right_foot[1]+2]
+        ], "color": op.get("contact_shadow", "#050A0E")})
+        out.append({"type": "pixel", "part": "ground-grit-left",
+                    "x": left_foot[0]-5, "y": shadow_y,
+                    "color": op.get("ground_grit", op.get("stone", "#365564"))})
+        out.append({"type": "pixel", "part": "ground-grit-right",
+                    "x": right_foot[0]+5, "y": shadow_y-1,
+                    "color": op.get("ground_grit", op.get("stone", "#365564"))})
+
         for limb in arms:
             out.append({"type": "polygon", "points": limb, "color": limb_color})
             out.append({"type": "line", "points": limb[:2], "color": highlight})
