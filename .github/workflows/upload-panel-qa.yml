@@ -1,0 +1,179 @@
+name: ASHUR Pixel Lab Upload Panel QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pixel-lab/upload.html'
+      - '.github/workflows/upload-panel-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ashur-upload-panel-qa
+  cancel-in-progress: true
+
+jobs:
+  browser-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start local test server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/ashur-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8765/pixel-lab/upload.html >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ashur-http.log
+          exit 1
+      - name: Exercise every panel action with mocked GitHub API
+        run: |
+          mkdir -p qa-artifacts
+          cat > upload-panel-qa.cjs <<'EOF'
+          const { chromium } = require('playwright');
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const cats = ['lamassu','babylon','interfaces','palette','ui','sprites','other'];
+          const files = new Map();
+          const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Xx8AAAAASUVORK5CYII=','base64');
+          const pathOf = name => 'pixel-lab/references/uploads/'+name;
+          function file(name, category, sha='sha-'+name) {
+            const path = pathOf(category+'/'+name);
+            return {name,path,sha,type:'file',download_url:'https://raw.githubusercontent.com/XoPo6o/ASHUR/main/'+path};
+          }
+          files.set(pathOf('lamassu/sample.png'),file('sample.png','lamassu'));
+          const browserErrors=[];
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+            const page=await context.newPage();
+            page.on('pageerror',e=>browserErrors.push(String(e)));
+            page.on('console',m=>{if(m.type()==='error')browserErrors.push('console: '+m.text())});
+            await page.route('https://api.github.com/**',async route=>{
+              const req=route.request(),url=new URL(req.url()),method=req.method();
+              const p=decodeURIComponent(url.pathname);
+              const json=(status,obj)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(obj)});
+              if(p==='/user'){
+                if(req.headers()['authorization']==='Bearer bad-token')return json(401,{message:'Bad credentials'});
+                return json(200,{login:'qa-user'});
+              }
+              const prefix='/repos/XoPo6o/ASHUR/contents/';
+              if(!p.startsWith(prefix))return json(404,{message:'Not found'});
+              const path=p.slice(prefix.length);
+              if(method==='GET' && cats.some(c=>path===pathOf(c))){
+                const category=path.split('/').at(-1);
+                return json(200,[...files.values()].filter(f=>f.path.startsWith(path+'/')));
+              }
+              if(method==='GET'){
+                const found=files.get(path);
+                return found?json(200,found):json(404,{message:'Not Found'});
+              }
+              if(method==='PUT'){
+                const body=req.postDataJSON(),name=path.split('/').at(-1),category=path.split('/').at(-2);
+                const f=file(name,category,'sha-'+name+'-'+Date.now());
+                files.set(path,f);
+                return json(201,{content:f,commit:{sha:'mock-commit'}});
+              }
+              if(method==='DELETE'){
+                const found=files.get(path);
+                if(!found)return json(404,{message:'Not Found'});
+                files.delete(path);
+                return json(200,{commit:{sha:'mock-delete'}});
+              }
+              return json(405,{message:'Method not allowed'});
+            });
+            await page.route('https://raw.githubusercontent.com/**',route=>route.fulfill({status:200,contentType:'image/png',body:png}));
+            await page.goto('http://127.0.0.1:8765/pixel-lab/upload.html');
+            await page.getByRole('button',{name:'ПОДКЛЮЧИТЬ'}).click();
+            await page.getByText('Вставь токен.').waitFor();
+            assert.equal(await page.locator('#manager').isVisible(),false,'empty token must not connect');
+
+            await page.locator('#token').fill('valid-test-token');
+            await page.getByRole('button',{name:'ПОДКЛЮЧИТЬ'}).click();
+            await page.locator('#manager').waitFor({state:'visible'});
+            await page.getByText('@qa-user · подключён').waitFor();
+            assert.equal(await page.evaluate(()=>localStorage.getItem('ashur_pixel_lab_token')),'valid-test-token','token persisted');
+            assert.equal(await page.locator('#items .item').count(),1,'archive renders initial image');
+
+            await page.reload();
+            await page.locator('#manager').waitFor({state:'visible'});
+            await page.getByText('@qa-user · подключён').waitFor();
+            assert.equal(await page.locator('#items .item').count(),1,'automatic reconnect and archive load after reload');
+
+            await page.locator('#search').fill('does-not-exist');
+            assert.equal(await page.locator('#items .item').count(),0,'search filters archive');
+            await page.locator('#search').fill('sample');
+            assert.equal(await page.locator('#items .item').count(),1,'search restores matching item');
+
+            await page.locator('.item .btn').filter({hasText:'ИЗМЕНИТЬ'}).click();
+            assert.equal(await page.locator('#editmodal').evaluate(e=>e.classList.contains('open')),true,'edit dialog opens');
+            await page.locator('#editname').fill('sample-renamed');
+            await page.locator('#editcat').selectOption('babylon');
+            await page.keyboard.press('Escape');
+            assert.equal(await page.locator('#editmodal').evaluate(e=>e.classList.contains('open')),false,'Escape closes dialog');
+            await page.locator('.item .btn').filter({hasText:'ИЗМЕНИТЬ'}).click();
+            await page.locator('#editname').fill('sample-renamed');
+            await page.locator('#editcat').selectOption('babylon');
+            await page.getByRole('button',{name:'СОХРАНИТЬ'}).click();
+            await page.getByText('Изменено: sample-renamed.png').waitFor();
+            assert.equal(files.has(pathOf('lamassu/sample.png')),false,'rename/move removes old path');
+            assert.equal(files.has(pathOf('babylon/sample-renamed.png')),true,'rename/move creates destination');
+
+            await page.locator('#newcat').selectOption('sprites');
+            await page.locator('#files').setInputFiles({name:'qa-upload.png',mimeType:'image/png',buffer:png});
+            await page.getByRole('button',{name:'ЗАГРУЗИТЬ ФАЙЛЫ'}).click();
+            await page.getByText(/Загружено: 1/).waitFor();
+            assert.equal(files.has(pathOf('sprites/qa-upload.png')),true,'upload creates file');
+
+            await page.locator('#files').setInputFiles({name:'qa-upload.png',mimeType:'image/png',buffer:png});
+            await page.getByRole('button',{name:'ЗАГРУЗИТЬ ФАЙЛЫ'}).click();
+            await page.getByText(/пропущено: 1/).waitFor();
+            assert.equal([...files.keys()].filter(x=>x===pathOf('sprites/qa-upload.png')).length,1,'duplicate upload is blocked');
+
+            page.once('dialog',d=>d.dismiss());
+            await page.locator('.item').filter({hasText:'qa-upload.png'}).getByRole('button',{name:'УДАЛИТЬ'}).click();
+            assert.equal(files.has(pathOf('sprites/qa-upload.png')),true,'cancel delete preserves file');
+            page.once('dialog',d=>d.accept());
+            await page.locator('.item').filter({hasText:'qa-upload.png'}).getByRole('button',{name:'УДАЛИТЬ'}).click();
+            await page.getByText('Удалено: qa-upload.png').waitFor();
+            assert.equal(files.has(pathOf('sprites/qa-upload.png')),false,'confirm delete removes file');
+
+            await page.getByRole('button',{name:'ОТКЛЮЧИТЬСЯ'}).click();
+            assert.equal(await page.evaluate(()=>localStorage.getItem('ashur_pixel_lab_token')),null,'logout clears persisted token');
+            assert.equal(await page.locator('#manager').isVisible(),false,'logout hides manager');
+            await page.locator('#token').fill('bad-token');
+            await page.getByRole('button',{name:'ПОДКЛЮЧИТЬ'}).click();
+            await page.getByText('Токен неверный или отозван.').waitFor();
+            assert.equal(await page.locator('#manager').isVisible(),false,'invalid token is rejected');
+
+            assert.deepEqual(browserErrors,[],'no JavaScript errors or console errors');
+            await page.screenshot({path:'qa-artifacts/upload-panel-mobile.png',fullPage:true});
+            fs.writeFileSync('qa-artifacts/results.json',JSON.stringify({
+              passed:['empty token validation','valid token authentication','token persistence','automatic reconnect after reload','archive listing','search filtering','edit dialog open','Escape closes edit dialog','rename and category move','image upload','duplicate upload protection','cancel delete','confirm delete','logout and token clearing','invalid token rejection','no browser console/page errors'],
+              failures:[],browserErrors
+            },null,2));
+            console.log('PASS: 16 browser regression checks');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          EOF
+          node upload-panel-qa.cjs
+      - name: Upload QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashur-pixel-lab-upload-panel-qa
+          path: qa-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
