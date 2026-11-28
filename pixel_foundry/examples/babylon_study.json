@@ -304,12 +304,148 @@
       "name": "foreground market",
       "ops": [
         {
-          "type": "rect",
-          "x": 0,
-          "y": 76,
-          "w": 160,
-          "h": 14,
-          "color": "dark"
+          "type": "line",
+          "part": "market-ground-edge-shadow",
+          "points": [
+            [
+              0,
+              82
+            ],
+            [
+              159,
+              82
+            ]
+          ],
+          "color": "#171827"
+        },
+        {
+          "type": "polygon",
+          "part": "left-stall-cast-shadow",
+          "points": [
+            [
+              1,
+              81
+            ],
+            [
+              44,
+              81
+            ],
+            [
+              50,
+              85
+            ],
+            [
+              4,
+              85
+            ]
+          ],
+          "color": "#171827"
+        },
+        {
+          "type": "polygon",
+          "part": "right-stall-cast-shadow",
+          "points": [
+            [
+              116,
+              81
+            ],
+            [
+              159,
+              81
+            ],
+            [
+              156,
+              85
+            ],
+            [
+              111,
+              85
+            ]
+          ],
+          "color": "#171827"
+        },
+        {
+          "type": "line",
+          "part": "lantern-paving-reflection",
+          "points": [
+            [
+              53,
+              84
+            ],
+            [
+              56,
+              84
+            ],
+            [
+              58,
+              85
+            ],
+            [
+              61,
+              85
+            ]
+          ],
+          "color": "#A66B3D"
+        },
+        {
+          "type": "line",
+          "part": "lantern-paving-glint",
+          "points": [
+            [
+              55,
+              86
+            ],
+            [
+              57,
+              86
+            ]
+          ],
+          "color": "#E8B65A"
+        },
+        {
+          "type": "line",
+          "part": "lantern-paving-reflection",
+          "points": [
+            [
+              98,
+              83
+            ],
+            [
+              101,
+              83
+            ],
+            [
+              103,
+              84
+            ]
+          ],
+          "color": "#A66B3D"
+        },
+        {
+          "type": "pixel",
+          "part": "lantern-paving-glint",
+          "x": 100,
+          "y": 86,
+          "color": "#E8B65A"
+        },
+        {
+          "type": "line",
+          "part": "stone-edge-cool-glint",
+          "points": [
+            [
+              72,
+              88
+            ],
+            [
+              75,
+              88
+            ],
+            [
+              77,
+              87
+            ]
+          ],
+          "color": "#5D9A91"
         },
         {
           "type": "polygon",
